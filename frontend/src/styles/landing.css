@@ -1,0 +1,646 @@
+/* ============================================================
+   DESIGN TOKENS
+   These are like "variables" — define a color once here,
+   use it everywhere. If you want to change the accent color
+   you only change it in one place and it updates everywhere.
+   ============================================================ */
+:root {
+  --ink: #1a0a0a;              /* Near-black with a warm red tint — used for text */
+  --ink-light: #3d1f1f;        /* Slightly lighter dark red — used for subheadings */
+  --surface: #ffffff;          /* Pure white background */
+  --surface-muted: #fff5f5;    /* Very soft rose-tinted white — used for alternate sections */
+  --surface-card: #fffafa;     /* Off-white with a hint of rose — card backgrounds */
+  --accent: #c0152a;           /* Deep crimson red — the main brand color */
+  --accent-glow: #e0253f;      /* Slightly brighter red — used for glows/gradients */
+  --accent-soft: #ffe4e6;      /* Very light rose — used for badge backgrounds, soft fills */
+  --accent-2: #f97316;         /* Warm orange — used as a secondary pop of color */
+  --text-muted: #7a4a4a;       /* Muted rose-brown — used for descriptions, captions */
+  --border: rgba(192, 21, 42, 0.12); /* Very transparent red border */
+  --shadow-card: 0 2px 20px rgba(192,21,42,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-hover: 0 12px 40px rgba(192,21,42,0.18), 0 4px 12px rgba(0,0,0,0.06);
+  --radius: 18px;              /* How rounded big cards are */
+  --radius-sm: 10px;           /* How rounded small elements are */
+  --radius-pill: 100px;        /* Fully rounded — used for buttons and badges */
+}
+
+/* ============================================================
+   RESET & BASE STYLES
+   Browsers add their own default styles (margins, paddings).
+   This block removes all of those so we start from a clean slate.
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box; /* Makes width/height include padding, not add to it */
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth; /* When you click a link that jumps to a section, it glides instead of snapping */
+}
+
+body {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif; /* The font used everywhere */
+  background: var(--surface);  /* White background */
+  color: var(--ink);           /* Dark text by default */
+  -webkit-font-smoothing: antialiased; /* Makes fonts look crisper on Mac/iOS */
+}
+
+/* ============================================================
+   SCROLL SNAP CONTAINER
+   This makes the page scroll section by section, like a
+   full-screen slideshow. Each section is exactly one screen tall.
+   ============================================================ */
+.scroll-container {
+  height: 100vh;              /* 100vh = full viewport height = full screen height */
+  overflow-y: scroll;         /* Allow vertical scrolling */
+  scroll-snap-type: y mandatory; /* SNAP to sections vertically, no stopping in between */
+  scroll-behavior: smooth;
+  /* Extra padding so that when you snap to a section, there's
+     a little breathing room at the top before the content starts */
+  scroll-padding-top: 0;
+}
+
+/* Thin custom scrollbar styling (only works in Chrome/Edge) */
+.scroll-container::-webkit-scrollbar { width: 4px; }
+.scroll-container::-webkit-scrollbar-track { background: transparent; }
+.scroll-container::-webkit-scrollbar-thumb {
+  background: var(--accent-soft);
+  border-radius: 4px;
+}
+
+/* ============================================================
+   FULL SECTIONS
+   Each section is exactly one screen tall (100vh).
+   scroll-snap-align: start means the TOP of each section
+   aligns to the top of the viewport when snapped.
+
+   The padding-top: 80px creates breathing room below the fixed
+   navbar (which is 80px tall) so content doesn't hide behind it.
+   ============================================================ */
+.full-section {
+  height: 100vh;
+  scroll-snap-align: start;   /* Snap this section's top edge to the top of the screen */
+  display: flex;
+  align-items: center;        /* Center content vertically */
+  justify-content: center;    /* Center content horizontally */
+  position: relative;
+  overflow: hidden;
+  /* This is the fix you asked for — adds space at top so content
+     doesn't feel crammed against the previous section */
+  padding-top: 80px;
+}
+
+/* ============================================================
+   NAVIGATION BAR
+   Fixed means it stays at the top even when you scroll.
+   backdrop-filter: blur() creates the frosted-glass effect.
+   ============================================================ */
+.landing-nav {
+  position: fixed;     /* Stays in place while page scrolls */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;        /* Sits on top of everything else */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 48px;
+  background: rgba(255, 255, 255, 0.85); /* Slightly transparent white */
+  backdrop-filter: blur(16px);           /* Blurs whatever is behind the nav */
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em; /* Slightly tighter letters — looks more modern */
+  color: var(--ink);
+}
+
+/* The colored part of the logo (the "ili" in Marketili) */
+.nav-logo span { color: var(--accent); }
+
+.nav-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Ghost/text nav button */
+.nav-link-btn {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  transition: color 0.2s, background 0.2s; /* Smooth color change on hover */
+}
+.nav-link-btn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* Filled CTA button in nav */
+.nav-cta-btn {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+  padding: 9px 22px;
+  border-radius: var(--radius-pill);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.nav-cta-btn:hover {
+  box-shadow: 0 4px 20px rgba(192,21,42,0.4);
+  transform: translateY(-1px); /* Lifts slightly on hover */
+}
+
+/* ============================================================
+   HERO SECTION — First screen users see
+   ============================================================ */
+.hero-section {
+  background: var(--surface);
+  text-align: center;
+  flex-direction: column; /* Stack children vertically */
+  gap: 0;
+}
+
+/* The blurry gradient blobs in the background.
+   ::before and ::after are fake elements we create with CSS
+   — no extra HTML needed. */
+.hero-bg-blob {
+  position: absolute;
+  inset: 0; /* Shorthand for top:0; right:0; bottom:0; left:0 */
+  pointer-events: none; /* Clicks pass through — it's just decoration */
+  overflow: hidden;
+}
+
+.hero-bg-blob::before {
+  content: '';        /* Required for pseudo-elements to appear */
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(192,21,42,0.07) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%); /* Center it, then shift up a bit */
+  border-radius: 50%;
+}
+
+.hero-bg-blob::after {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%);
+  bottom: 10%;
+  right: 10%;
+  border-radius: 50%;
+}
+
+/* The actual hero text/button container */
+.hero-content {
+  position: relative;
+  z-index: 1;          /* Sits above the background blobs */
+  max-width: 760px;
+  padding: 0 24px;
+}
+
+/* The little pill-shaped "Now live" badge */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 28px;
+  letter-spacing: 0.02em;
+}
+
+/* The pulsing green dot inside the badge */
+.hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-2); /* Orange dot */
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite; /* Loops forever */
+}
+
+/* @keyframes defines what the animation DOES step by step.
+   This one makes the dot gently fade and shrink. */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }    /* Start & end: fully visible */
+  50%       { opacity: 0.5; transform: scale(0.8); } /* Middle: half visible, a bit smaller */
+}
+
+/* clamp(min, preferred, max) — responsive font size.
+   Never smaller than 2.4rem, ideally 5% of viewport width, never bigger than 3.8rem */
+.hero-title {
+  font-size: clamp(2.4rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  margin-bottom: 22px;
+}
+
+.hero-title-accent { color: var(--accent); } /* The red part of the title */
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  line-height: 1.7;       /* 1.7 = 170% of font size — generous line spacing for readability */
+  max-width: 560px;
+  margin: 0 auto 40px;   /* auto left/right = horizontal center */
+}
+
+/* Wraps the two buttons side by side */
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap; /* On small screens, buttons stack vertically */
+}
+
+/* Solid filled button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 14px 32px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.25s, transform 0.25s;
+  letter-spacing: -0.01em;
+  font-family: inherit; /* Buttons don't inherit font by default — this fixes that */
+}
+.btn-primary:hover {
+  box-shadow: 0 8px 32px rgba(192,21,42,0.35);
+  transform: translateY(-2px);
+}
+
+/* Outlined/ghost button */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 14px 32px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-family: inherit;
+}
+.btn-secondary:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* The "2,400+ professionals" row under the buttons */
+.hero-social-proof {
+  margin-top: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.social-proof-avatars { display: flex; }
+
+/* Each circular avatar chip */
+.avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-left: -8px;        /* Negative margin makes them overlap */
+  background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+}
+.avatar-placeholder:first-child { margin-left: 0; } /* No overlap for first one */
+
+.social-proof-text { font-size: 0.85rem; color: var(--text-muted); }
+.social-proof-text strong { color: var(--ink); }
+
+/* ============================================================
+   HOW IT WORKS SECTION
+   ============================================================ */
+.how-section {
+  background: var(--surface-muted); /* Light rose-tinted background */
+  flex-direction: column;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+/* The tiny all-caps label above section titles like "HOW IT WORKS" */
+.section-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+.section-subtitle {
+  margin-top: 12px;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* 3-column grid for the step cards */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+  gap: 24px;
+  max-width: 860px;
+  width: 100%;
+  padding: 0 24px;
+}
+
+.step-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  position: relative;
+  transition: box-shadow 0.25s, transform 0.25s;
+}
+.step-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px); /* Lifts up on hover */
+}
+
+.step-number {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+/* Emoji icon container */
+.step-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 18px;
+}
+
+.step-title { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.step-desc  { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
+
+/* ============================================================
+   ROLE SELECTION SECTION
+   ============================================================ */
+.role-section {
+  background: var(--surface);
+  flex-direction: column;
+}
+
+/* 2-column grid for the 4 role cards */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  max-width: 720px;
+  width: 100%;
+  padding: 0 24px;
+}
+
+.role-card {
+  background: var(--surface-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  cursor: pointer;
+  /* cubic-bezier is a custom easing curve — makes the animation feel physical */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* An invisible overlay that reveals a subtle gradient on hover */
+.role-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent), #c0392b);
+  opacity: 0;              /* Hidden by default */
+  transition: opacity 0.3s;
+  border-radius: inherit;  /* Match the card's rounded corners */
+}
+
+.role-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+.role-card:hover::after { opacity: 0.04; } /* Very faint red wash on hover */
+
+.role-card-icon { font-size: 1.8rem; }
+
+.role-card-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.role-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* The "Get started →" text that slides in on hover */
+.role-card-arrow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 6px;
+  opacity: 0;                      /* Invisible by default */
+  transform: translateX(-6px);     /* Shifted left */
+  transition: opacity 0.2s, transform 0.2s;
+}
+/* When the card is hovered, make the arrow appear and slide in */
+.role-card:hover .role-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ============================================================
+   CTA SECTION — Last full-screen section, dark background
+   ============================================================ */
+.cta-section {
+  background: var(--ink);     /* Dark near-black background */
+  flex-direction: column;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Glowing gradient blobs behind the CTA text */
+.cta-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 50%, rgba(90, 10, 20, 0.3) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 50%, rgba(214, 97, 14, 0.15) 0%, transparent 60%);
+}
+
+.cta-content {
+  position: relative;
+  z-index: 1; /* Above the glowing background */
+  padding: 0 24px;
+}
+
+.cta-title {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: 18px;
+}
+
+.cta-subtitle {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.55); /* White at 55% opacity */
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto 40px;
+}
+
+/* White button on the dark CTA section */
+.btn-cta-white {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 15px 36px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.25s, transform 0.25s;
+  font-family: inherit;
+}
+.btn-cta-white:hover {
+  box-shadow: 0 8px 40px rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.cta-note {
+  margin-top: 18px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ============================================================
+   SCROLL INDICATOR — The bouncing mouse icon at the bottom of hero
+   ============================================================ */
+.scroll-indicator {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%); /* Center horizontally */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.4; /* Subtle — doesn't distract */
+}
+
+.scroll-indicator span {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* The little mouse outline shape */
+.scroll-mouse {
+  width: 22px;
+  height: 34px;
+  border: 2px solid var(--text-muted);
+  border-radius: 11px;
+  position: relative;
+}
+
+/* The tiny scroll wheel dot inside the mouse */
+.scroll-mouse::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 6px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scroll-bob 2s ease infinite;
+}
+
+/* Makes the wheel dot bounce up and down and fade out */
+@keyframes scroll-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0);  opacity: 1; }
+  60%       { transform: translateX(-50%) translateY(8px); opacity: 0; }
+}
