@@ -7,13 +7,15 @@ import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
 import "../../styles/auth.css";
 
-const ROLE_LABELS = {
-  client:        "Client",
-  agency:        "Agence",
-  agency_member: "Membre d'agence",
-  team:          "Équipe",
-  team_member:   "Membre d'équipe",
-  freelancer:    "Freelancer / Influenceur",
+// Role → dashboard path mapping (used after login to redirect correctly)
+const ROLE_PATHS = {
+  client:        "/dashboard/client",
+  agency:        "/dashboard/agency",
+  agency_member: "/dashboard/agency",
+  team:          "/dashboard/team",
+  team_member:   "/dashboard/team",
+  freelancer:    "/dashboard/freelancer",
+  admin:         "/admin",
 };
 
 const Login = () => {
@@ -22,7 +24,8 @@ const Login = () => {
   const { login } = useAuth();
   const from = location.state?.from?.pathname;
 
-  const [form,    setForm]    = useState({ email: "", password: "", role: "client" });
+  // ✅ removed role from form — backend auto-detects it
+  const [form,    setForm]    = useState({ email: "", password: "" });
   const [error,   setError]   = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -35,9 +38,21 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const data = await authService.login(form.email, form.password, form.role);
-      login(data.user, form.role, data.token);
-      navigate(from || `/dashboard/${form.role}`, { replace: true });
+      // ✅ no role passed — backend searches all collections
+      const data = await authService.login(form.email, form.password);
+
+      // role comes back from the server in data.user.role
+      const resolvedRole = data.user?.role || "client";
+
+      login(data.user, resolvedRole, data.token);
+
+      // ✅ FIX: Admin should ALWAYS go to /admin (ignore "from")
+      const destination =
+        resolvedRole === "admin"
+          ? "/admin"
+          : from || ROLE_PATHS[resolvedRole] || "/dashboard/client";
+
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Email ou mot de passe incorrect");
     } finally {
@@ -64,27 +79,41 @@ const Login = () => {
               <p className="auth-form-sub">Accédez à votre tableau de bord</p>
             </div>
 
+            {/* ✅ role selector removed — just email + password */}
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">
-                <label className="form-label">Vous êtes</label>
-                <select className="form-input form-select" name="role" value={form.role} onChange={handleChange}>
-                  {Object.entries(ROLE_LABELS).map(([v, l]) => (
-                    <option key={v} value={v}>{l}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
                 <label className="form-label">Adresse email</label>
-                <input className="form-input" type="email" name="email" required
-                  placeholder="vous@exemple.com" value={form.email} onChange={handleChange} />
+                <input
+                  className="form-input"
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="vous@exemple.com"
+                  value={form.email}
+                  onChange={handleChange}
+                />
               </div>
+
               <div className="form-group">
                 <label className="form-label">Mot de passe</label>
-                <input className="form-input" type="password" name="password" required
-                  placeholder="Votre mot de passe" value={form.password} onChange={handleChange} />
+                <input
+                  className="form-input"
+                  type="password"
+                  name="password"
+                  required
+                  placeholder="Votre mot de passe"
+                  value={form.password}
+                  onChange={handleChange}
+                />
               </div>
+
               {error && <div className="form-error">{error}</div>}
-              <button type="submit" className="auth-submit-btn" disabled={loading}>
+
+              <button
+                type="submit"
+                className="auth-submit-btn"
+                disabled={loading}
+              >
                 {loading ? "Connexion..." : "Se connecter →"}
               </button>
             </form>

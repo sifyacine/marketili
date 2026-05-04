@@ -7,6 +7,8 @@ const { connectDB } = require("./config/db");
 connectDB();
 
 const app = express();
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
 app.use(cors({
   origin: ["http://localhost:3000", "http://localhost:3001"],
@@ -16,23 +18,23 @@ app.use(cors({
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// ── Routes ──
-app.use("/api/auth",          require("./routes/authRoutes"));
-app.use("/api/posts",         require("./routes/postRoutes"));
-app.use("/api/upload",        require("./routes/uploadRoutes"));
-app.use("/api/notifications", require("./routes/notificationRoutes"));
+app.use("/api/auth",           require("./routes/authRoutes"));
+app.use("/api/posts",          require("./routes/postRoutes"));
+app.use("/api/upload",         require("./routes/uploadRoutes"));
+app.use("/api/pitches",        require("./routes/pitchRoutes"));
+app.use("/api/projects",       require("./routes/projectRoutes"));
+app.use("/api/admin",          require("./routes/adminRoutes"));
+app.use("/api/agency-members", require("./routes/agencyMemberRoutes"));
+// ✅ /api/notifications removed — not built yet, was crashing server
 
-// ── Health check ──
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Marketili API is running", timestamp: new Date().toISOString() });
 });
 
-// ── 404 ──
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route ${req.originalUrl} introuvable` });
 });
 
-// ── Global error handler ──
 app.use((err, req, res, next) => {
   console.error("Global error:", err);
   res.status(err.statusCode || 500).json({

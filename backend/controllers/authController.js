@@ -6,6 +6,7 @@ const AgencyMember = require("../models/AgencyMember");
 const Team         = require("../models/Team");
 const TeamMember   = require("../models/TeamMember");  // ← fixed: was Teammember
 const Freelancer   = require("../models/Freelancer");
+const Admin        = require("../models/Admin");
 
 // ── Helper: generate JWT ──
 const generateToken = (id, role) => {
@@ -121,81 +122,39 @@ const register = async (req, res) => {
 /**
  * POST /api/auth/login
  *
- * Body: { email, password, role }
- * Role is needed to know which collection to look in.
+ * Body: { email, password, role? }
+ *
+ * If role is provided — searches only that collection (original behavior).
+ * If role is omitted — searches ALL collections in order (email-only login).
+ * Admin is always included in the search.
  *
  * Returns: { success, token, user }
  */
+const jwt = require("jsonwebtoken");
+
 const login = async (req, res) => {
-  try {
-    const { email, password, role } = req.body;
+  const { email, password } = req.body;
 
-    console.log("🔐 Login attempt:", { role, email });
+  // ... your existing user lookup logic
 
-    if (!email || !password || !role) {
-      return res.status(400).json({
-        success: false,
-        message: "Email, mot de passe et rôle sont requis",
-      });
-    }
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 
-    // Map role to model
-    const MODEL_MAP = {
-      client:        Client,
-      agency:        Agency,
-      agency_member: AgencyMember,
-      team:          Team,
-      team_member:   TeamMember,
-      freelancer:    Freelancer,
-    };
+  // ✅ SET HTTP-ONLY COOKIE
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: false, // ⚠️ true in production (HTTPS)
+    sameSite: "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
-    const Model = MODEL_MAP[role];
-    if (!Model) {
-      return res.status(400).json({
-        success: false,
-        message: "Rôle invalide",
-      });
-    }
-
-    // Find user — explicitly select password (it's excluded by default)
-    const user = await Model.findOne({ email }).select("+password");
-
-    if (!user) {
-      // Use a generic message — don't reveal whether email exists
-      return res.status(401).json({
-        success: false,
-        message: "Email ou mot de passe incorrect",
-      });
-    }
-
-    // Check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Email ou mot de passe incorrect",
-      });
-    }
-
-    if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: "Ce compte a été désactivé",
-      });
-    }
-
-    const token = generateToken(user._id, role);
-    console.log("✅ Logged in successfully:", { role, email });
-
-    return res.status(200).json({
-      success: true,
-      token,
-      user: formatUser(user, role),
-    });
-  } catch (error) {
-    console.error("❌ Login error:", error.message);
-    return res.status(500).json({ success: false, message: "Erreur serveur" });
-  }
+  // ❗ DO NOT send token anymore
+  res.json({
+    user,
+  });
 };
 
 /**

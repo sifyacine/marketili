@@ -1,16 +1,14 @@
 const jwt = require("jsonwebtoken");
-
-// Import all user models so we can fetch the actual user after verifying the token
 const Client       = require("../models/Client");
 const Agency       = require("../models/Agency");
 const AgencyMember = require("../models/AgencyMember");
 const Team         = require("../models/Team");
 const TeamMember   = require("../models/TeamMember");
 const Freelancer   = require("../models/Freelancer");
+const Admin        = require("../models/Admin");
 
 /**
  * Map role strings to their Mongoose models.
- * When the JWT says role: "agency", we know to look in the Agency collection.
  */
 const MODEL_MAP = {
   client:        Client,
@@ -19,38 +17,28 @@ const MODEL_MAP = {
   team:          Team,
   team_member:   TeamMember,
   freelancer:    Freelancer,
+  admin:         Admin,
 };
 
 /**
- * protect — verifies the JWT and attaches the user to req.user
- *
- * Every protected route uses this as middleware:
- *   router.get("/my-posts", protect, myPostsController)
- *
- * The token is expected in the Authorization header:
- *   Authorization: Bearer <token>
+ * protect — verifies JWT from HTTP-only cookie
  */
 const protect = async (req, res, next) => {
   try {
-    // 1. Extract token from header
-    const authHeader = req.headers.authorization;
+    // ✅ FIX: read token from cookies instead of header
+    const token = req.cookies?.token;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: "Non autorisé — token manquant",
       });
     }
 
-    const token = authHeader.split(" ")[1];
-    // "Bearer eyJhbGci..." → ["Bearer", "eyJhbGci..."] → take index 1
-
-    // 2. Verify the token
-    // jwt.verify throws an error if the token is expired or tampered with
+    // 2. Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // decoded = { id: "abc123", role: "client", iat: 1234567890, exp: 1234567890 }
 
-    // 3. Find the user in the correct collection
+    // 3. Find correct model
     const Model = MODEL_MAP[decoded.role];
     if (!Model) {
       return res.status(401).json({
@@ -74,11 +62,10 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // 4. Attach user to request for downstream controllers
     req.user = user;
     req.userRole = decoded.role;
 
-    next(); // Continue to the actual route handler
+    next();
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({ success: false, message: "Token invalide" });
@@ -91,14 +78,7 @@ const protect = async (req, res, next) => {
 };
 
 /**
- * authorize(...roles) — checks that the authenticated user has one of the allowed roles
- *
- * Usage:
- *   router.post("/create-post", protect, authorize("client"), createPost)
- *   router.post("/send-pitch", protect, authorize("agency", "team", "freelancer"), sendPitch)
- *
- * This is a "middleware factory" — it returns a middleware function.
- * authorize("agency") returns: (req, res, next) => { ... }
+ * authorize — unchanged
  */
 const authorize = (...roles) => {
   return (req, res, next) => {
@@ -113,24 +93,21 @@ const authorize = (...roles) => {
 };
 
 /**
- * optionalAuth — like protect but doesn't fail if no token.
- * Used for public routes where we want to know if the user is logged in
- * but don't require it (e.g. browsing open posts).
+ * optionalAuth — now also uses cookies
  */
 const optionalAuth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const token = req.cookies?.token;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
       req.user = null;
       req.userRole = null;
       return next();
     }
 
-    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
     const Model = MODEL_MAP[decoded.role];
+
     if (Model) {
       req.user = await Model.findById(decoded.id);
       req.userRole = decoded.role;
@@ -138,11 +115,23 @@ const optionalAuth = async (req, res, next) => {
 
     next();
   } catch {
-    // Token invalid or expired — treat as unauthenticated
     req.user = null;
     req.userRole = null;
     next();
   }
 };
 
-module.exports = { protect, authorize, optionalAuth };
+/**
+ * adminOnly — unchanged
+ */
+const adminOnly = (req, res, next) => {
+  if (!req.user || req.userRole !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Accès refusé — administrateurs uniquement",
+    });
+  }
+  next();
+};
+
+module.exports = { protect, authorize, optionalAuth, adminOnly };

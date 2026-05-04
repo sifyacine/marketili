@@ -3,16 +3,9 @@ const bcrypt = require("bcryptjs");
 
 /**
  * AGENCY MODEL
- *
- * An agency is a registered business that:
- * - browses and responds to client posts with structured pitches
- * - manages internal team members (sub-accounts)
- * - can hire freelancers on the platform
- * - has a shared internal workspace
  */
 const agencySchema = new mongoose.Schema(
   {
-    // ── Agency identity ──
     agencyName: {
       type: String,
       required: [true, "Agency name is required"],
@@ -77,7 +70,6 @@ const agencySchema = new mongoose.Schema(
     specialties: [
       {
         type: String,
-        // e.g. ["Social Media", "SEO", "Content Creation", "Paid Ads"]
       },
     ],
     portfolioItems: [
@@ -91,7 +83,6 @@ const agencySchema = new mongoose.Schema(
     ],
 
     // ── Internal members ──
-    // These are AgencyMember sub-accounts created by the agency director.
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -113,7 +104,6 @@ const agencySchema = new mongoose.Schema(
       },
     ],
 
-    // ── Role ──
     role: {
       type: String,
       default: "agency",
@@ -128,13 +118,19 @@ const agencySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-agencySchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+//
+// ✅ FIXED MIDDLEWARE (NO next)
+//
+agencySchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
+//
+// Compare password
+//
 agencySchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

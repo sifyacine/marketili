@@ -105,6 +105,10 @@ const projectSchema = new mongoose.Schema(
     completedAt: Date,
 
     // ── Status ──
+    progress: {
+  type: Number,
+  default: 0
+ },
     projectStatus: {
       type: String,
       enum: ["pending", "active", "in_review", "completed", "cancelled"],

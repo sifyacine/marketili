@@ -1,13 +1,13 @@
 // frontend/src/pages/dashboard/ClientDashboard.jsx
-
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import DashboardLayout from "../../components/layout/DashboardLayout";
-import CreatePostModal from "../../components/posts/CreatePostModal";
-import PostsDataGrid   from "../../components/posts/PostsDataGrid";
-import { useMyPosts }  from "../../hooks/usePosts";
-import useAuth         from "../../hooks/useAuth";
+import DashboardLayout   from "../../components/layout/DashboardLayout";
+import CreatePostModal   from "../../components/posts/CreatePostModal";
+import PostsDataGrid     from "../../components/posts/PostsDataGrid";
+import OffresRecues      from "../../components/pitches/OffresRecues";
+import { useMyPosts }    from "../../hooks/usePosts";
+import useAuth           from "../../hooks/useAuth";
 import "../../styles/Dashboard.css";
 
 const ClientDashboard = () => {
@@ -27,11 +27,15 @@ const ClientDashboard = () => {
     <>
       <DashboardLayout role="client" user={user} navItems={NAV} topbarTitle="Tableau de bord">
         <Routes>
-          <Route index element={<ClientOverview user={user} onCreatePost={() => setShowCreateModal(true)} postCreated={postCreated} />} />
-          <Route path="posts"          element={<ClientPosts          user={user} onCreatePost={() => setShowCreateModal(true)} refetchKey={postCreated} />} />
-          <Route path="pitches"        element={<ClientPitches        user={user} />} />
-          <Route path="projects"       element={<ClientProjects       user={user} />} />
-          <Route path="collaborations" element={<ClientCollaborations user={user} />} />
+          <Route index element={
+            <ClientOverview user={user} onCreatePost={() => setShowCreateModal(true)} postCreated={postCreated} />
+          } />
+          <Route path="posts" element={
+            <ClientPosts user={user} onCreatePost={() => setShowCreateModal(true)} refetchKey={postCreated} />
+          } />
+          <Route path="pitches"        element={<OffresRecues         user={user} />} />
+          <Route path="projects"       element={<ClientProjects        user={user} />} />
+          <Route path="collaborations" element={<ClientCollaborations  user={user} />} />
           <Route path="*"              element={<Navigate to="/dashboard/client" replace />} />
         </Routes>
       </DashboardLayout>
@@ -49,10 +53,7 @@ const ClientDashboard = () => {
   );
 };
 
-// ══════════════════════════════════════════════════════════
-// OVERVIEW
-// ══════════════════════════════════════════════════════════
-const ClientOverview = ({ user, onCreatePost, postCreated }) => {
+const ClientOverview = ({ user, onCreatePost }) => {
   const { posts, loading } = useMyPosts(user._id);
 
   const stats = {
@@ -116,9 +117,6 @@ const ClientOverview = ({ user, onCreatePost, postCreated }) => {
   );
 };
 
-// ══════════════════════════════════════════════════════════
-// MY POSTS
-// ══════════════════════════════════════════════════════════
 const ClientPosts = ({ user, onCreatePost, refetchKey }) => {
   const { posts, loading, refetch } = useMyPosts(user._id);
   useEffect(() => { refetch(); }, [refetchKey]);
@@ -141,57 +139,26 @@ const ClientPosts = ({ user, onCreatePost, refetchKey }) => {
   );
 };
 
-// ══════════════════════════════════════════════════════════
-// PITCHES — Phase 3
-// ══════════════════════════════════════════════════════════
-const ClientPitches = ({ user }) => (
+const ClientProjects = () => (
   <div>
     <div className="section-header">
-      <div className="section-header-left">
-        <h2>Offres reçues</h2>
-        <p>Comparez les propositions par post</p>
-      </div>
-    </div>
-    <PlaceholderSection icon="💡" title="Offres reçues — Phase 3"
-      desc="Dès que des agences, équipes ou freelancers répondent à vos posts, leurs offres apparaîtront ici avec comparaison côte à côte." />
-  </div>
-);
-
-// ══════════════════════════════════════════════════════════
-// PROJECTS — Phase 4
-// ══════════════════════════════════════════════════════════
-const ClientProjects = ({ user }) => (
-  <div>
-    <div className="section-header">
-      <div className="section-header-left">
-        <h2>Mes projets</h2>
-        <p>Projets actifs avec vos prestataires</p>
-      </div>
+      <div className="section-header-left"><h2>Mes projets</h2><p>Projets actifs avec vos prestataires</p></div>
     </div>
     <PlaceholderSection icon="🚀" title="Projets — Phase 4"
-      desc="Quand vous acceptez une offre, un projet est créé automatiquement. Suivez l'avancement, les livrables et la communication ici." />
+      desc="Quand vous acceptez une offre, un projet est créé automatiquement." />
   </div>
 );
 
-// ══════════════════════════════════════════════════════════
-// COLLABORATIONS — past partners, populated in Phase 4+
-// ══════════════════════════════════════════════════════════
-const ClientCollaborations = ({ user }) => (
+const ClientCollaborations = () => (
   <div>
     <div className="section-header">
-      <div className="section-header-left">
-        <h2>Mes collaborations</h2>
-        <p>Prestataires avec qui vous avez déjà travaillé</p>
-      </div>
+      <div className="section-header-left"><h2>Mes collaborations</h2><p>Prestataires avec qui vous avez déjà travaillé</p></div>
     </div>
     <PlaceholderSection icon="🤝" title="Mes collaborations — Phase 4"
-      desc="Les agences, équipes et freelancers avec qui vous avez finalisé un projet apparaîtront ici. Vous pourrez les recontacter directement." />
+      desc="Les prestataires avec qui vous avez finalisé un projet apparaîtront ici." />
   </div>
 );
 
-// ══════════════════════════════════════════════════════════
-// REUSABLE
-// ══════════════════════════════════════════════════════════
 const StatCard = ({ icon, label, value, sub, color }) => (
   <motion.div className="stat-card" style={{ "--stat-color": color }}
     initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3 }}>
@@ -213,8 +180,7 @@ const PostRow = ({ post, index }) => {
   };
   const daysLeft = Math.ceil((new Date(post.deadline) - new Date()) / 86400000);
   return (
-    <motion.div
-      initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }}
+    <motion.div initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }}
       transition={{ delay: index * 0.05 }}
       style={{ display:"flex", alignItems:"center", gap:14, padding:"11px 22px",
         borderBottom:"1px solid #faeaea", cursor:"pointer" }}>
