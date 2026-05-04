@@ -1,5 +1,3 @@
-// frontend/src/pages/auth/Login.jsx
-
 import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -7,7 +5,6 @@ import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
 import "../../styles/auth.css";
 
-// Role → dashboard path mapping (used after login to redirect correctly)
 const ROLE_PATHS = {
   client:        "/dashboard/client",
   agency:        "/dashboard/agency",
@@ -24,29 +21,25 @@ const Login = () => {
   const { login } = useAuth();
   const from = location.state?.from?.pathname;
 
-  // ✅ removed role from form — backend auto-detects it
   const [form,    setForm]    = useState({ email: "", password: "" });
   const [error,   setError]   = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = e => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError("");
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // ✅ no role passed — backend searches all collections
       const data = await authService.login(form.email, form.password);
-
-      // role comes back from the server in data.user.role
       const resolvedRole = data.user?.role || "client";
 
-      login(data.user, resolvedRole, data.token);
+      // ✅ token is in the httpOnly cookie — just hydrate state
+      login(data.user, resolvedRole);
 
-      // ✅ FIX: Admin should ALWAYS go to /admin (ignore "from")
       const destination =
         resolvedRole === "admin"
           ? "/admin"
@@ -73,13 +66,12 @@ const Login = () => {
 
       <div className="auth-right">
         <div className="auth-form-wrap">
-          <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.4 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <div className="auth-form-header">
               <h1 className="auth-form-title">Se connecter</h1>
               <p className="auth-form-sub">Accédez à votre tableau de bord</p>
             </div>
 
-            {/* ✅ role selector removed — just email + password */}
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">
                 <label className="form-label">Adresse email</label>
@@ -109,11 +101,7 @@ const Login = () => {
 
               {error && <div className="form-error">{error}</div>}
 
-              <button
-                type="submit"
-                className="auth-submit-btn"
-                disabled={loading}
-              >
+              <button type="submit" className="auth-submit-btn" disabled={loading}>
                 {loading ? "Connexion..." : "Se connecter →"}
               </button>
             </form>

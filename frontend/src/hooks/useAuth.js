@@ -1,59 +1,82 @@
-// frontend/src/hooks/useAuth.js
-
 import { useState, useEffect, useCallback } from "react";
+import authService from "../services/authService";
 
-/**
- * useAuth — simple auth hook using localStorage only.
- * No Context, no module-level state, no listeners.
- * Each component reads directly from localStorage.
- */
+// ── Module-level singleton state ──────────────────────────────────────────────
+
+let _user    = null;
+let _role    = null;
+let _loading = true;
+const _listeners = new Set();
+
+const notify = () => _listeners.forEach((fn) => fn());
+
+const setShared = (user, role, loading) => {
+  _user    = user;
+  _role    = role;
+  _loading = loading;
+  notify();
+};
+
+// Kick off the /me check once
+let _initialized = false;
+const init = () => {
+  if (_initialized) return;
+  _initialized = true;
+
+  authService.getMe()
+    .then((data) => {
+      const u = data.user;
+      setShared(u, u?.role || null, false); // ✅ FIXED
+    })
+    .catch(() => {
+      setShared(null, null, false);
+    });
+};
+
+// ── Hook ─────────────────────────────────────────────────────────────────────
 
 const useAuth = () => {
-  const [user,    setUser]    = useState(() => {
-    try { return JSON.parse(localStorage.getItem("user")) || null; }
-    catch { return null; }
-  });
-  const [role,    setRole]    = useState(() => localStorage.getItem("role") || null);
-  const [token,   setToken]   = useState(() => localStorage.getItem("token") || null);
-  const [loading, setLoading] = useState(false);
+  const [, rerender] = useState(0);
 
-  const login = useCallback((userData, userRole, userToken) => {
-    localStorage.setItem("token", userToken);
-    localStorage.setItem("user",  JSON.stringify(userData));
-    localStorage.setItem("role",  userRole);
-    setUser(userData);
-    setRole(userRole);
-    setToken(userToken);
+  useEffect(() => {
+    const listener = () => rerender((n) => n + 1);
+    _listeners.add(listener);
+
+    init();
+
+    return () => _listeners.delete(listener);
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    setUser(null);
-    setRole(null);
-    setToken(null);
+  const login = useCallback((userData, userRole) => {
+    setShared(userData, userRole || userData?.role || null, false); // ✅ FIXED
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch (_) {
+      // ignore
+    } finally {
+      setShared(null, null, false);
+    }
   }, []);
 
   const updateUser = useCallback((patch) => {
-    const updated = { ...user, ...patch };
-    localStorage.setItem("user", JSON.stringify(updated));
-    setUser(updated);
-  }, [user]);
+    setShared({ ..._user, ...patch }, _role, false);
+  }, []);
 
   return {
-    user,
-    role,
-    token,
-    loading,
-    isAuthenticated: !!user && !!token,
-    isClient:        role === "client",
-    isAgency:        role === "agency",
-    isAgencyMember:  role === "agency_member",
-    isTeam:          role === "team",
-    isTeamMember:    role === "team_member",
-    isFreelancer:    role === "freelancer",
-    isProvider:      ["agency","team","freelancer","agency_member","team_member"].includes(role),
+    user:            _user,
+    role:            _role,
+    loading:         _loading,
+    isAuthenticated: !!_user,
+    isClient:        _role === "client",
+    isAgency:        _role === "agency",
+    isAgencyMember:  _role === "agency_member",
+    isTeam:          _role === "team",
+    isTeamMember:    _role === "team_member",
+    isFreelancer:    _role === "freelancer",
+    isProvider:      ["agency", "team", "freelancer", "agency_member", "team_member"].includes(_role),
     login,
     logout,
     updateUser,

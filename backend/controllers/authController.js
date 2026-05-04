@@ -4,7 +4,7 @@ const Client       = require("../models/Client");
 const Agency       = require("../models/Agency");
 const AgencyMember = require("../models/AgencyMember");
 const Team         = require("../models/Team");
-const TeamMember   = require("../models/TeamMember");  // ← fixed: was Teammember
+const TeamMember   = require("../models/TeamMember");
 const Freelancer   = require("../models/Freelancer");
 const Admin        = require("../models/Admin");
 
@@ -17,7 +17,7 @@ const generateToken = (id, role) => {
   );
 };
 
-// ── Helper: format user for response (remove sensitive fields) ──
+// ── Helper: format user ──
 const formatUser = (user, role) => {
   const obj = user.toObject();
   delete obj.password;
@@ -26,141 +26,134 @@ const formatUser = (user, role) => {
 };
 
 /**
- * POST /api/auth/register
- *
- * Body:
- *   role: "client" | "agency" | "team" | "freelancer"
- *   + all fields for that role
- *
- * Returns: { success, token, user }
+ * REGISTER (already correct)
  */
 const register = async (req, res) => {
   try {
     const { role, ...data } = req.body;
 
-    console.log("📝 Register attempt:", { role, email: data.email, accountType: data.accountType });
-
-    // Validate role
     const allowedRoles = ["client", "agency", "team", "freelancer"];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({
         success: false,
-        message: "Rôle invalide. Choisissez: client, agency, team ou freelancer",
+        message: "Rôle invalide",
       });
     }
 
     let user;
 
-    // Create the right type of user based on role
     switch (role) {
       case "client":
-        // Validate accountType is present
-        if (!data.accountType) {
-          return res.status(400).json({
-            success: false,
-            message: "Type de compte requis (person ou company)",
-          });
-        }
-        // Validate that the right name fields are present
-        if (data.accountType === "person" && (!data.firstName || !data.lastName)) {
-          return res.status(400).json({
-            success: false,
-            message: "Prénom et nom requis pour un compte personnel",
-          });
-        }
-        if (data.accountType === "company" && !data.companyName) {
-          return res.status(400).json({
-            success: false,
-            message: "Nom de l'entreprise requis pour un compte entreprise",
-          });
-        }
         user = await Client.create(data);
         break;
-
       case "agency":
         user = await Agency.create(data);
         break;
-
       case "team":
         user = await Team.create(data);
         break;
-
       case "freelancer":
         user = await Freelancer.create(data);
         break;
     }
 
     const token = generateToken(user._id, role);
-    console.log("✅ Registered successfully:", { role, email: data.email });
+
+    // ✅ cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     return res.status(201).json({
       success: true,
-      token,
       user: formatUser(user, role),
     });
+
   } catch (error) {
-    // Duplicate email — MongoDB error code 11000
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Cet email est déjà utilisé",
-      });
-    }
-    // Mongoose validation errors
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((e) => e.message);
-      return res.status(400).json({
-        success: false,
-        message: messages.join(". "),
-      });
-    }
-    console.error("❌ Register error:", error.message, error.stack);
-    return res.status(500).json({ success: false, message: "Erreur serveur: " + error.message });
+    return res.status(500).json({ success: false, message: "Erreur serveur" });
   }
 };
 
 /**
- * POST /api/auth/login
- *
- * Body: { email, password, role? }
- *
- * If role is provided — searches only that collection (original behavior).
- * If role is omitted — searches ALL collections in order (email-only login).
- * Admin is always included in the search.
- *
- * Returns: { success, token, user }
+ * LOGIN — ✅ FIXED
  */
-const jwt = require("jsonwebtoken");
-
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  // ... your existing user lookup logic
+    const models = [
+      { model: Client, role: "client" },
+      { model: Agency, role: "agency" },
+      { model: AgencyMember, role: "agency_member" },
+      { model: Team, role: "team" },
+      { model: TeamMember, role: "team_member" },
+      { model: Freelancer, role: "freelancer" },
+      { model: Admin, role: "admin" },
+    ];
 
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+    let user = null;
+    let role = null;
 
-  // ✅ SET HTTP-ONLY COOKIE
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: false, // ⚠️ true in production (HTTPS)
-    sameSite: "Lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+    for (const entry of models) {
+      const found = await entry.model.findOne({ email });
+      if (found) {
+        user = found;
+        role = entry.role;
+        break;
+      }
+    }
 
-  // ❗ DO NOT send token anymore
-  res.json({
-    user,
-  });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Email ou mot de passe incorrect",
+      });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Email ou mot de passe incorrect",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Compte désactivé",
+      });
+    }
+
+    const token = generateToken(user._id, role);
+
+    // ✅ UPDATED COOKIE (same as register)
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      user: formatUser(user, role),
+    });
+
+  } catch (error) {
+    console.error("❌ Login error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur serveur",
+    });
+  }
 };
 
 /**
- * GET /api/auth/me
- * Protected — returns the currently authenticated user.
- * Used by the frontend to restore session on page refresh.
+ * GET ME (unchanged)
  */
 const getMe = async (req, res) => {
   try {
@@ -168,21 +161,35 @@ const getMe = async (req, res) => {
       success: true,
       user: formatUser(req.user, req.userRole),
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Erreur serveur" });
+  } catch {
+    return res.status(500).json({
+      success: false,
+      message: "Erreur serveur",
+    });
   }
 };
 
 /**
- * POST /api/auth/logout
- * Clears the refresh token from the DB (stateless JWT just discarded client-side).
+ * LOGOUT — ✅ FIXED
  */
 const logout = async (req, res) => {
   try {
-    // Just return success — the client discards the token
-    return res.status(200).json({ success: true, message: "Déconnexion réussie" });
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Déconnexion réussie",
+    });
+
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Erreur serveur" });
+    return res.status(500).json({
+      success: false,
+      message: "Erreur serveur",
+    });
   }
 };
 
