@@ -25,6 +25,14 @@ app.use("/api/pitches",        require("./routes/pitchRoutes"));
 app.use("/api/projects",       require("./routes/projectRoutes"));
 app.use("/api/admin",          require("./routes/adminRoutes"));
 app.use("/api/agency-members", require("./routes/agencyMemberRoutes"));
+app.use("/api/projects", require("./routes/projectRoutes"));
+
+
+
+import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
+
+
+
 // ✅ /api/notifications removed — not built yet, was crashing server
 
 app.get("/api/health", (req, res) => {

@@ -1,18 +1,17 @@
-// frontend/src/services/agencyMemberService.js
 import api from "./api";
 
-// ✅ createMember was missing — added here
-const createMember = (data) =>
-  api.post("/agency-members/create", data);
+const agencyMemberService = {
+  createMember: (data) =>
+    api.post("/agency-members/create", data).then(r => r.data),
 
-const getMembers = () =>
-  api.get("/agency-members");
+  getMembers: () =>
+    api.get("/agency-members").then(r => r.data),
 
-const toggleMember = (id) =>
-  api.patch(`/admin/users/agency_member/${id}/toggle`);
+  changePassword: (newPassword) =>
+    api.post("/agency-members/change-password", { newPassword }).then(r => r.data),
 
-export default {
-  createMember,
-  getMembers,
-  toggleMember,
+  toggleMember: (id) =>
+    api.patch(`/agency-members/${id}/toggle`).then(r => r.data),
 };
+
+export default agencyMemberService;

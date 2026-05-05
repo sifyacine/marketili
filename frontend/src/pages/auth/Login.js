@@ -26,7 +26,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
     setError("");
   };
 
@@ -37,8 +37,13 @@ const Login = () => {
       const data = await authService.login(form.email, form.password);
       const resolvedRole = data.user?.role || "client";
 
-      // ✅ token is in the httpOnly cookie — just hydrate state
       login(data.user, resolvedRole);
+
+      // ✅ Force password change for agency members on first login
+      if (resolvedRole === "agency_member" && data.user?.mustChangePassword) {
+        navigate("/change-password", { replace: true });
+        return;
+      }
 
       const destination =
         resolvedRole === "admin"
@@ -66,7 +71,11 @@ const Login = () => {
 
       <div className="auth-right">
         <div className="auth-form-wrap">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}>
+
             <div className="auth-form-header">
               <h1 className="auth-form-title">Se connecter</h1>
               <p className="auth-form-sub">Accédez à votre tableau de bord</p>
@@ -85,7 +94,6 @@ const Login = () => {
                   onChange={handleChange}
                 />
               </div>
-
               <div className="form-group">
                 <label className="form-label">Mot de passe</label>
                 <input

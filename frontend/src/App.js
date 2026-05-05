@@ -9,6 +9,7 @@ import Unauthorized    from "./pages/auth/Unauthorized";
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
 import AgencyDashboard from "./pages/dashboard/AgencyDashboard";
 import AdminDashboard  from "./pages/dashboard/AdminDashboard";
+import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 
 let LandingPage;
 try {
@@ -37,6 +38,9 @@ function App() {
 
         {/* ✅ Admin handles its own auth internally — no PrivateRoute */}
         <Route path="/admin"        element={<AdminDashboard />} />
+
+        // Add as a public route (no PrivateRoute wrapper — member is logged in but forced here):
+        <Route path="/change-password" element={<ChangePasswordPage />} />   
 
         <Route path="/dashboard/client/*" element={
           <PrivateRoute allowedRoles={["client"]}>
