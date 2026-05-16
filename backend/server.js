@@ -9,10 +9,15 @@ const app = express();
 
 // ── Middleware — order matters ──
 app.use(cookieParser());                               // 1. parse cookies first
-app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+
+const corsOptions = {
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:5001"],
   credentials: true,
-}));                                                   // 2. cors
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.options("/{*path}", cors(corsOptions));             // 2a. handle preflight for all routes
+app.use(cors(corsOptions));                            // 2b. cors headers on all responses
 app.use(express.json({ limit: "10mb" }));              // 3. body parsing
 app.use(express.urlencoded({ extended: true }));
 

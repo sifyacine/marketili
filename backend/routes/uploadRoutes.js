@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const { upload, conn } = require("../config/db");
-const { protect } = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/auth");
 
 router.post("/", protect, upload.single("file"), async (req, res) => {
   try {
