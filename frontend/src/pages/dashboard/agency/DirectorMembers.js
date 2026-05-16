@@ -1,12 +1,14 @@
 // src/pages/dashboard/agency/DirectorMembers.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import agencyMemberService from "../../../services/agencyMemberService";
 import { IconUsers } from "../../../components/ui/Icons";
 
+// ── Constants ──────────────────────────────────────────────────────────────────
 const JOB_OPTIONS = [
   { value: "commercial",        label: "Commercial"        },
   { value: "strategist",        label: "Stratégiste"       },
+  { value: "chef_de_projet",    label: "Chef de projet"    },
   { value: "designer",          label: "Designer"          },
   { value: "editor",            label: "Monteur"           },
   { value: "smm",               label: "SMM"               },
@@ -17,23 +19,356 @@ const JOB_LABEL = {
   director:          "Directeur",
   commercial:        "Commercial",
   strategist:        "Stratégiste",
+  chef_de_projet:    "Chef de projet",
   designer:          "Designer",
   editor:            "Monteur",
   smm:               "SMM",
   community_manager: "Community Manager",
 };
 
+const STATUS_META = {
+  active:    { label: "Actif",    color: "#065f46", bg: "#d1fae5", border: "#6ee7b7" },
+  inactive:  { label: "Inactif",  color: "#374151", bg: "#f3f4f6", border: "#d1d5db" },
+  suspended: { label: "Suspendu", color: "#92400e", bg: "#fef3c7", border: "#fde68a" },
+  archived:  { label: "Archivé",  color: "#991b1b", bg: "#fee2e2", border: "#fca5a5" },
+};
+
+const STATUS_OPTIONS = [
+  { value: "active",    label: "Actif"    },
+  { value: "inactive",  label: "Inactif"  },
+  { value: "suspended", label: "Suspendu" },
+  { value: "archived",  label: "Archivé"  },
+];
+
+const initials = (m) =>
+  `${m.firstName?.[0] || ""}${m.lastName?.[0] || ""}`.toUpperCase();
+
+const Avatar = ({ member }) => (
+  <div style={{
+    width: 32, height: 32, borderRadius: "50%",
+    background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: "0.72rem", fontWeight: 700, color: "#fff", flexShrink: 0,
+  }}>
+    {initials(member)}
+  </div>
+);
+
+// ── StatusBadge ───────────────────────────────────────────────────────────────
+const StatusBadge = ({ status }) => {
+  const meta = STATUS_META[status] || STATUS_META.inactive;
+  return (
+    <span style={{
+      padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem", fontWeight: 600,
+      background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`,
+    }}>
+      {meta.label}
+    </span>
+  );
+};
+
+// ── StatusSelect ──────────────────────────────────────────────────────────────
+const StatusSelect = ({ member, onSet, busy }) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        disabled={busy}
+        style={{
+          padding: "4px 10px", borderRadius: 7, fontSize: "0.75rem",
+          fontWeight: 600, cursor: busy ? "not-allowed" : "pointer",
+          fontFamily: "inherit", border: "1.5px solid var(--d-border-soft)",
+          background: "var(--d-surface)", color: "var(--d-ink)",
+          opacity: busy ? 0.5 : 1,
+        }}>
+        {busy ? "..." : "Changer"}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            style={{
+              position: "absolute", right: 0, top: "calc(100% + 4px)",
+              background: "#fff", border: "1px solid var(--d-border-soft)",
+              borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+              zIndex: 100, minWidth: 140, overflow: "hidden",
+            }}>
+            {STATUS_OPTIONS.filter(o => o.value !== member.accountStatus).map(o => {
+              const meta = STATUS_META[o.value];
+              return (
+                <button key={o.value}
+                  onClick={() => { onSet(member._id, o.value); setOpen(false); }}
+                  style={{
+                    display: "block", width: "100%", textAlign: "left",
+                    padding: "9px 14px", background: "transparent",
+                    border: "none", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: "0.78rem", fontWeight: 600,
+                    color: meta.color,
+                  }}>
+                  {o.label}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ── FreelancerSection ─────────────────────────────────────────────────────────
+const FreelancerSection = ({ user }) => {
+  const [freelancers,  setFreelancers]  = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [showAttach,   setShowAttach]   = useState(false);
+  const [email,        setEmail]        = useState("");
+  const [role,         setRole]         = useState("collaborateur");
+  const [searching,    setSearching]    = useState(false);
+  const [found,        setFound]        = useState(null);
+  const [notFound,     setNotFound]     = useState(false);
+  const [attaching,    setAttaching]    = useState(false);
+  const [detaching,    setDetaching]    = useState(null);
+  const [msg,          setMsg]          = useState("");
+
+  const loadFreelancers = () => {
+    setLoading(true);
+    agencyMemberService.getFreelancers()
+      .then(d => setFreelancers(d.freelancers || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { loadFreelancers(); }, []);
+
+  const handleSearch = async () => {
+    if (!email.trim()) return;
+    setSearching(true);
+    setFound(null);
+    setNotFound(false);
+    try {
+      // Use the general freelancer search — look in the already-loaded list first,
+      // else the backend getFreelancers only returns attached ones. We just let the
+      // attach endpoint validate the freelancerId from a manually typed ID or email.
+      // For simplicity: search among already-attached list by email.
+      const match = freelancers.find(f => f.email === email.trim().toLowerCase());
+      if (match) { setFound(match); } else { setNotFound(true); }
+    } catch {}
+    finally { setSearching(false); }
+  };
+
+  const handleAttach = async () => {
+    if (!found) return;
+    setAttaching(true);
+    try {
+      await agencyMemberService.attachFreelancer({
+        agencyId: user._id, freelancerId: found._id, role,
+      });
+      setMsg("Freelancer attaché");
+      setShowAttach(false);
+      setEmail(""); setFound(null);
+      loadFreelancers();
+    } catch (err) {
+      setMsg(err.response?.data?.message || "Erreur");
+    } finally {
+      setAttaching(false);
+    }
+  };
+
+  const handleDetach = async (freelancerId) => {
+    setDetaching(freelancerId);
+    try {
+      await agencyMemberService.detachFreelancer(user._id, freelancerId);
+      setMsg("Collaboration terminée");
+      loadFreelancers();
+    } catch (err) {
+      setMsg(err.response?.data?.message || "Erreur");
+    } finally {
+      setDetaching(null);
+    }
+  };
+
+  const active = freelancers.filter(f => f.collaboration?.status === "active");
+  const ended  = freelancers.filter(f => f.collaboration?.status === "ended");
+
+  return (
+    <div style={{ marginTop: 32 }}>
+      <div className="section-header" style={{ marginBottom: 12 }}>
+        <div className="section-header-left">
+          <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700 }}>
+            Freelancers collaborateurs
+          </h3>
+          <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--d-muted)" }}>
+            {active.length} collaboration{active.length !== 1 ? "s" : ""} active{active.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <button className="section-cta-btn" style={{ fontSize: "0.8rem", padding: "7px 14px" }}
+          onClick={() => setShowAttach(o => !o)}>
+          + Attacher un freelancer
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {msg && (
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            style={{ padding: "10px 14px", borderRadius: 8, background: "#f0fdf4",
+              border: "1px solid #6ee7b7", color: "#065f46",
+              fontSize: "0.82rem", marginBottom: 12 }}
+            onAnimationComplete={() => setTimeout(() => setMsg(""), 2500)}>
+            {msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Attach form */}
+      <AnimatePresence>
+        {showAttach && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
+            <div className="card" style={{ padding: 16, marginBottom: 12 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <label className="dash-form-label">Email du freelancer</label>
+                  <input className="dash-form-input" value={email} placeholder="email@exemple.com"
+                    onChange={e => { setEmail(e.target.value); setFound(null); setNotFound(false); }} />
+                </div>
+                <div style={{ minWidth: 150 }}>
+                  <label className="dash-form-label">Rôle</label>
+                  <input className="dash-form-input" value={role}
+                    onChange={e => setRole(e.target.value)} placeholder="collaborateur" />
+                </div>
+                <button className="section-cta-btn" style={{ fontSize: "0.8rem", padding: "8px 14px" }}
+                  onClick={handleSearch} disabled={searching}>
+                  {searching ? "..." : "Rechercher"}
+                </button>
+              </div>
+              {notFound && (
+                <p style={{ fontSize: "0.78rem", color: "#ef4444", marginTop: 8 }}>
+                  Aucun freelancer trouvé avec cet email dans vos collaborations.
+                </p>
+              )}
+              {found && (
+                <div style={{ marginTop: 10, padding: "10px 14px", borderRadius: 8,
+                  background: "#f0fdf4", border: "1px solid #6ee7b7",
+                  display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "0.82rem", color: "#065f46", fontWeight: 600 }}>
+                    {found.firstName} {found.lastName} — {found.email}
+                  </span>
+                  <button className="section-cta-btn" style={{ fontSize: "0.78rem", padding: "6px 12px" }}
+                    onClick={handleAttach} disabled={attaching}>
+                    {attaching ? "..." : "Confirmer"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {loading ? (
+        <div className="spinner-wrap" style={{ padding: 32 }}><div className="spinner" /></div>
+      ) : active.length === 0 ? (
+        <div className="card">
+          <div className="empty-state" style={{ padding: "32px 24px" }}>
+            <div className="empty-state-title" style={{ fontSize: "0.9rem" }}>
+              Aucune collaboration active
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="card" style={{ overflow: "auto" }}>
+          <table className="data-grid">
+            <thead>
+              <tr>
+                <th>Freelancer</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Depuis</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {active.map(f => (
+                <tr key={f._id}>
+                  <td>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: "50%",
+                        background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "0.7rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                        {f.firstName?.[0]}{f.lastName?.[0]}
+                      </div>
+                      <span className="td-title">{f.firstName} {f.lastName}</span>
+                    </div>
+                  </td>
+                  <td className="td-muted">{f.email}</td>
+                  <td>
+                    <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
+                      fontWeight: 600, background: "#f0f9ff", color: "#0284c7" }}>
+                      {f.collaboration?.role || "—"}
+                    </span>
+                  </td>
+                  <td className="td-muted">
+                    {f.collaboration?.startDate
+                      ? new Date(f.collaboration.startDate).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" })
+                      : "—"}
+                  </td>
+                  <td>
+                    <button
+                      disabled={detaching === f._id}
+                      onClick={() => handleDetach(f._id)}
+                      style={{ padding: "4px 10px", borderRadius: 6, border: "none",
+                        background: "#fee2e2", color: "#991b1b", fontSize: "0.72rem",
+                        fontWeight: 600, cursor: detaching === f._id ? "not-allowed" : "pointer",
+                        fontFamily: "inherit", opacity: detaching === f._id ? 0.5 : 1 }}>
+                      {detaching === f._id ? "..." : "Terminer"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {ended.length > 0 && (
+        <details style={{ marginTop: 10 }}>
+          <summary style={{ fontSize: "0.78rem", color: "var(--d-muted)", cursor: "pointer", padding: "4px 0" }}>
+            {ended.length} collaboration{ended.length !== 1 ? "s" : ""} terminée{ended.length !== 1 ? "s" : ""}
+          </summary>
+          <div style={{ marginTop: 8, opacity: 0.65 }}>
+            {ended.map(f => (
+              <div key={f._id} style={{ padding: "6px 10px", fontSize: "0.78rem",
+                color: "var(--d-muted)", borderLeft: "3px solid var(--d-border-soft)", marginBottom: 4 }}>
+                {f.firstName} {f.lastName} — {f.email} — {f.collaboration?.role}
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ROOT
+// ═════════════════════════════════════════════════════════════════════════════
 const DirectorMembers = ({ user }) => {
-  const [members,   setMembers]   = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [form,      setForm]      = useState({
+  const [members,      setMembers]      = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [showModal,    setShowModal]    = useState(false);
+  const [showInactive, setShowInactive] = useState(false);
+  const [form,         setForm]         = useState({
     firstName: "", lastName: "", email: "",
     password: "", jobTitle: "commercial", phone: "",
   });
   const [formError, setFormError] = useState("");
   const [saving,    setSaving]    = useState(false);
-  const [toggling,  setToggling]  = useState(null);
+  const [statusBusy, setStatusBusy] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -45,10 +380,8 @@ const DirectorMembers = ({ user }) => {
 
   useEffect(() => { load(); }, []);
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    setFormError("");
-  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -58,8 +391,7 @@ const DirectorMembers = ({ user }) => {
     try {
       await agencyMemberService.createMember(form);
       setShowModal(false);
-      setForm({ firstName: "", lastName: "", email: "",
-        password: "", jobTitle: "commercial", phone: "" });
+      setForm({ firstName: "", lastName: "", email: "", password: "", jobTitle: "commercial", phone: "" });
       load();
     } catch (err) {
       setFormError(err.response?.data?.message || "Une erreur est survenue");
@@ -68,31 +400,83 @@ const DirectorMembers = ({ user }) => {
     }
   };
 
-  const handleToggle = async (id) => {
-    setToggling(id);
+  const handleSetStatus = async (id, status) => {
+    setStatusBusy(id);
     try {
-      const d = await agencyMemberService.toggleMember(id);
+      const d = await agencyMemberService.setMemberStatus(id, status);
       setMembers(prev => prev.map(m =>
-        m._id === id ? { ...m, isActive: d.isActive } : m
+        m._id === id ? { ...m, accountStatus: d.accountStatus } : m
       ));
     } catch {}
-    finally { setToggling(null); }
+    finally { setStatusBusy(null); }
   };
+
+  const activeMembers   = useMemo(() => members.filter(m => (m.accountStatus || "active") === "active"), [members]);
+  const inactiveMembers = useMemo(() => members.filter(m => (m.accountStatus || "active") !== "active"), [members]);
+
+  const MemberRow = ({ m, showRestore }) => (
+    <motion.tr
+      key={m._id}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: showRestore ? 0.75 : 1, y: 0 }}
+      style={{ borderLeft: `3px solid ${STATUS_META[m.accountStatus || "active"]?.border || "#d1d5db"}` }}>
+      <td>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Avatar member={m} />
+          <div className="td-title">{m.firstName} {m.lastName}</div>
+        </div>
+      </td>
+      <td>
+        <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
+          fontWeight: 600, background: "#f3f0ff", color: "#7c3aed" }}>
+          {JOB_LABEL[m.jobTitle] || m.jobTitle}
+        </span>
+      </td>
+      <td className="td-muted">{m.email}</td>
+      <td>
+        <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
+          fontWeight: 600,
+          background: m.mustChangePassword ? "#fef3c7" : "#f3f4f6",
+          color:      m.mustChangePassword ? "#92400e" : "#6b7280" }}>
+          {m.mustChangePassword ? "Temporaire" : "Changé"}
+        </span>
+      </td>
+      <td>
+        <StatusBadge status={m.accountStatus || "active"} />
+      </td>
+      <td>
+        {showRestore ? (
+          <button
+            disabled={statusBusy === m._id}
+            onClick={() => handleSetStatus(m._id, "active")}
+            style={{ padding: "4px 12px", borderRadius: 7, fontSize: "0.75rem",
+              fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+              border: "1.5px solid #6ee7b7", background: "#d1fae5",
+              color: "#065f46", opacity: statusBusy === m._id ? 0.5 : 1 }}>
+            {statusBusy === m._id ? "..." : "Restaurer"}
+          </button>
+        ) : (
+          <StatusSelect member={m} onSet={handleSetStatus} busy={statusBusy === m._id} />
+        )}
+      </td>
+    </motion.tr>
+  );
 
   return (
     <div>
       <div className="section-header">
         <div className="section-header-left">
           <h2>Membres</h2>
-          <p>{members.length} membre{members.length !== 1 ? "s" : ""} dans l'agence</p>
+          <p>{activeMembers.length} membre{activeMembers.length !== 1 ? "s" : ""} actif{activeMembers.length !== 1 ? "s" : ""}</p>
         </div>
         <button className="section-cta-btn" onClick={() => setShowModal(true)}>
           + Créer un membre
         </button>
       </div>
 
-      {loading ? <div className="spinner-wrap"><div className="spinner" /></div>
-      : members.length === 0 ? (
+      {loading ? (
+        <div className="spinner-wrap"><div className="spinner" /></div>
+      ) : members.length === 0 ? (
         <div className="card">
           <div className="empty-state" style={{ padding: "64px 24px" }}>
             <div className="empty-state-icon"><IconUsers size={20} /></div>
@@ -104,74 +488,79 @@ const DirectorMembers = ({ user }) => {
           </div>
         </div>
       ) : (
-        <div className="card">
-          <table className="data-grid">
-            <thead>
-              <tr>
-                <th>Membre</th>
-                <th>Rôle</th>
-                <th>Email</th>
-                <th>Mot de passe</th>
-                <th>Statut</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map(m => (
-                <tr key={m._id}>
-                  <td>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: "50%",
-                        background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: "0.72rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>
-                        {m.firstName?.[0]?.toUpperCase()}{m.lastName?.[0]?.toUpperCase()}
-                      </div>
-                      <div className="td-title">{m.firstName} {m.lastName}</div>
-                    </div>
-                  </td>
-                  <td>
-                    <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
-                      fontWeight: 600, background: "#f3f0ff", color: "#7c3aed" }}>
-                      {JOB_LABEL[m.jobTitle] || m.jobTitle}
-                    </span>
-                  </td>
-                  <td className="td-muted">{m.email}</td>
-                  <td>
-                    <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
-                      fontWeight: 600,
-                      background: m.mustChangePassword ? "#fef3c7" : "#f3f4f6",
-                      color:      m.mustChangePassword ? "#92400e" : "#6b7280" }}>
-                      {m.mustChangePassword ? "⚠ Temporaire" : "✓ Changé"}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
-                      fontWeight: 600,
-                      background: m.isActive ? "#d1fae5" : "#f3f4f6",
-                      color:      m.isActive ? "#065f46" : "#374151" }}>
-                      {m.isActive ? "Actif" : "Inactif"}
-                    </span>
-                  </td>
-                  <td>
-                    <button onClick={() => handleToggle(m._id)}
-                      disabled={toggling === m._id}
-                      style={{ padding: "4px 12px", borderRadius: 7, fontSize: "0.75rem",
-                        fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-                        border: "1.5px solid #f0dede", background: "transparent",
-                        color: m.isActive ? "#ef4444" : "#10b981",
-                        opacity: toggling === m._id ? 0.5 : 1 }}>
-                      {toggling === m._id ? "..." : m.isActive ? "Désactiver" : "Activer"}
-                    </button>
-                  </td>
+        <>
+          {/* Active members */}
+          <div className="card" style={{ overflow: "auto" }}>
+            <table className="data-grid">
+              <thead>
+                <tr>
+                  <th>Membre</th>
+                  <th>Rôle</th>
+                  <th>Email</th>
+                  <th>Mot de passe</th>
+                  <th>Statut</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                <AnimatePresence>
+                  {activeMembers.map(m => <MemberRow key={m._id} m={m} showRestore={false} />)}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Inactive / suspended / archived section */}
+          {inactiveMembers.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <button
+                onClick={() => setShowInactive(o => !o)}
+                style={{ background: "none", border: "none", cursor: "pointer",
+                  fontFamily: "inherit", fontSize: "0.82rem", color: "var(--d-muted)",
+                  fontWeight: 600, padding: "4px 0", display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ transform: showInactive ? "rotate(90deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s", display: "inline-block" }}>▶</span>
+                {showInactive ? "Masquer" : "Afficher"} les membres inactifs ({inactiveMembers.length})
+              </button>
+
+              <AnimatePresence>
+                {showInactive && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{ overflow: "hidden", marginTop: 8 }}>
+                    <div className="card" style={{ overflow: "auto" }}>
+                      <table className="data-grid">
+                        <thead>
+                          <tr>
+                            <th>Membre</th>
+                            <th>Rôle</th>
+                            <th>Email</th>
+                            <th>Mot de passe</th>
+                            <th>Statut</th>
+                            <th>Restaurer</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <AnimatePresence>
+                            {inactiveMembers.map(m => <MemberRow key={m._id} m={m} showRestore={true} />)}
+                          </AnimatePresence>
+                        </tbody>
+                      </table>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </>
       )}
 
-      {/* ── Create member modal ── */}
+      {/* Freelancer section */}
+      <FreelancerSection user={user} />
+
+      {/* Create member modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div className="modal-overlay"

@@ -410,6 +410,46 @@ const getPitchesForClient = async (req, res) => {
   }
 };
 
+// PATCH /api/pitches/:id/internal-status
+// Strategist → with_chef_de_projet | chef_de_projet → approved or draft | director → sent
+const INTERNAL_TRANSITIONS = {
+  strategist:      { from: ["draft"],               to: "with_chef_de_projet" },
+  chef_de_projet:  { from: ["with_chef_de_projet"], to: ["approved", "draft"] },
+  director:        { from: ["approved"],             to: "sent" },
+};
+
+const updateInternalStatus = async (req, res) => {
+  try {
+    const { newStatus, internalNotes, actorJobTitle } = req.body;
+    if (!newStatus) return fail(res, "newStatus requis");
+
+    const pitch = await Pitch.findById(req.params.id);
+    if (!pitch) return fail(res, "Offre introuvable", 404);
+
+    const rule = INTERNAL_TRANSITIONS[actorJobTitle];
+    if (!rule) return fail(res, "Rôle non autorisé à modifier le statut interne", 403);
+
+    const allowedFrom = Array.isArray(rule.from) ? rule.from : [rule.from];
+    const allowedTo   = Array.isArray(rule.to)   ? rule.to   : [rule.to];
+
+    if (!allowedFrom.includes(pitch.internalStatus)) {
+      return fail(res, `Transition impossible depuis le statut "${pitch.internalStatus}"`);
+    }
+    if (!allowedTo.includes(newStatus)) {
+      return fail(res, `Ce rôle ne peut pas définir le statut "${newStatus}"`);
+    }
+
+    pitch.internalStatus = newStatus;
+    if (internalNotes !== undefined) pitch.internalNotes = internalNotes;
+    await pitch.save();
+
+    return ok(res, { pitch, message: "Statut interne mis à jour" });
+  } catch (err) {
+    console.error("updateInternalStatus:", err);
+    return fail(res, "Erreur serveur", 500);
+  }
+};
+
 module.exports = {
   sendPitch,
   getPitchesForPost,
@@ -419,4 +459,5 @@ module.exports = {
   withdrawPitch,
   getPitchesForClient,
   getPitch,
+  updateInternalStatus,
 };

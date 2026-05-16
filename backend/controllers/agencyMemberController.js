@@ -1,4 +1,6 @@
 const AgencyMember = require("../models/AgencyMember");
+const Freelancer   = require("../models/Freelancer");
+const Agency       = require("../models/Agency");
 
 // ─────────────────────────────────────────────
 // CREATE MEMBER  POST /api/agency-members/create
@@ -81,17 +83,114 @@ exports.changePassword = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// TOGGLE ACTIVE  PATCH /api/agency-members/:id/toggle
+// SET MEMBER STATUS  PATCH /api/agency-members/:id/status
+// Accepts target accountStatus instead of toggling
 // ─────────────────────────────────────────────
-exports.toggleMember = async (req, res) => {
+const VALID_STATUSES = ["active", "inactive", "suspended", "archived"];
+
+exports.setMemberStatus = async (req, res) => {
   try {
+    const { status } = req.body;
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, message: "Statut invalide" });
+    }
     const member = await AgencyMember.findById(req.params.id);
     if (!member) {
       return res.status(404).json({ success: false, message: "Membre introuvable" });
     }
-    member.isActive = !member.isActive;
+    member.accountStatus = status;
     await member.save();
-    res.json({ success: true, isActive: member.isActive });
+    res.json({ success: true, accountStatus: member.accountStatus });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// ATTACH FREELANCER  PATCH /api/agency-members/attach-freelancer
+// Body: { agencyId, freelancerId, role, contractId }
+// ─────────────────────────────────────────────
+exports.attachFreelancer = async (req, res) => {
+  try {
+    const { agencyId, freelancerId, role, contractId } = req.body;
+    if (!agencyId || !freelancerId) {
+      return res.status(400).json({ success: false, message: "agencyId et freelancerId requis" });
+    }
+
+    const freelancer = await Freelancer.findById(freelancerId);
+    if (!freelancer) {
+      return res.status(404).json({ success: false, message: "Freelancer introuvable" });
+    }
+
+    const alreadyActive = freelancer.agencyCollaborations.some(
+      c => c.agency?.toString() === agencyId && c.status === "active"
+    );
+    if (alreadyActive) {
+      return res.status(400).json({ success: false, message: "Collaboration déjà active avec cette agence" });
+    }
+
+    freelancer.agencyCollaborations.push({
+      agency: agencyId,
+      role: role || "collaborateur",
+      contractId: contractId || undefined,
+      startDate: new Date(),
+      status: "active",
+    });
+    await freelancer.save();
+
+    res.json({ success: true, message: "Freelancer attaché à l'agence" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// DETACH FREELANCER  PATCH /api/agency-members/detach-freelancer
+// Body: { agencyId, freelancerId }
+// ─────────────────────────────────────────────
+exports.detachFreelancer = async (req, res) => {
+  try {
+    const { agencyId, freelancerId } = req.body;
+    const freelancer = await Freelancer.findById(freelancerId);
+    if (!freelancer) {
+      return res.status(404).json({ success: false, message: "Freelancer introuvable" });
+    }
+
+    const collab = freelancer.agencyCollaborations.find(
+      c => c.agency?.toString() === agencyId && c.status === "active"
+    );
+    if (!collab) {
+      return res.status(404).json({ success: false, message: "Collaboration active introuvable" });
+    }
+
+    collab.status = "ended";
+    await freelancer.save();
+
+    res.json({ success: true, message: "Collaboration terminée" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// GET FREELANCERS FOR AGENCY  GET /api/agency-members/freelancers
+// Returns freelancers with active/all collaborations for this agency
+// ─────────────────────────────────────────────
+exports.getFreelancers = async (req, res) => {
+  try {
+    const agencyId = req.user._id;
+    const freelancers = await Freelancer.find({
+      "agencyCollaborations.agency": agencyId,
+    }).select("-password").lean();
+
+    const result = freelancers.map(f => {
+      const collab = f.agencyCollaborations.find(
+        c => c.agency?.toString() === agencyId.toString()
+      );
+      return { ...f, collaboration: collab };
+    });
+
+    res.json({ success: true, freelancers: result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

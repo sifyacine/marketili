@@ -22,7 +22,7 @@
 
 ## Backend Tasks
 
-- [ ] **Add internal pitch approval workflow**
+- [x] **Add internal pitch approval workflow**
   - File: `backend/models/Pitch.js`
   - Add: `internalStatus: { type: String, enum: ["draft", "with_chef_de_projet", "approved", "sent"], default: "draft" }`
   - Add: `internalNotes: String`
@@ -33,7 +33,7 @@
     - Director sets to `sent` (this triggers the actual pitch send to client)
   - Restrict each status change by the member's `jobTitle`
 
-- [ ] **Expand account status beyond boolean isActive**
+- [x] **Expand account status beyond boolean isActive**
   - File: all member/user models (AgencyMember, TeamMember, Freelancer)
   - Replace `isActive: Boolean` with:
     `accountStatus: { type: String, enum: ["active", "inactive", "suspended", "archived"], default: "active" }`
@@ -41,7 +41,7 @@
   - Update all controller checks from `isActive` to `accountStatus === "active"`
   - Update toggle endpoint to accept a target status instead of just flipping boolean
 
-- [ ] **Add agency-freelancer collaboration endpoint**
+- [x] **Add agency-freelancer collaboration endpoint**
   - File: new route `PATCH /agency-members/attach-freelancer`
   - Body: `{ agencyId, freelancerId, role, contractId }`
   - Push to `Freelancer.agencyCollaborations`: `{ agency: agencyId, role, startDate, status: "active" }`
@@ -59,26 +59,26 @@
 
 ## Frontend Tasks
 
-- [ ] **Add internal pitch status flow to agency pitch form**
+- [x] **Add internal pitch status flow to agency pitch form**
   - File: `PitchForm.js` and director/strategist views
   - Strategist sees draft pitches and can "Soumettre au chef de projet"
   - Chef de projet sees pitches `with_chef_de_projet` and can "Valider" or "Retourner au stratège"
   - Director sees `approved` pitches and can "Envoyer au client" (triggers actual send)
   - Each action calls PATCH /pitches/:id/internal-status with the new status
 
-- [ ] **Update member toggle to use accountStatus**
+- [x] **Update member toggle to use accountStatus**
   - File: `DirectorMembers.js` and `adminController` usages
   - Replace toggle (active/inactive) with a status selector: Actif / Inactif / Suspendu / Archivé
   - Show status badge with appropriate color on each member row
 
-- [ ] **Add "Attach freelancer" UI in director members page**
+- [x] **Add "Attach freelancer" UI in director members page**
   - File: `DirectorMembers.js`
   - Tab or section: "Freelancers collaborateurs"
   - Search field to find a freelancer by email
   - On select: call attach-freelancer endpoint with role and optional contractId
   - List of attached freelancers with "Terminer la collaboration" button
 
-- [ ] **Add restoration UI for inactive/archived members**
+- [x] **Add restoration UI for inactive/archived members**
   - File: `DirectorMembers.js`
   - Filter toggle: "Afficher les membres inactifs"
   - Inactive/archived members shown in a separate section with "Restaurer" button

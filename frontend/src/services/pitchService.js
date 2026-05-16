@@ -56,6 +56,9 @@ const pitchService = {
 
   withdraw: (id, senderId, senderType) =>
     api.patch(`/pitches/${id}/withdraw`, { senderId, senderType }).then((r) => r.data),
+
+  setInternalStatus: (id, newStatus, actorJobTitle, internalNotes) =>
+    api.patch(`/pitches/${id}/internal-status`, { newStatus, actorJobTitle, internalNotes }).then((r) => r.data),
 };
 
 export default pitchService;

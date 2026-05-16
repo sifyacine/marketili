@@ -131,6 +131,15 @@ attachments: [{
     rejectionReason: { type: String, trim: true },
 
     isReadByRecipient: { type: Boolean, default: false },
+
+    // Internal agency workflow
+    internalStatus: {
+      type: String,
+      enum: ["draft", "with_chef_de_projet", "approved", "sent"],
+      default: "draft",
+    },
+    internalNotes: { type: String, trim: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "AgencyMember" },
   },
   { timestamps: true }
 );
