@@ -2,6 +2,7 @@
 // Shared components used across all agency views
 import React from "react";
 import { motion } from "framer-motion";
+import { getDeadlineColor, getDeadlineLabel } from "../../../utils/deadlineColor";
 
 export const StatCard = ({ icon, label, value, sub, color }) => (
   <motion.div className="stat-card" style={{ "--stat-color": color }}
@@ -39,18 +40,18 @@ export const ProgressBar = ({ value = 0 }) => (
 );
 
 export const PostCard = ({ post, index, actionLabel, onAction, actionColor }) => {
-  const daysLeft = Math.ceil((new Date(post.deadline) - new Date()) / 86400000);
-  const urgent   = daysLeft <= 7;
+  const dlColor = getDeadlineColor(post.deadline);
+  const dlLabel = getDeadlineLabel(post.deadline);
   return (
     <motion.div className="card" initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }}>
+      animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }}
+      style={{ borderLeft: `3px solid ${dlColor}` }}>
       <div style={{ padding: "18px 20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between",
           alignItems: "flex-start", marginBottom: 10 }}>
           <span className="status-badge open">Ouvert</span>
-          <span style={{ fontSize: "0.73rem",
-            color: urgent ? "#ef4444" : "#9a6060", fontWeight: urgent ? 700 : 400 }}>
-            {daysLeft > 0 ? `${daysLeft}j restants` : "Délai dépassé"}
+          <span style={{ fontSize: "0.73rem", color: dlColor, fontWeight: 700 }}>
+            {dlLabel}
           </span>
         </div>
         <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1a0a0a", marginBottom: 6 }}>

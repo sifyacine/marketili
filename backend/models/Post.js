@@ -64,6 +64,29 @@ const postSchema = new mongoose.Schema(
     categories: [String],
     // e.g. ["Social Media", "Content Creation", "SEO"]
 
+    // ── Skills & marketing classification ──
+    requiredSkills: [String],
+
+    marketingType: {
+      type: String,
+      enum: ["Events", "360 Marketing", "ATL", "BTL", "Production", "Brand Marketing"],
+    },
+
+    collaborationType: {
+      type: String,
+      enum: ["service", "partnership", "sponsorship", "exposure"],
+    },
+
+    // ── Compensation ──
+    compensationType: {
+      type: String,
+      enum: ["monetary", "benefits", "mixed"],
+      default: "monetary",
+    },
+
+    // Free-text benefits description — used when compensationType is "benefits" or "mixed"
+    benefits: { type: String, trim: true },
+
     // ── Media attachments (images / videos uploaded via GridFS) ──
     media: [
       {
@@ -164,5 +187,7 @@ postSchema.index({ categories: 1 });
 postSchema.index({ createdAt: -1 });
 // Compound index for the most common query: open posts sorted by date
 postSchema.index({ status: 1, createdAt: -1 });
+postSchema.index({ marketingType: 1 });
+postSchema.index({ collaborationType: 1 });
 
 module.exports = mongoose.model("Post", postSchema);

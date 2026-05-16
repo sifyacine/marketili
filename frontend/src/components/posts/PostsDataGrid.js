@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import postService from "../../services/postService";
+import { getDeadlineColor } from "../../utils/deadlineColor";
 
 /**
  * PostsDataGrid — reusable filterable/sortable table for posts.
@@ -20,7 +21,8 @@ const STATUS_LABELS = {
   reactivated: { label: "Réactivé",     class: "reactivated" },
 };
 
-const deadlineColor = (dateStr) => {
+const deadlineClass = (dateStr) => {
+  if (!dateStr) return "";
   const days = Math.ceil((new Date(dateStr) - new Date()) / 86400000);
   if (days < 0)  return "deadline-red";
   if (days <= 7)  return "deadline-red";
@@ -205,7 +207,10 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.03 }}
                     onClick={() => onRowClick && onRowClick(post)}
-                    style={{ cursor: onRowClick ? "pointer" : "default" }}
+                    style={{
+                      cursor: onRowClick ? "pointer" : "default",
+                      borderLeft: `3px solid ${getDeadlineColor(post.deadline)}`,
+                    }}
                   >
                     <td>
                       <div className="td-title">{post.title}</div>
@@ -252,7 +257,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                     </td>
 
                     <td>
-                      <span className={deadlineColor(post.deadline)}>
+                      <span className={deadlineClass(post.deadline)}>
                         {formatDate(post.deadline)}
                       </span>
                     </td>

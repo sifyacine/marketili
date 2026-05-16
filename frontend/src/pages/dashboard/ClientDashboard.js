@@ -6,6 +6,7 @@ import DashboardLayout   from "../../components/layout/DashboardLayout";
 import CreatePostModal   from "../../components/posts/CreatePostModal";
 import PostsDataGrid     from "../../components/posts/PostsDataGrid";
 import OffresRecues      from "../../components/pitches/OffresRecues";
+import ClientBrowse      from "./ClientBrowse";
 import { useMyPosts }    from "../../hooks/usePosts";
 import useAuth           from "../../hooks/useAuth";
 import projectService    from "../../services/projectService";
@@ -20,6 +21,7 @@ const ClientDashboard = () => {
   const NAV = [
     { label: "Vue d'ensemble",    icon: "🏠", path: "/dashboard/client"           },
     { label: "Mes posts",         icon: "📋", path: "/dashboard/client/posts"     },
+    { label: "Explorer",          icon: "🔍", path: "/dashboard/client/browse"    },
     { label: "Offres reçues",     icon: "💡", path: "/dashboard/client/pitches"   },
     { label: "Projets",           icon: "🚀", path: "/dashboard/client/projects"  },
     { label: "Contrats",          icon: "📄", path: "/dashboard/client/contracts" },
@@ -35,6 +37,7 @@ const ClientDashboard = () => {
           <Route path="posts" element={
             <ClientPosts user={user} onCreatePost={() => setShowCreateModal(true)} refetchKey={postCreated} />
           } />
+          <Route path="browse"    element={<ClientBrowse />} />
           <Route path="pitches"   element={<OffresRecues      user={user} />} />
           <Route path="projects"  element={<ClientProjects    user={user} />} />
           <Route path="contracts" element={<ClientContracts   user={user} />} />
@@ -766,19 +769,27 @@ const PostRow = ({ post, index }) => {
     closed:      { label: "Fermé",    class: "closed"      },
     reactivated: { label: "Réactivé", class: "reactivated" },
   };
-  const daysLeft = Math.ceil((new Date(post.deadline) - new Date()) / 86400000);
+  const dlDays  = Math.ceil((new Date(post.deadline) - new Date()) / 86400000);
+  const dlColor = post.deadline
+    ? dlDays > 14 ? "#22c55e" : dlDays >= 7 ? "#f59e0b" : dlDays >= 3 ? "#f97316" : "#ef4444"
+    : "#9e9e9e";
   return (
     <motion.div initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }}
       transition={{ delay: index * 0.05 }}
       style={{ display:"flex", alignItems:"center", gap:14, padding:"11px 22px",
-        borderBottom:"1px solid #faeaea", cursor:"pointer" }}>
+        borderBottom:"1px solid #faeaea", cursor:"pointer",
+        borderLeft: `3px solid ${dlColor}` }}>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontWeight:600, fontSize:"0.87rem", color:"#1a0a0a",
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
           {post.title}
         </div>
         <div style={{ fontSize:"0.73rem", color:"#9a6060", marginTop:2 }}>
-          {post.pitchCount || 0} offre{(post.pitchCount||0) !== 1 ? "s" : ""} · {daysLeft > 0 ? `${daysLeft}j restants` : "Échéance dépassée"}
+          {post.pitchCount || 0} offre{(post.pitchCount||0) !== 1 ? "s" : ""}
+          {" · "}
+          <span style={{ color: dlColor, fontWeight: 600 }}>
+            {dlDays > 0 ? `${dlDays}j restants` : "Échéance dépassée"}
+          </span>
         </div>
       </div>
       <span className={`status-badge ${STATUS[post.status]?.class || post.status}`}>
