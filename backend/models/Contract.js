@@ -57,10 +57,10 @@ const contractSchema = new mongoose.Schema(
     },
     partyAName: { type: String, trim: true }, // denormalized for display
 
-    // Party B — always the client (or freelancer in agency↔freelancer contracts)
+    // Party B — client, freelancer, or agency member (internal employment contracts)
     partyBType: {
       type: String,
-      enum: ["Client", "Freelancer"],
+      enum: ["Client", "Freelancer", "AgencyMember"],
       required: true,
     },
     partyBId: {

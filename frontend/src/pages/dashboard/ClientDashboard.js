@@ -504,6 +504,65 @@ const CONTRACT_STATUS_META = {
   resiliation:  { label: "Résilié",           color: "#ef4444", bg: "#fef2f2" },
 };
 
+const CONTRACT_STEPS = [
+  { key: "draft",        label: "Brouillon"     },
+  { key: "sent",         label: "Reçu"          },
+  { key: "acknowledged", label: "Reçu confirmé" },
+  { key: "signed",       label: "Finalisé"      },
+];
+
+const ClientContractStepper = ({ status }) => {
+  if (status === "resiliation") {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 8,
+        padding: "8px 14px", borderRadius: 8, background: "#fef2f2",
+        border: "1px solid #fecaca", marginBottom: 16 }}>
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444" }} />
+        <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#dc2626" }}>
+          Contrat résilié
+        </span>
+      </div>
+    );
+  }
+  const currentIdx = CONTRACT_STEPS.findIndex(s => s.key === status);
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 0, marginBottom: 18 }}>
+      {CONTRACT_STEPS.map((step, i) => {
+        const done   = i < currentIdx;
+        const active = i === currentIdx;
+        const dotColor = done ? "#10b981" : active ? "#c0152a" : "#d1d5db";
+        const textColor = done ? "#10b981" : active ? "#c0152a" : "#9ca3af";
+        return (
+          <React.Fragment key={step.key}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{ width: 20, height: 20, borderRadius: "50%",
+                border: `2.5px solid ${dotColor}`,
+                background: (done || active) ? dotColor : "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {done && (
+                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                    <path d="M1.5 4.5l2 2L7.5 2.5" stroke="#fff" strokeWidth="1.8"
+                      strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+                {active && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff" }} />}
+              </div>
+              <span style={{ fontSize: "0.6rem", fontWeight: active ? 700 : 500,
+                color: textColor, whiteSpace: "nowrap" }}>
+                {step.label}
+              </span>
+            </div>
+            {i < CONTRACT_STEPS.length - 1 && (
+              <div style={{ flex: 1, height: 2.5, background: done ? "#10b981" : "#e5e7eb",
+                marginTop: 9, minWidth: 16, borderRadius: 2 }} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
 const ClientContracts = ({ user }) => {
   const [contracts, setContracts] = useState([]);
   const [loading,   setLoading]   = useState(true);
@@ -583,24 +642,30 @@ const ClientContracts = ({ user }) => {
               <motion.div key={c._id} className="card"
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                style={{ padding: "18px 22px", cursor: "pointer" }}
+                style={{ cursor: "pointer", borderLeft: `4px solid ${meta.color}`,
+                  opacity: c.status === "resiliation" ? 0.7 : 1 }}
                 onClick={() => setSelected(c)}>
-                <div style={{ display: "flex", alignItems: "center",
-                  justifyContent: "space-between", gap: 16 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: "0.95rem",
-                      color: "#1a0a0a", marginBottom: 4 }}>
-                      {c.title || c.project?.title || "Contrat"}
+                <div style={{ padding: "16px 22px" }}>
+                  <div style={{ display: "flex", alignItems: "center",
+                    justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.95rem",
+                        color: "#1a0a0a", marginBottom: 4 }}>
+                        {c.title || c.project?.title || "Contrat"}
+                      </div>
+                      <div style={{ fontSize: "0.78rem", color: "#9a6060" }}>
+                        {c.partyAName} · {new Date(c.createdAt).toLocaleDateString("fr-DZ")}
+                      </div>
                     </div>
-                    <div style={{ fontSize: "0.78rem", color: "#9a6060" }}>
-                      {c.partyAName} · {new Date(c.createdAt).toLocaleDateString("fr-DZ")}
-                    </div>
+                    <span style={{ padding: "4px 12px", borderRadius: 20,
+                      fontSize: "0.74rem", fontWeight: 700,
+                      color: meta.color, background: meta.bg, whiteSpace: "nowrap" }}>
+                      {meta.label}
+                    </span>
                   </div>
-                  <span style={{ padding: "4px 12px", borderRadius: 20,
-                    fontSize: "0.74rem", fontWeight: 700,
-                    color: meta.color, background: meta.bg, whiteSpace: "nowrap" }}>
-                    {meta.label}
-                  </span>
+                  {c.status !== "resiliation" && (
+                    <ClientContractStepper status={c.status} />
+                  )}
                 </div>
               </motion.div>
             );
@@ -613,11 +678,14 @@ const ClientContracts = ({ user }) => {
 
 // ── Client contract detail — can upload receipt ───────────────────────────────
 const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
-  const [contract,    setContract]    = useState(initial);
-  const [uploading,   setUploading]   = useState(false);
-  const [receiptFile, setReceiptFile] = useState(null);
-  const [msg,         setMsg]         = useState("");
-  const [error,       setError]       = useState("");
+  const [contract,      setContract]      = useState(initial);
+  const [uploading,     setUploading]     = useState(false);
+  const [receiptFile,   setReceiptFile]   = useState(null);
+  const [msg,           setMsg]           = useState("");
+  const [error,         setError]         = useState("");
+  const [showResiliate, setShowResiliate] = useState(false);
+  const [resilReason,   setResilReason]   = useState("");
+  const [resiliating,   setResiliating]   = useState(false);
 
   const meta = CONTRACT_STATUS_META[contract.status] || CONTRACT_STATUS_META.draft;
 
@@ -654,8 +722,21 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
     }
   };
 
+  const handleResiliate = async (e) => {
+    e.preventDefault();
+    setResiliating(true);
+    try {
+      const d = await contractService.resiliate(contract._id, user._id, resilReason);
+      setContract(d.contract);
+      setShowResiliate(false);
+      setResilReason("");
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur");
+    } finally { setResiliating(false); }
+  };
+
   return (
-    <div>
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
       {/* Back */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack}
@@ -673,6 +754,15 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
             {meta.label}
           </span>
         </div>
+      </div>
+
+      {/* Status stepper */}
+      <div className="card" style={{ padding: "16px 22px", marginBottom: 16 }}>
+        <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#9a6060",
+          textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+          Progression
+        </div>
+        <ClientContractStepper status={contract.status} />
       </div>
 
       {/* Contract details */}
@@ -801,11 +891,77 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
       {contract.status === "signed" && (
         <div style={{ padding: "14px 18px", borderRadius: 10,
           background: "#f0fdf4", border: "1px solid #bbf7d0",
-          color: "#166534", fontSize: "0.85rem", fontWeight: 600 }}>
+          color: "#166534", fontSize: "0.85rem", fontWeight: 600, marginBottom: 16 }}>
           Contrat finalisé — Collaboration officiellement engagée.
         </div>
       )}
-    </div>
+
+      {/* Resiliation zone */}
+      {!["resiliation", "signed"].includes(contract.status) && (
+        <div className="card" style={{ padding: "18px 22px",
+          borderTop: "3px solid #fecaca" }}>
+          <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#dc2626",
+            textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+            Zone de résiliation
+          </div>
+          <AnimatePresence mode="wait">
+            {!showResiliate ? (
+              <motion.div key="btn"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <p style={{ fontSize: "0.82rem", color: "#9a6060",
+                  lineHeight: 1.5, marginBottom: 12 }}>
+                  Si vous souhaitez mettre fin à ce contrat, vous pouvez en demander
+                  la résiliation.
+                </p>
+                <button onClick={() => setShowResiliate(true)}
+                  style={{ padding: "8px 16px", borderRadius: 8,
+                    border: "1.5px solid #fecaca", background: "#fef2f2",
+                    color: "#dc2626", fontWeight: 700, fontSize: "0.82rem",
+                    cursor: "pointer", fontFamily: "inherit" }}>
+                  Demander la résiliation
+                </button>
+              </motion.div>
+            ) : (
+              <motion.form key="form" onSubmit={handleResiliate}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: "0.78rem", fontWeight: 600,
+                    color: "#9a6060", display: "block", marginBottom: 6 }}>
+                    Motif (optionnel)
+                  </label>
+                  <textarea value={resilReason} onChange={e => setResilReason(e.target.value)}
+                    rows={3} placeholder="Expliquez votre demande..."
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: 8,
+                      border: "1.5px solid #f0dede", fontSize: "0.82rem",
+                      fontFamily: "inherit", resize: "vertical", boxSizing: "border-box" }} />
+                </div>
+                {error && (
+                  <div style={{ color: "#b91c1c", fontSize: "0.82rem", marginBottom: 10 }}>
+                    {error}
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button type="submit" disabled={resiliating}
+                    style={{ padding: "9px 16px", borderRadius: 8, border: "none",
+                      background: "#dc2626", color: "#fff", fontWeight: 700,
+                      fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}>
+                    {resiliating ? "..." : "Confirmer"}
+                  </button>
+                  <button type="button" onClick={() => setShowResiliate(false)}
+                    style={{ padding: "9px 14px", borderRadius: 8,
+                      border: "1.5px solid #f0dede", background: "none",
+                      color: "#9a6060", fontWeight: 600, fontSize: "0.82rem",
+                      cursor: "pointer", fontFamily: "inherit" }}>
+                    Annuler
+                  </button>
+                </div>
+              </motion.form>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+    </motion.div>
   );
 };
 

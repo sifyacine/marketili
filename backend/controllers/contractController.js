@@ -76,7 +76,7 @@ exports.createContract = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 exports.getContracts = async (req, res) => {
   try {
-    const { partyId, partyType, status, page = 1, limit = 20 } = req.query;
+    const { partyId, partyType, status, page = 1, limit = 20, fromDate, toDate } = req.query;
 
     if (!partyId || !partyType) {
       return fail(res, "partyId et partyType requis");
@@ -91,6 +91,12 @@ exports.getContracts = async (req, res) => {
     };
 
     if (status && status !== "all") filter.status = status;
+
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+      if (fromDate) filter.createdAt.$gte = new Date(fromDate);
+      if (toDate)   filter.createdAt.$lte = new Date(new Date(toDate).setHours(23, 59, 59, 999));
+    }
 
     const pageNum  = Math.max(1, parseInt(page, 10));
     const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10)));

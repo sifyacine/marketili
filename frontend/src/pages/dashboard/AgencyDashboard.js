@@ -14,6 +14,7 @@ import DirectorOverview     from "./agency/DirectorOverview";
 import DirectorFlaggedPosts from "./agency/DirectorFlaggedPosts";
 import DirectorClients      from "./agency/DirectorClients";
 import DirectorProjects     from "./agency/DirectorProjects";
+import DirectorContracts    from "./agency/DirectorContracts";
 import DirectorMembers      from "./agency/DirectorMembers";
 import DirectorPitches      from "./agency/DirectorPitches";
 import CommercialOverview   from "./agency/CommercialOverview";
@@ -26,7 +27,7 @@ import { PostCard }         from "./agency/shared";
 import { usePosts }         from "../../hooks/usePosts";
 import {
   IconHome, IconFlag, IconTarget, IconBriefcase,
-  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend,
+  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText,
 } from "../../components/ui/Icons";
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
@@ -44,13 +45,14 @@ const getAgencyRole = (user) => {
 
 // ── Nav configs ───────────────────────────────────────────────────────────────
 const NAV_DIRECTOR = [
-  { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"          },
-  { label: "Posts flaggés",   icon: <IconFlag        size={16} />, path: "/dashboard/agency/flagged"  },
-  { label: "Mes offres",      icon: <IconSend        size={16} />, path: "/dashboard/agency/pitches"  },
-  { label: "Clients",         icon: <IconTarget      size={16} />, path: "/dashboard/agency/clients"  },
-  { label: "Projets",         icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects" },
-  { label: "Membres",         icon: <IconUsers       size={16} />, path: "/dashboard/agency/members"  },
-  { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"   },
+  { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"           },
+  { label: "Posts flaggés",   icon: <IconFlag        size={16} />, path: "/dashboard/agency/flagged"   },
+  { label: "Mes offres",      icon: <IconSend        size={16} />, path: "/dashboard/agency/pitches"   },
+  { label: "Clients",         icon: <IconTarget      size={16} />, path: "/dashboard/agency/clients"   },
+  { label: "Projets",         icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects"  },
+  { label: "Contrats",        icon: <IconFileText    size={16} />, path: "/dashboard/agency/contracts" },
+  { label: "Membres",         icon: <IconUsers       size={16} />, path: "/dashboard/agency/members"   },
+  { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"    },
 ];
 const NAV_COMMERCIAL = [
   { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"         },
@@ -179,10 +181,11 @@ const AgencyDashboard = () => {
                   projectService.getFlaggedPosts(user._id)
                     .then(d => setFlaggedPosts(d.flaggedPosts || []))} />
             } />
-            <Route path="pitches"  element={<DirectorPitches  user={user} />} />
-            <Route path="clients"  element={<DirectorClients  user={user} />} />
-            <Route path="projects" element={<DirectorProjects user={user} />} />
-            <Route path="members"  element={<DirectorMembers  user={user} />} />
+            <Route path="pitches"   element={<DirectorPitches   user={user} />} />
+            <Route path="clients"   element={<DirectorClients   user={user} />} />
+            <Route path="projects"  element={<DirectorProjects  user={user} />} />
+            <Route path="contracts" element={<DirectorContracts user={user} />} />
+            <Route path="members"   element={<DirectorMembers   user={user} />} />
             <Route path="browse"   element={<BrowsePosts onPitch={setPitchTarget} />} />
           </>}
 

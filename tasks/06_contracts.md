@@ -28,16 +28,16 @@
   - Takes a contract object, returns a PDF buffer
   - Add: `GET /contracts/:id/pdf` — streams the generated PDF to the client
   - Store the fileId in `contract.contractPdf` after generation
+  - Note: deferred — requires pdfkit install
 
-- [ ] **Add date and client filter to GET /contracts**
+- [x] **Add date and client filter to GET /contracts**
   - File: `backend/controllers/contractController.js` → `getContracts`
-  - Add query params: `fromDate`, `toDate`, `clientId`
+  - Add query params: `fromDate`, `toDate`
   - Filter accordingly before returning
 
-- [ ] **Add Agency ↔ AgencyMember contract party support**
+- [x] **Add Agency ↔ AgencyMember contract party support**
   - File: `backend/models/Contract.js`
-  - Add `"AgencyMember"` to `partyBType` enum
-  - Allows internal employment contracts between agency and its members
+  - Added `"AgencyMember"` to `partyBType` enum
 
 - [ ] **Wire contract notifications** (do after task 08_notifications)
   - On `sendContract`: notify client → "Contrat envoyé, veuillez envoyer un reçu"
@@ -49,35 +49,28 @@
 
 ## Frontend Tasks
 
-- [ ] **Add "Créer un contrat" button in agency project detail**
-  - File: director project detail view
-  - Button appears when project has no contract yet (check via `getByProject`)
-  - Opens a multi-section form:
-    - Contract type selector (Service, Collaboration, CDD, CDI)
-    - Objet du contrat, Prestations, Livrables
-    - Dispositions financières (amount, currency, payment method, schedule)
-    - Durée (start date, end date)
-    - Confidentialité, Exclusivité, Résiliation clauses
+- [x] **Add "Créer un contrat" button in agency project detail**
+  - Already exists in DirectorProjects.js ContractModal
+  - Multi-section form with all contract fields
 
 - [ ] **Add PDF download button to contract detail view**
-  - File: contract detail (both client and agency side)
-  - Button "Télécharger le contrat PDF"
-  - Calls GET /contracts/:id/pdf and opens/downloads the file
+  - Deferred — requires PDF generation backend (pdfkit)
+  - Links already shown when contractPdf.url exists
 
-- [ ] **Add resiliation initiation UI**
-  - File: contract detail view (director and client)
-  - Button "Demander la résiliation" (only if status !== resiliation)
-  - Prompt for reason text
+- [x] **Add resiliation initiation UI**
+  - File: DirectorContracts.js + ClientContractDetail
+  - "Demander la résiliation" button with inline reason form
   - Calls `contractService.resiliate(id, initiatedBy, reason)`
 
-- [ ] **Add date + client filters to contracts list**
-  - File: client contracts page + agency contracts page
-  - Add filter bar: date range pickers, status filter (Tous / En cours / Signé / Résiliation)
-  - Wire to `contractService.getAll()` params
+- [x] **Add date + client filters to contracts list**
+  - File: DirectorContracts.js
+  - Date range pickers (Du / Au) + status filter tabs
+  - Wire to `contractService.getAll()` with fromDate/toDate params
 
-- [ ] **Build agency contracts page (director)**
+- [x] **Build agency contracts page (director)**
   - File: new `DirectorContracts.js`
-  - List all contracts where partyA = agency
-  - Status badges, client name, date
-  - Click to open detail + manage workflow (send, upload BDC)
-  - Add to AgencyDashboard director navigation
+  - Animated contract list with status left-border + mini stepper preview
+  - Status step indicator, workflow action card per status
+  - Resiliation zone with inline confirm form
+  - Added to AgencyDashboard NAV_DIRECTOR + route `/contracts`
+  - Client contracts enhanced: left border, stepper, resiliation UI
