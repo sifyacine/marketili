@@ -29,7 +29,7 @@ import { PostCard }         from "./agency/shared";
 import { usePosts }         from "../../hooks/usePosts";
 import {
   IconHome, IconFlag, IconTarget, IconBriefcase,
-  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell,
+  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser,
 } from "../../components/ui/Icons";
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
@@ -166,10 +166,15 @@ const AgencyDashboard = () => {
     setPitchTarget(null);
   };
 
+  const profilePath = user?.role === "agency"
+    ? `/profile/agency/${user?._id}`
+    : `/profile/agency_member/${user?._id}`;
+
   const NAV_DIRECTOR_FULL = [
     ...NAV_DIRECTOR,
     { label: "Notifications", icon: <IconBell size={16} />, path: "/dashboard/agency/notifications",
       badge: unreadCount },
+    { label: "Mon profil",    icon: <IconUser size={16} />, path: profilePath },
   ];
 
   const NAV = agencyRole === "director" ? NAV_DIRECTOR_FULL

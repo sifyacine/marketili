@@ -17,7 +17,7 @@ import notificationService from "../../services/notificationService";
 import {
   IconHome, IconClipboard, IconCompass, IconInbox,
   IconBriefcase, IconFileText, IconZap, IconCheckSquare,
-  IconTrendingUp, IconPlus, IconBell,
+  IconTrendingUp, IconPlus, IconBell, IconUser,
 } from "../../components/ui/Icons";
 import "../../styles/Dashboard.css";
 
@@ -46,6 +46,7 @@ const ClientDashboard = () => {
     { label: "Contrats",        icon: <IconFileText   size={16} />, path: "/dashboard/client/contracts"      },
     { label: "Notifications",   icon: <IconBell       size={16} />, path: "/dashboard/client/notifications",
       badge: unreadCount },
+    { label: "Mon profil",      icon: <IconUser       size={16} />, path: `/profile/client/${user?._id}` },
   ];
 
   return (

@@ -2,14 +2,17 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import PrivateRoute    from "./components/auth/PrivateRoute";
-import Login           from "./pages/auth/Login";
-import Register        from "./pages/auth/Register";
-import Unauthorized    from "./pages/auth/Unauthorized";
-import ClientDashboard from "./pages/dashboard/ClientDashboard";
-import AgencyDashboard from "./pages/dashboard/AgencyDashboard";
-import AdminDashboard  from "./pages/dashboard/AdminDashboard";
+import PrivateRoute       from "./components/auth/PrivateRoute";
+import Login              from "./pages/auth/Login";
+import Register           from "./pages/auth/Register";
+import Unauthorized       from "./pages/auth/Unauthorized";
+import ClientDashboard    from "./pages/dashboard/ClientDashboard";
+import AgencyDashboard    from "./pages/dashboard/AgencyDashboard";
+import AdminDashboard     from "./pages/dashboard/AdminDashboard";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
+import ProfilePage        from "./pages/ProfilePage";
+import EditProfilePage    from "./pages/EditProfilePage";
+import BrowseProvidersPage from "./pages/BrowseProvidersPage";
 //uuyou
 let LandingPage;
 try {
@@ -62,6 +65,11 @@ function App() {
             <ComingSoon role="freelancer" />
           </PrivateRoute>
         } />
+
+        {/* Public profile & browse routes */}
+        <Route path="/profile/:role/:id/edit" element={<EditProfilePage />} />
+        <Route path="/profile/:role/:id"      element={<ProfilePage />} />
+        <Route path="/browse"                 element={<BrowseProvidersPage />} />
 
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

@@ -20,14 +20,14 @@
 
 ## Backend Tasks
 
-- [ ] **Add GET /profile/:role/:id endpoint (public profile)**
+- [x] **Add GET /profile/:role/:id endpoint (public profile)**
   - File: new `backend/routes/profileRoutes.js` + `backend/controllers/profileController.js`
   - Returns the user document (without password, refreshToken)
   - Includes: bio, specialties, portfolioItems, stats (completed projects count)
   - Roles supported: `agency`, `freelancer`, `team`, `client`
   - Mount in `server.js`: `app.use("/api/profile", require("./routes/profileRoutes"))`
 
-- [ ] **Add PATCH /profile/me endpoint (edit own profile)**
+- [x] **Add PATCH /profile/me endpoint (edit own profile)**
   - File: `backend/routes/profileRoutes.js`
   - Protected route (uses `protect` middleware)
   - Updates allowed fields per role:
@@ -36,13 +36,13 @@
     - Client: `bio`, `avatar`, `industry`, `location`
     - Team: `bio`, `avatar`, `specialties`, `portfolioItems`, `website`
 
-- [ ] **Add GET /providers endpoint (browse agencies, teams, freelancers)**
+- [x] **Add GET /providers endpoint (browse agencies, teams, freelancers)**
   - File: `backend/routes/profileRoutes.js`
   - Query params: `type` (agency/team/freelancer/all), `specialty`, `region`, `search`, `page`, `limit`
   - Returns paginated list of active providers with key public fields
   - Sort by: most recently active or by completedProjects count
 
-- [ ] **Add social post model (ProfilePost)**
+- [x] **Add social post model (ProfilePost)**
   - File: new `backend/models/ProfilePost.js`
   - Fields: `author` (ObjectId), `authorRole`, `authorName`, `authorAvatar`
   - `content: String`, `media: [{ fileId, url, type }]`
@@ -54,7 +54,7 @@
 
 ## Frontend Tasks
 
-- [ ] **Build public profile page component**
+- [x] **Build public profile page component**
   - File: new `frontend/src/pages/ProfilePage.js`
   - Route: `/profile/:role/:id`
   - Sections:
@@ -65,14 +65,14 @@
     - For agency: team members listed
   - Add route to `App.js`
 
-- [ ] **Build edit profile page/modal**
+- [x] **Build edit profile page/modal**
   - File: new `frontend/src/pages/EditProfilePage.js` or a modal component
   - Role-aware form (different fields per role)
   - Avatar/logo upload via existing upload service
   - Specialty picker (same checkboxes as registration)
   - Portfolio items: add/remove cards with image + title + description + link
 
-- [ ] **Build "Browse providers" page**
+- [x] **Build "Browse providers" page**
   - File: new `frontend/src/pages/BrowseProvidersPage.js`
   - Route: `/browse` (accessible from all dashboards)
   - Filter sidebar: type (Agence / Équipe / Freelancer), specialty, region
@@ -80,13 +80,13 @@
   - Results as cards: avatar, name, specialty tags, location, completed projects count
   - Clicking a card → navigates to `/profile/:role/:id`
 
-- [ ] **Add social post feed to profile**
+- [x] **Add social post feed to profile**
   - File: profile page component
   - Simple card feed below portfolio
   - "Publier" button opens a modal: text content + optional image upload + post type selector
   - Feed shows posts chronologically, newest first
 
-- [ ] **Add "Mon profil" nav item to all dashboards**
+- [x] **Add "Mon profil" nav item to all dashboards**
   - File: `DashboardLayout.js` or each dashboard nav
   - Links to `/profile/:userRole/:userId`
   - "Modifier mon profil" button visible only to own profile owner
