@@ -18,16 +18,16 @@
 
 ## Backend Tasks
 
-- [ ] **Add GET /freelancer/:id/collaborations endpoint**
-  - File: `backend/routes/profileRoutes.js` or new `backend/routes/freelancerRoutes.js`
+- [x] **Add GET /freelancer/:id/collaborations endpoint**
+  - File: `backend/routes/freelancerRoutes.js`
   - Returns `freelancer.agencyCollaborations` populated with agency names and logos
   - Filter: only `status: "active"` collaborations
 
-- [ ] **Add GET /freelancer/:id/projects endpoint**
+- [x] **Add GET /freelancer/:id/projects endpoint**
   - Returns projects where `providerFreelancer = id` (independent projects)
   - Add query param `agencyId` to filter projects within a specific agency collaboration
 
-- [ ] **Add GET /freelancer/:id/pitches endpoint**
+- [x] **Add GET /freelancer/:id/pitches endpoint**
   - Returns pitches sent by this freelancer
   - Filter by `agencyContext` if applicable (for pitches sent on behalf of an agency)
 
@@ -35,7 +35,7 @@
 
 ## Frontend Tasks
 
-- [ ] **Build FreelancerDashboard layout**
+- [x] **Build FreelancerDashboard layout**
   - File: `frontend/src/pages/dashboard/FreelancerDashboard.js`
   - Replace ComingSoon in App.js for role `freelancer`
   - Sidebar navigation:
@@ -46,35 +46,35 @@
     - Mes projets (independent projects)
     - Mon profil
 
-- [ ] **Build collaboration cards (context switcher)**
-  - File: `frontend/src/pages/dashboard/freelancer/CollaborationCards.js`
+- [x] **Build collaboration cards (context switcher)**
+  - File: `frontend/src/pages/dashboard/freelancer/FreelancerCollaborations.js`
   - Shows one card per active agency/team collaboration
   - Card: agency logo, name, role within agency, active projects count
   - Special "Espace indépendant" card always present
   - Clicking a card sets `activeContext` (local state) to that agency/team ID
 
-- [ ] **Build context-aware workspace**
+- [x] **Build context-aware workspace**
   - When `activeContext = null` (independent): show own posts, pitches, projects
   - When `activeContext = agencyId`: show only that agency's projects and tasks assigned to the freelancer
   - Context shown in a breadcrumb/tab bar at the top: "Mode: Agence X" with a back/switch button
 
-- [ ] **Build FreelancerOverview (independent mode)**
+- [x] **Build FreelancerOverview (independent mode)**
   - Stats: active pitches, active projects, collaborations count
   - Recent pitches sent
   - Recent projects
   - Quick action: "Explorer les posts"
 
-- [ ] **Build FreelancerBrowse**
+- [x] **Build FreelancerBrowse**
   - Browse public posts with ability to pitch (freelancer pitch form)
   - Filter by marketingType, region, compensationType
   - Send application to agencies (links to agency profile with "Proposer collaboration" button)
 
-- [ ] **Build FreelancerPitches page**
+- [x] **Build FreelancerPitches page**
   - List of pitches sent by the freelancer (independent)
   - Status filter: En attente / Accepté / Rejeté / Retiré
   - Withdraw button for pending pitches
 
-- [ ] **Build FreelancerProjects page**
+- [x] **Build FreelancerProjects page**
   - Independent projects (where freelancer is provider)
   - Project cards with deadline urgency colors
   - Click → project detail with tasks assigned to them

@@ -26,7 +26,7 @@ const agencyMemberSchema = new mongoose.Schema(
     },
     jobTitle: {
       type: String,
-      enum: ["director", "commercial", "strategist", "designer", "editor", "smm", "community_manager"],
+      enum: ["director", "commercial", "strategist", "chef_de_projet", "designer", "editor", "smm", "community_manager"],
       trim: true,
     },
     skills:   [String],
@@ -35,7 +35,11 @@ const agencyMemberSchema = new mongoose.Schema(
     assignedProjects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project" }],
     assignedTasks:    [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
     role:     { type: String, default: "agency_member", immutable: true },
-    isActive: { type: Boolean, default: true },
+    accountStatus: {
+      type: String,
+      enum: ["active", "inactive", "suspended", "archived"],
+      default: "active",
+    },
 
     // ✅ NEW: forces password change on first login
     mustChangePassword: { type: Boolean, default: true },
@@ -44,6 +48,10 @@ const agencyMemberSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+agencyMemberSchema.virtual("isActive").get(function () {
+  return this.accountStatus === "active";
+});
 
 agencyMemberSchema.pre("save", async function () {
   if (!this.isModified("password")) return;

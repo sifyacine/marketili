@@ -1,0 +1,225 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import freelancerService from "../../../services/freelancerService";
+import pitchService from "../../../services/pitchService";
+import { IconSend } from "../../../components/ui/Icons";
+
+const STATUS_META = {
+  pending:   { label: "En attente", color: "#f59e0b", bg: "#fffbeb" },
+  accepted:  { label: "Acceptée",   color: "#10b981", bg: "#f0fdf4" },
+  rejected:  { label: "Rejetée",    color: "#ef4444", bg: "#fef2f2" },
+  withdrawn: { label: "Retirée",    color: "#6b7280", bg: "#f9fafb" },
+};
+
+const FILTER_TABS = [
+  { v: "all",       l: "Toutes"     },
+  { v: "pending",   l: "En attente" },
+  { v: "accepted",  l: "Acceptées"  },
+  { v: "rejected",  l: "Rejetées"   },
+  { v: "withdrawn", l: "Retirées"   },
+];
+
+const fmt = (d) => d
+  ? new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" })
+  : "—";
+
+const FreelancerPitches = ({ user }) => {
+  const [pitches,  setPitches]  = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [filter,   setFilter]   = useState("all");
+  const [page,     setPage]     = useState(1);
+  const [total,    setTotal]    = useState(0);
+  const [pages,    setPages]    = useState(1);
+  const [withdrawing, setWithdrawing] = useState(null);
+
+  const load = useCallback(() => {
+    if (!user?._id) return;
+    setLoading(true);
+    freelancerService.getPitches(user._id, {
+      status: filter !== "all" ? filter : undefined,
+      page,
+      limit: 12,
+    })
+      .then(d => {
+        setPitches(d.pitches || []);
+        setTotal(d.total || 0);
+        setPages(d.pages || 1);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [user?._id, filter, page]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleWithdraw = async (pitch) => {
+    if (!window.confirm("Retirer cette offre ?")) return;
+    setWithdrawing(pitch._id);
+    try {
+      await pitchService.withdraw(pitch._id, user._id, "Freelancer");
+      setPitches(prev => prev.map(p =>
+        p._id === pitch._id ? { ...p, status: "withdrawn" } : p
+      ));
+    } catch {}
+    setWithdrawing(null);
+  };
+
+  const handleFilterChange = (v) => {
+    setFilter(v);
+    setPage(1);
+  };
+
+  return (
+    <div>
+      <div className="section-header">
+        <div className="section-header-left">
+          <h2>Mes offres</h2>
+          <p style={{ color: "var(--d-muted)" }}>
+            {total} offre{total !== 1 ? "s" : ""} envoyée{total !== 1 ? "s" : ""}
+          </p>
+        </div>
+      </div>
+
+      {/* Filter tabs */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+        {FILTER_TABS.map(tab => (
+          <button
+            key={tab.v}
+            onClick={() => handleFilterChange(tab.v)}
+            style={{
+              padding: "6px 16px", borderRadius: 20, fontSize: "0.78rem", fontWeight: 600,
+              cursor: "pointer", border: "none",
+              background: filter === tab.v ? "#7c3aed" : "#f3f4f6",
+              color: filter === tab.v ? "#fff" : "#555",
+              transition: "background 0.15s, color 0.15s",
+            }}>
+            {tab.l}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="spinner-wrap"><div className="spinner" /></div>
+      ) : pitches.length === 0 ? (
+        <div className="card" style={{ padding: "48px 24px", textAlign: "center" }}>
+          <div style={{ color: "#ccc", marginBottom: 12 }}><IconSend size={24} /></div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>Aucune offre</div>
+          <div style={{ fontSize: "0.8rem", color: "var(--d-muted)" }}>
+            {filter !== "all"
+              ? "Aucune offre dans ce statut"
+              : "Explorez les posts et envoyez votre première offre"}
+          </div>
+        </div>
+      ) : (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={filter + page}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {pitches.map((p, i) => {
+                const meta = STATUS_META[p.status] || STATUS_META.pending;
+                return (
+                  <motion.div
+                    key={p._id}
+                    className="card"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    style={{ padding: "18px 22px", borderLeft: `3px solid ${meta.color}` }}>
+                    <div style={{ display: "flex", justifyContent: "space-between",
+                      alignItems: "flex-start", gap: 12 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 4 }}>
+                          {p.post?.title || "Post supprimé"}
+                        </div>
+                        {p.post?.budget && (
+                          <div style={{ fontSize: "0.75rem", color: "var(--d-muted)", marginBottom: 6 }}>
+                            Budget client : {p.post.budget.toLocaleString("fr-DZ")} DZD
+                          </div>
+                        )}
+                        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                          {p.price && (
+                            <div style={{ fontSize: "0.78rem", color: "#555" }}>
+                              Offre : <strong>{p.price.toLocaleString("fr-DZ")} {p.currency || "DZD"}</strong>
+                            </div>
+                          )}
+                          {p.duration && (
+                            <div style={{ fontSize: "0.78rem", color: "#555" }}>
+                              Durée : <strong>{p.duration} {p.durationUnit || ""}</strong>
+                            </div>
+                          )}
+                          <div style={{ fontSize: "0.78rem", color: "var(--d-muted)" }}>
+                            Envoyée le {fmt(p.createdAt)}
+                          </div>
+                        </div>
+                        {p.description && (
+                          <div style={{ fontSize: "0.78rem", color: "#555", marginTop: 8,
+                            lineHeight: 1.55, display: "-webkit-box", WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                            {p.description}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                        <span style={{
+                          padding: "3px 11px", borderRadius: 20, fontSize: "0.7rem",
+                          fontWeight: 700, background: meta.bg, color: meta.color,
+                          whiteSpace: "nowrap",
+                        }}>
+                          {meta.label}
+                        </span>
+                        {p.status === "pending" && (
+                          <button
+                            onClick={() => handleWithdraw(p)}
+                            disabled={withdrawing === p._id}
+                            style={{
+                              padding: "4px 12px", borderRadius: 8, fontSize: "0.72rem",
+                              fontWeight: 600, cursor: "pointer",
+                              border: "1px solid #ef4444", color: "#ef4444",
+                              background: "none", opacity: withdrawing === p._id ? 0.5 : 1,
+                            }}>
+                            {withdrawing === p._id ? "..." : "Retirer"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            {pages > 1 && (
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 24 }}>
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  style={{ padding: "6px 14px", borderRadius: 8, fontSize: "0.78rem",
+                    border: "1px solid #ddd", background: "none", cursor: "pointer",
+                    opacity: page === 1 ? 0.4 : 1 }}>
+                  Précédent
+                </button>
+                <span style={{ padding: "6px 14px", fontSize: "0.78rem", color: "var(--d-muted)" }}>
+                  {page} / {pages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(pages, p + 1))}
+                  disabled={page === pages}
+                  style={{ padding: "6px 14px", borderRadius: 8, fontSize: "0.78rem",
+                    border: "1px solid #ddd", background: "none", cursor: "pointer",
+                    opacity: page === pages ? 0.4 : 1 }}>
+                  Suivant
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </div>
+  );
+};
+
+export default FreelancerPitches;

@@ -33,6 +33,7 @@ app.use("/api/agency-members", require("./routes/agencyMemberRoutes"));
 app.use("/api/contracts",      require("./routes/contractRoutes"));
 app.use("/api/notifications",  require("./routes/notificationRoutes"));
 app.use("/api/profile",        require("./routes/profileRoutes"));
+app.use("/api/freelancer",     require("./routes/freelancerRoutes"));
 
 // ── Health check ──
 app.get("/api/health", (req, res) => {

@@ -9,6 +9,7 @@ import Unauthorized       from "./pages/auth/Unauthorized";
 import ClientDashboard    from "./pages/dashboard/ClientDashboard";
 import AgencyDashboard    from "./pages/dashboard/AgencyDashboard";
 import AdminDashboard     from "./pages/dashboard/AdminDashboard";
+import FreelancerDashboard from "./pages/dashboard/FreelancerDashboard";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import ProfilePage        from "./pages/ProfilePage";
 import EditProfilePage    from "./pages/EditProfilePage";
@@ -62,7 +63,7 @@ function App() {
         } />
         <Route path="/dashboard/freelancer/*" element={
           <PrivateRoute allowedRoles={["freelancer"]}>
-            <ComingSoon role="freelancer" />
+            <FreelancerDashboard />
           </PrivateRoute>
         } />
 
