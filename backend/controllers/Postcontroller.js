@@ -35,6 +35,12 @@ const createPost = async (req, res) => {
 
     if (!clientId) return fail(res, "clientId requis");
 
+    if (budget && budget.min !== undefined && budget.max !== undefined) {
+      if (Number(budget.min) > Number(budget.max)) {
+        return fail(res, "Le budget minimum ne peut pas dépasser le budget maximum");
+      }
+    }
+
     // ✅ FIX: safe file handling
     const file = req.file
       ? {

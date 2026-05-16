@@ -22,44 +22,65 @@
 
 ## Backend Tasks
 
-- [ ] **Add `carteAutoEntrepreneur` field to Freelancer model**
+- ✅ **Add `carteAutoEntrepreneur` field to Freelancer model**
   - File: `backend/models/Freelancer.js`
-  - Add: `carteAutoEntrepreneur: { type: String, trim: true }`
+  - Added: `carteAutoEntrepreneur: { type: String, trim: true }`
 
-- [ ] **Add filiale/parent logic to Agency model**
+- ✅ **Add filiale/parent logic to Agency model**
   - File: `backend/models/Agency.js`
-  - Add: `agencyType: { type: String, enum: ["main", "filiale"], default: "main" }`
-  - Add: `parentAgency: { type: mongoose.Schema.Types.ObjectId, ref: "Agency", default: null }`
+  - Added: `agencyType: { type: String, enum: ["main", "filiale"], default: "main" }`
+  - Added: `parentAgency: { type: mongoose.Schema.Types.ObjectId, ref: "Agency", default: null }`
+  - Added: `parentAgencyName: { type: String, trim: true }` — stores text name from registration form (admin links ObjectId later)
 
-- [ ] **Add validation: min price must be <= max price on Post**
-  - File: `backend/models/Post.js` or `backend/controllers/postController.js`
-  - Reject request if `budget.min > budget.max`
+- ✅ **Add validation: min price must be <= max price on Post**
+  - File: `backend/controllers/postController.js`
+  - Added guard in `createPost`: rejects if `budget.min > budget.max`
 
-- [ ] **Stricter backend validation on register**
-  - Reject numeric-only names (firstName, lastName, agencyName, teamName)
-  - Regex: `/^[^\d]+$/` or similar
+- ✅ **Stricter backend validation on register**
+  - File: `backend/controllers/authController.js`
+  - Added `hasLetter()` helper — validates that name fields (firstName, lastName, agencyName, etc.) contain at least one letter
+  - Regex: `/[a-zA-ZÀ-ÿ]/` (includes French accented characters)
 
 ---
 
 ## Frontend Tasks
 
-- [ ] **Add agency specialties picker to Register form**
+- ✅ **Add agency specialties picker to Register form**
   - File: `frontend/src/pages/auth/Register.js`
-  - When role = agency, show a multi-select checkbox group for specialties:
-    `Events`, `360 Marketing`, `ATL`, `BTL`, `Production`, `Brand Marketing`
-  - Send as `specialties: []` array in register payload
+  - Multi-select chip picker for: Events, 360 Marketing, ATL, BTL, Production, Brand Marketing, Digital, Influence & Réseaux sociaux, Relations presse, Brand Strategy
+  - Selected count shown below chips
+  - Sent as `specialties: []` array in payload
 
-- [ ] **Add agency filiale toggle to Register form**
+- ✅ **Add agency filiale toggle to Register form**
   - File: `frontend/src/pages/auth/Register.js`
-  - When role = agency, add radio: `Type d'agence` → `Agence principale` / `Filiale`
-  - If filiale selected: show a text input `Agence mère` (parent agency name or ID)
-  - Send `agencyType` and `parentAgency` in payload
+  - Radio card group: `Agence principale` / `Filiale`
+  - If filiale: shows `parentAgencyName` text input
+  - Sends `agencyType` and `parentAgencyName` in payload
 
-- [ ] **Add `Numéro carte auto-entrepreneur` field to Freelancer register form**
+- ✅ **Add `Numéro carte auto-entrepreneur` field to Freelancer register form**
   - File: `frontend/src/pages/auth/Register.js`
-  - When role = freelancer, add optional text input for `carteAutoEntrepreneur`
+  - Optional field shown for role = freelancer
 
-- [ ] **Replace free-text fields with selectors wherever possible**
-  - `industry` on Client → dropdown (e.g. Tech, Retail, Food, Real Estate, etc.)
-  - `companySize` on Client → already enum, make sure it's a `<select>` not free text
-  - `region` / `country` → dropdowns (Algerian wilayas for region)
+- ✅ **Replace free-text fields with selectors wherever possible**
+  - `industry` on Client company → dropdown (18 Algeria-relevant sectors)
+  - `companySize` on Client company → dropdown with human-readable labels (TPE/PME/ETI/Grande/Très grande)
+  - `region` on Client and Freelancer → Algerian wilayas dropdown (all 58 wilayas)
+  - Region value is nested into `location.region` with `country: "Algérie"` before sending
+
+## Additional UI Enhancements (beyond spec)
+
+- ✅ **Password strength meter** — 4-segment color bar (Faible / Moyen / Fort / Très fort)
+- ✅ **Show/hide password toggle** — "Afficher / Masquer" button inside password input
+- ✅ **Password strength gate** — blocks submit if score < 2 (too weak)
+- ✅ **Form subtitle per role** — shows "Compte agence", "Compte freelancer / influenceur", etc. in step 3 header
+- ✅ **Field optional labeling** — optional fields clearly marked with `(optionnel)` hint
+- ✅ **Emoji removed from role cards** — cleaner, more professional design
+- ✅ **All 6 new CSS classes** added to `auth.css`: radio-group, radio-card, specialty-chips, specialty-chip, pw-input-wrap, pw-strength
+
+---
+
+## Commit
+
+```
+feat: complete task 01 — auth registration
+```

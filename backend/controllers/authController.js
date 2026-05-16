@@ -23,6 +23,8 @@ const formatUser = (user, role) => {
   return { ...obj, role };
 };
 
+const hasLetter = (str) => /[a-zA-ZÀ-ÿ]/.test(str);
+
 const register = async (req, res) => {
   try {
     const { role, ...data } = req.body;
@@ -30,6 +32,21 @@ const register = async (req, res) => {
     const allowedRoles = ["client", "agency", "team", "freelancer"];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ success: false, message: "Rôle invalide" });
+    }
+
+    const nameFields = {
+      client:     ["firstName", "lastName", "companyName"],
+      agency:     ["agencyName", "directorFirstName", "directorLastName"],
+      team:       ["teamName", "leadFirstName", "leadLastName"],
+      freelancer: ["firstName", "lastName"],
+    };
+    for (const field of (nameFields[role] || [])) {
+      if (data[field] && !hasLetter(data[field])) {
+        return res.status(400).json({
+          success: false,
+          message: `Le champ "${field}" doit contenir au moins une lettre`,
+        });
+      }
     }
 
     let user;

@@ -33,6 +33,8 @@ const freelancerSchema = new mongoose.Schema(
       country: String,
     },
 
+    carteAutoEntrepreneur: { type: String, trim: true },
+
     skills: [String],
     categories: [String],
 

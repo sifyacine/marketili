@@ -43,6 +43,18 @@ const agencySchema = new mongoose.Schema(
       },
     ],
 
+    agencyType: {
+      type: String,
+      enum: ["main", "filiale"],
+      default: "main",
+    },
+    parentAgency: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agency",
+      default: null,
+    },
+    parentAgencyName: { type: String, trim: true },
+
     role:       { type: String, default: "agency", immutable: true },
     isVerified: { type: Boolean, default: false },
     isActive:   { type: Boolean, default: true },
