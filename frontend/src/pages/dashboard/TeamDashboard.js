@@ -21,10 +21,11 @@ import WorkerTasks    from "./agency/WorkerTasks";
 import WorkerCalendar from "./agency/WorkerCalendar";
 import TeamMemberOverview from "./team/TeamMemberOverview";
 
+import PersonalNotes from "./shared/PersonalNotes";
 import "../../styles/Dashboard.css";
 import {
   IconHome, IconUsers, IconCompass, IconSend,
-  IconBriefcase, IconBell, IconUser, IconCheckSquare, IconCalendar,
+  IconBriefcase, IconBell, IconUser, IconCheckSquare, IconCalendar, IconNote,
 } from "../../components/ui/Icons";
 
 // ── Browse posts (team lead) ──────────────────────────────────────────────────
@@ -108,7 +109,8 @@ const TeamDashboard = () => {
     { label: "Explorer",       icon: <IconCompass   size={16} />, path: "/dashboard/team/browse"       },
     { label: "Mes offres",     icon: <IconSend      size={16} />, path: "/dashboard/team/pitches"      },
     { label: "Projets",        icon: <IconBriefcase size={16} />, path: "/dashboard/team/projects"     },
-    { label: "Membres",        icon: <IconUsers     size={16} />, path: "/dashboard/team/members"      },
+    { label: "Membres",        icon: <IconUsers     size={16} />, path: "/dashboard/team/members"       },
+    { label: "Notes",          icon: <IconNote      size={16} />, path: "/dashboard/team/notes"         },
     { label: "Notifications",  icon: <IconBell      size={16} />, path: "/dashboard/team/notifications",
       badge: unreadCount },
     { label: "Mon profil",     icon: <IconUser      size={16} />, path: profilePath                    },
@@ -140,6 +142,7 @@ const TeamDashboard = () => {
             <Route path="pitches"       element={<TeamLeadPitches user={user} />} />
             <Route path="projects"      element={<TeamLeadProjects user={user} />} />
             <Route path="members"       element={<TeamLeadMembers />} />
+            <Route path="notes"         element={<PersonalNotes />} />
             <Route path="notifications" element={<NotificationsPage />} />
           </>}
 

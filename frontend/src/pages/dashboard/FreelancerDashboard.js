@@ -13,10 +13,12 @@ import FreelancerCollaborations from "./freelancer/FreelancerCollaborations";
 import FreelancerBrowse      from "./freelancer/FreelancerBrowse";
 import FreelancerPitches     from "./freelancer/FreelancerPitches";
 import FreelancerProjects    from "./freelancer/FreelancerProjects";
+import FreelancerCalendar    from "./freelancer/FreelancerCalendar";
+import PersonalNotes         from "./shared/PersonalNotes";
 import "../../styles/Dashboard.css";
 import {
   IconHome, IconUsers, IconCompass, IconSend,
-  IconBriefcase, IconBell, IconUser,
+  IconBriefcase, IconBell, IconUser, IconCalendar, IconNote,
 } from "../../components/ui/Icons";
 
 const ContextBar = ({ collaborations, activeContext, onSwitch }) => {
@@ -103,9 +105,11 @@ const FreelancerDashboard = () => {
     { label: "Explorer",         icon: <IconCompass  size={16} />, path: "/dashboard/freelancer/browse"         },
     { label: "Mes offres",       icon: <IconSend     size={16} />, path: "/dashboard/freelancer/pitches"        },
     { label: "Mes projets",      icon: <IconBriefcase size={16} />, path: "/dashboard/freelancer/projects"      },
+    { label: "Calendrier",       icon: <IconCalendar size={16} />, path: "/dashboard/freelancer/calendar"      },
+    { label: "Notes",            icon: <IconNote     size={16} />, path: "/dashboard/freelancer/notes"         },
     { label: "Notifications",    icon: <IconBell     size={16} />, path: "/dashboard/freelancer/notifications",
       badge: unreadCount },
-    { label: "Mon profil",       icon: <IconUser     size={16} />, path: profilePath                            },
+    { label: "Mon profil",       icon: <IconUser     size={16} />, path: profilePath                           },
   ];
 
   const topbarTitle = activeContext
@@ -161,6 +165,8 @@ const FreelancerDashboard = () => {
             <FreelancerProjects user={user} activeContext={activeContext} />
           } />
 
+          <Route path="calendar"      element={<FreelancerCalendar user={user} />} />
+          <Route path="notes"         element={<PersonalNotes />} />
           <Route path="notifications" element={<NotificationsPage />} />
 
           <Route path="*" element={<Navigate to="/dashboard/freelancer" replace />} />

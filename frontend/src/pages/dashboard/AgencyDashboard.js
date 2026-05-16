@@ -25,11 +25,13 @@ import WorkerOverview       from "./agency/WorkerOverview";
 import WorkerTasks          from "./agency/WorkerTasks";
 import WorkerCalendar       from "./agency/WorkerCalendar";
 import WorkerProjects       from "./agency/WorkerProjects";
+import DirectorCalendar     from "./agency/DirectorCalendar";
+import PersonalNotes        from "./shared/PersonalNotes";
 import { PostCard }         from "./agency/shared";
 import { usePosts }         from "../../hooks/usePosts";
 import {
   IconHome, IconFlag, IconTarget, IconBriefcase,
-  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser,
+  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser, IconNote,
 } from "../../components/ui/Icons";
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
@@ -55,6 +57,8 @@ const NAV_DIRECTOR = [
   { label: "Contrats",        icon: <IconFileText    size={16} />, path: "/dashboard/agency/contracts" },
   { label: "Membres",         icon: <IconUsers       size={16} />, path: "/dashboard/agency/members"   },
   { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"    },
+  { label: "Calendrier",      icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"  },
+  { label: "Notes",           icon: <IconNote        size={16} />, path: "/dashboard/agency/notes"     },
 ];
 const NAV_COMMERCIAL = [
   { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"         },
@@ -211,6 +215,8 @@ const AgencyDashboard = () => {
             <Route path="contracts"     element={<DirectorContracts  user={user} />} />
             <Route path="members"       element={<DirectorMembers    user={user} />} />
             <Route path="browse"        element={<BrowsePosts onPitch={setPitchTarget} />} />
+            <Route path="calendar"      element={<DirectorCalendar user={user} />} />
+            <Route path="notes"         element={<PersonalNotes />} />
             <Route path="notifications" element={<NotificationsPage />} />
           </>}
 

@@ -14,10 +14,12 @@ import contractService   from "../../services/contractService";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 import NotificationsPage from "./NotificationsPage";
 import notificationService from "../../services/notificationService";
+import ClientCalendar  from "./client/ClientCalendar";
+import PersonalNotes   from "./shared/PersonalNotes";
 import {
   IconHome, IconClipboard, IconCompass, IconInbox,
   IconBriefcase, IconFileText, IconZap, IconCheckSquare,
-  IconTrendingUp, IconPlus, IconBell, IconUser,
+  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote,
 } from "../../components/ui/Icons";
 import "../../styles/Dashboard.css";
 
@@ -44,6 +46,8 @@ const ClientDashboard = () => {
     { label: "Offres reçues",   icon: <IconInbox      size={16} />, path: "/dashboard/client/pitches"        },
     { label: "Projets",         icon: <IconBriefcase  size={16} />, path: "/dashboard/client/projects"       },
     { label: "Contrats",        icon: <IconFileText   size={16} />, path: "/dashboard/client/contracts"      },
+    { label: "Calendrier",      icon: <IconCalendar   size={16} />, path: "/dashboard/client/calendar"        },
+    { label: "Notes",           icon: <IconNote       size={16} />, path: "/dashboard/client/notes"           },
     { label: "Notifications",   icon: <IconBell       size={16} />, path: "/dashboard/client/notifications",
       badge: unreadCount },
     { label: "Mon profil",      icon: <IconUser       size={16} />, path: `/profile/client/${user?._id}` },
@@ -63,6 +67,8 @@ const ClientDashboard = () => {
           <Route path="pitches"       element={<ClientPitches     user={user} />} />
           <Route path="projects"      element={<ClientProjects    user={user} />} />
           <Route path="contracts"     element={<ClientContracts   user={user} />} />
+          <Route path="calendar"      element={<ClientCalendar  user={user} />} />
+          <Route path="notes"         element={<PersonalNotes />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="*"             element={<Navigate to="/dashboard/client" replace />} />
         </Routes>
