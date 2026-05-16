@@ -317,6 +317,40 @@ const acceptPitch = async (req, res) => {
   }
 };
 
+// PATCH /api/pitches/:id/withdraw
+const withdrawPitch = async (req, res) => {
+  try {
+    const { senderId, senderType } = req.body;
+    if (!senderId || !senderType) return fail(res, "senderId et senderType requis");
+
+    const pitch = await Pitch.findById(req.params.id);
+    if (!pitch) return fail(res, "Offre introuvable", 404);
+
+    const normalizedSenderType = normalizeSenderType(senderType);
+    const senderField =
+      normalizedSenderType === "Agency"    ? "senderAgency"    :
+      normalizedSenderType === "Team"      ? "senderTeam"      :
+                                             "senderFreelancer";
+
+    if (pitch[senderField]?.toString() !== senderId) {
+      return fail(res, "Non autorisé — vous n'êtes pas l'émetteur de cette offre", 403);
+    }
+
+    if (pitch.status !== "pending") {
+      return fail(res, "Seules les offres en attente peuvent être retirées", 400);
+    }
+
+    pitch.status = "withdrawn";
+    pitch.respondedAt = new Date();
+    await pitch.save();
+
+    return ok(res, { pitch, message: "Offre retirée" });
+  } catch (err) {
+    console.error("withdrawPitch:", err);
+    return fail(res, "Erreur serveur", 500);
+  }
+};
+
 const rejectPitch = async (req, res) => {
   try {
     const { clientId, reason } = req.body;
@@ -382,6 +416,7 @@ module.exports = {
   getMyPitches,
   acceptPitch,
   rejectPitch,
+  withdrawPitch,
   getPitchesForClient,
   getPitch,
 };

@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout   from "../../components/layout/DashboardLayout";
 import CreatePostModal   from "../../components/posts/CreatePostModal";
 import PostsDataGrid     from "../../components/posts/PostsDataGrid";
-import OffresRecues      from "../../components/pitches/OffresRecues";
 import ClientBrowse      from "./ClientBrowse";
+import ClientPitches     from "./ClientPitches";
 import { useMyPosts }    from "../../hooks/usePosts";
 import useAuth           from "../../hooks/useAuth";
 import projectService    from "../../services/projectService";
@@ -43,7 +43,7 @@ const ClientDashboard = () => {
             <ClientPosts user={user} onCreatePost={() => setShowCreateModal(true)} refetchKey={postCreated} />
           } />
           <Route path="browse"    element={<ClientBrowse />} />
-          <Route path="pitches"   element={<OffresRecues      user={user} />} />
+          <Route path="pitches"   element={<ClientPitches     user={user} />} />
           <Route path="projects"  element={<ClientProjects    user={user} />} />
           <Route path="contracts" element={<ClientContracts   user={user} />} />
           <Route path="*"         element={<Navigate to="/dashboard/client" replace />} />

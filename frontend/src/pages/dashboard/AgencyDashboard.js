@@ -15,6 +15,7 @@ import DirectorFlaggedPosts from "./agency/DirectorFlaggedPosts";
 import DirectorClients      from "./agency/DirectorClients";
 import DirectorProjects     from "./agency/DirectorProjects";
 import DirectorMembers      from "./agency/DirectorMembers";
+import DirectorPitches      from "./agency/DirectorPitches";
 import CommercialOverview   from "./agency/CommercialOverview";
 import CommercialBrowse     from "./agency/CommercialBrowse";
 import WorkerOverview       from "./agency/WorkerOverview";
@@ -24,7 +25,7 @@ import { PostCard }         from "./agency/shared";
 import { usePosts }         from "../../hooks/usePosts";
 import {
   IconHome, IconFlag, IconTarget, IconBriefcase,
-  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch,
+  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend,
 } from "../../components/ui/Icons";
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
@@ -44,6 +45,7 @@ const getAgencyRole = (user) => {
 const NAV_DIRECTOR = [
   { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"          },
   { label: "Posts flaggés",   icon: <IconFlag        size={16} />, path: "/dashboard/agency/flagged"  },
+  { label: "Mes offres",      icon: <IconSend        size={16} />, path: "/dashboard/agency/pitches"  },
   { label: "Clients",         icon: <IconTarget      size={16} />, path: "/dashboard/agency/clients"  },
   { label: "Projets",         icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects" },
   { label: "Membres",         icon: <IconUsers       size={16} />, path: "/dashboard/agency/members"  },
@@ -175,6 +177,7 @@ const AgencyDashboard = () => {
                   projectService.getFlaggedPosts(user._id)
                     .then(d => setFlaggedPosts(d.flaggedPosts || []))} />
             } />
+            <Route path="pitches"  element={<DirectorPitches  user={user} />} />
             <Route path="clients"  element={<DirectorClients  user={user} />} />
             <Route path="projects" element={<DirectorProjects user={user} />} />
             <Route path="members"  element={<DirectorMembers  user={user} />} />

@@ -45,11 +45,17 @@ const pitchService = {
 
   getById: (id) => api.get(`/pitches/${id}`).then((r) => r.data),
 
+  getForClient: (clientId, params = {}) =>
+    api.get(`/pitches/client/${clientId}`, { params }).then((r) => r.data),
+
   accept: (id, clientId) =>
     api.patch(`/pitches/${id}/accept`, { clientId }).then((r) => r.data),
 
   reject: (id, clientId, reason = "") =>
     api.patch(`/pitches/${id}/reject`, { clientId, reason }).then((r) => r.data),
+
+  withdraw: (id, senderId, senderType) =>
+    api.patch(`/pitches/${id}/withdraw`, { senderId, senderType }).then((r) => r.data),
 };
 
 export default pitchService;

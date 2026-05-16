@@ -29,6 +29,29 @@ export const usePitchesForPost = (postId, clientId) => {
   return { pitches, loading, error, refetch: fetchPitches };
 };
 
+export const usePitchesForClient = (clientId) => {
+  const [pitches, setPitches] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState(null);
+
+  const fetchPitches = useCallback(async () => {
+    if (!clientId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await pitchService.getForClient(clientId);
+      setPitches(data.pitches || []);
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur chargement");
+    } finally {
+      setLoading(false);
+    }
+  }, [clientId]);
+
+  useEffect(() => { fetchPitches(); }, [fetchPitches]);
+  return { pitches, loading, error, refetch: fetchPitches };
+};
+
 export const useMyPitches = (senderId, senderType) => {
   const [pitches, setPitches] = useState([]);
   const [loading, setLoading] = useState(false);

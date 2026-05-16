@@ -22,14 +22,14 @@
 
 ## Backend Tasks
 
-- [ ] **Add PATCH /pitches/:id/withdraw endpoint**
+- [x] **Add PATCH /pitches/:id/withdraw endpoint**
   - File: `backend/routes/Pitchroutes.js` and `backend/controllers/Pitchcontroller.js`
   - Only the pitch sender can withdraw
   - Only allowed when status = `pending`
   - Set `status: "withdrawn"`, set `respondedAt: Date.now()`
   - Return 403 if not the sender, 400 if not pending
 
-- [ ] **Add GET /pitches/agency/:agencyId (sent pitches for agency)**
+- [x] **Add GET /pitches/agency/:agencyId (sent pitches for agency)**
   - File: `backend/routes/Pitchroutes.js`
   - Returns all pitches sent by a specific agency, filterable by status
   - Used in agency dashboard "Mes offres"
@@ -43,29 +43,29 @@
 
 ## Frontend Tasks
 
-- [ ] **Add withdraw button to sender's pitch list**
+- [x] **Add withdraw button to sender's pitch list**
   - File: wherever "my pitches" is rendered
   - Show "Retirer" button only when `status === "pending"`
   - Call `pitchService.withdraw(id)` (add this method to pitchService)
   - Confirm before withdrawing (simple window.confirm or a modal)
 
-- [ ] **Add withdraw method to pitchService**
+- [x] **Add withdraw method to pitchService**
   - File: `frontend/src/services/pitchService.js`
   - `withdraw: (id) => api.patch(\`/pitches/\${id}/withdraw\`)`
 
-- [ ] **Build "Mes offres envoyées" page for agency dashboard (director view)**
+- [x] **Build "Mes offres envoyées" page for agency dashboard (director view)**
   - File: add a new section in `AgencyDashboard.js` or a new `DirectorPitches.js`
   - List pitches sent by the agency, grouped or filtered by status (pending / accepted / rejected / withdrawn)
   - Each row shows: post title, client, date sent, status badge
   - Accepted pitches link to the related project
 
-- [ ] **Build "Mes offres reçues" page for client dashboard**
+- [x] **Build "Mes offres reçues" page for client dashboard**
   - Currently OffresRecues is shown per-post; add a global view across all posts
   - File: add a new `ClientPitches.js` page or expand the existing pitches section
   - List all pitches received by this client, filter by status and post
   - Accept / reject actions inline
 
-- [ ] **Add status filter + date sort to pitch lists**
+- [x] **Add status filter + date sort to pitch lists**
   - On both sender and receiver pitch lists:
     - Filter buttons: Tous / En attente / Accepté / Rejeté / Retiré
     - Sort: most recent first by default
