@@ -1,5 +1,5 @@
 // frontend/src/pages/dashboard/agency/DirectorProjects.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProgressBar, PriorityBadge } from "./shared";
 import projectService from "../../../services/projectService";
@@ -1085,6 +1085,7 @@ const DirectorProjects = ({ user }) => {
   const [projects, setProjects] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [filter,   setFilter]   = useState("all");
+  const [search,   setSearch]   = useState("");
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
@@ -1094,16 +1095,24 @@ const DirectorProjects = ({ user }) => {
       .finally(() => setLoading(false));
   }, [user._id]);
 
-  const base = filter === "all" ? projects
-    : projects.filter(p => p.projectStatus === filter);
-
-  // Completed/cancelled float to end, rest sorted by closest deadline
-  const filtered = [...base].sort((a, b) => {
-    const aDone = ["completed", "cancelled"].includes(a.projectStatus);
-    const bDone = ["completed", "cancelled"].includes(b.projectStatus);
-    if (aDone !== bDone) return aDone ? 1 : -1;
-    return new Date(a.deadline) - new Date(b.deadline);
-  });
+  const filtered = useMemo(() => {
+    let base = filter === "all" ? projects : projects.filter(p => p.projectStatus === filter);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      base = base.filter(p =>
+        (p.title || "").toLowerCase().includes(q) ||
+        (p.client?.firstName || "").toLowerCase().includes(q) ||
+        (p.client?.lastName  || "").toLowerCase().includes(q) ||
+        (p.client?.companyName || "").toLowerCase().includes(q)
+      );
+    }
+    return [...base].sort((a, b) => {
+      const aDone = ["completed", "cancelled"].includes(a.projectStatus);
+      const bDone = ["completed", "cancelled"].includes(b.projectStatus);
+      if (aDone !== bDone) return aDone ? 1 : -1;
+      return new Date(a.deadline) - new Date(b.deadline);
+    });
+  }, [projects, filter, search]);
 
   const STATUS_OPTS = [
     { value: "all",       label: "Tous"        },
@@ -1140,6 +1149,12 @@ const DirectorProjects = ({ user }) => {
                 {o.label}
               </button>
             ))}
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <input className="dash-form-input"
+              placeholder="Rechercher par titre ou client..."
+              value={search} onChange={e => setSearch(e.target.value)}
+              style={{ maxWidth: 360 }} />
           </div>
           {loading ? <div className="spinner-wrap"><div className="spinner" /></div>
           : filtered.length === 0 ? (

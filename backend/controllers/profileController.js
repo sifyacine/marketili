@@ -74,7 +74,7 @@ exports.getProfile = async (req, res) => {
 const ALLOWED_FIELDS = {
   agency:     ["bio", "logo", "specialties", "portfolioItems", "website", "phone", "address"],
   freelancer: ["bio", "avatar", "skills", "categories", "socialLinks", "followersCount"],
-  client:     ["bio", "avatar", "industry", "location"],
+  client:     ["bio", "avatar", "industry", "location", "achievements"],
   team:       ["bio", "avatar", "specialties", "portfolioItems", "website"],
   agency_member: ["bio", "avatar", "skills", "phone"],
 };

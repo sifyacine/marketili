@@ -20,8 +20,9 @@ const ROLE_FIELDS = {
     { name: "followersCount",label: "Abonnés",          type: "number"   },
   ],
   client: [
-    { name: "bio",      label: "Bio",         type: "textarea" },
-    { name: "industry", label: "Secteur",     type: "text"     },
+    { name: "bio",          label: "Bio",                       type: "textarea" },
+    { name: "industry",     label: "Secteur",                   type: "text"     },
+    { name: "achievements", label: "Réalisations / Références", type: "tags"     },
   ],
   team: [
     { name: "bio",         label: "Bio",          type: "textarea" },
@@ -161,6 +162,7 @@ const EditProfilePage = () => {
           specialties:  p.specialties  || [],
           skills:       p.skills       || [],
           categories:   p.categories   || [],
+          achievements: p.achievements || [],
           followersCount: p.followersCount || "",
           portfolioItems: p.portfolioItems || [],
           socialLinks:  p.socialLinks  || {},

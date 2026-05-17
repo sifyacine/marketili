@@ -1057,9 +1057,18 @@ const PostRow = ({ post, index }) => {
         borderBottom:"1px solid #faeaea", cursor:"pointer",
         borderLeft: `3px solid ${dlColor}` }}>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontWeight:600, fontSize:"0.87rem", color:"#1a0a0a",
-          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-          {post.title}
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ fontWeight:600, fontSize:"0.87rem", color:"#1a0a0a",
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {post.title}
+          </div>
+          {post.initiatedBy?.initiatorType && (
+            <span style={{ fontSize:"0.62rem", fontWeight:700, padding:"2px 7px",
+              borderRadius:20, background:"#fef3c7", color:"#92400e",
+              whiteSpace:"nowrap", flexShrink:0 }}>
+              Proposition reçue
+            </span>
+          )}
         </div>
         <div style={{ fontSize:"0.73rem", color:"#9a6060", marginTop:2 }}>
           {post.pitchCount || 0} offre{(post.pitchCount||0) !== 1 ? "s" : ""}

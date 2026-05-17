@@ -1,5 +1,6 @@
-const Post   = require("../models/Post");
-const Pitch  = require("../models/Pitch");
+const Post        = require("../models/Post");
+const Pitch       = require("../models/Pitch");
+const logActivity = require("../utils/logActivity");
 
 // ─────────────────────────────────────────────
 // HELPERS
@@ -24,6 +25,7 @@ const createPost = async (req, res) => {
     const {
       title,
       description,
+      objectives,
       budget,
       deadline,
       location,
@@ -36,7 +38,9 @@ const createPost = async (req, res) => {
       benefits,
     } = body;
 
-    const clientId = body.clientId;
+    const clientId     = body.clientId;
+    const initiatorType = body.initiatorType; // "Agency" | "Team" | "Freelancer"
+    const initiatorId   = body.initiatorId;   // provider's _id
 
     if (!clientId) return fail(res, "clientId requis");
 
@@ -54,10 +58,11 @@ const createPost = async (req, res) => {
         }
       : null;
 
-    const post = await Post.create({
+    const postData = {
       client: clientId,
       title,
       description,
+      objectives,
       budget,
       deadline,
       location,
@@ -69,8 +74,28 @@ const createPost = async (req, res) => {
       compensationType,
       benefits,
       file,
-    });
+    };
+    if (initiatorType && initiatorId) {
+      postData.initiatedBy = { initiatorType, initiatorId };
+      postData.isPublic = false;
+      postData.sentTo   = [{ providerType: initiatorType, providerId: initiatorId }];
+      const Notification = require("../models/Notification");
+      Notification.notify({
+        recipient: clientId, recipientRole: "client", recipientModel: "Client",
+        type: "system", category: "pitches",
+        title: "Nouvelle proposition reçue",
+        body: `Vous avez reçu une proposition de collaboration de ${body.initiatorName || initiatorType}.`,
+        link: "/dashboard/client",
+        metadata: { initiatorType, initiatorId },
+      });
+    }
+    const post = await Post.create(postData);
 
+    logActivity({
+      actorId: post.client, actorRole: "client", actorName: String(post.client),
+      actionType: "post_created", targetId: post._id, targetType: "Post",
+      description: `Post créé : "${post.title}"`,
+    });
     return ok(res, { post }, 201);
   } catch (err) {
     console.error("createPost:", err);
@@ -226,7 +251,7 @@ const getPost = async (req, res) => {
 const updatePost = async (req, res) => {
   try {
     const {
-      clientId, title, description, budget, deadline, location,
+      clientId, title, description, objectives, budget, deadline, location,
       categories, targetProviders,
       requiredSkills, marketingType, collaborationType, compensationType, benefits,
     } = req.body;
@@ -250,6 +275,7 @@ const updatePost = async (req, res) => {
 
     if (title)             post.title             = title;
     if (description)       post.description       = description;
+    if (objectives !== undefined) post.objectives = objectives;
     if (budget)            post.budget            = budget;
     if (deadline)          post.deadline          = deadline;
     if (location)          post.location          = location;
@@ -287,7 +313,11 @@ const closePost = async (req, res) => {
 
     pushStatusHistory(post, "closed", reason || "Fermé");
     await post.save();
-
+    logActivity({
+      actorId: post.client, actorRole: "client", actorName: String(post.client),
+      actionType: "post_closed", targetId: post._id, targetType: "Post",
+      description: `Post fermé : "${post.title}"`,
+    });
     return ok(res, { post });
   } catch (err) {
     console.error("closePost:", err);

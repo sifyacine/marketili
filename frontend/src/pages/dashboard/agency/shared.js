@@ -87,6 +87,14 @@ export const PostCard = ({ post, index, actionLabel, onAction, actionColor, acti
           {post.description}
         </div>
 
+        {post.objectives && (
+          <div style={{ fontSize: "0.73rem", color: "#7c3aed", lineHeight: 1.5,
+            marginBottom: 10, padding: "6px 10px", borderRadius: 6,
+            background: "#f3f0ff", fontStyle: "italic" }}>
+            Objectifs : {post.objectives}
+          </div>
+        )}
+
         {/* Tags row */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
           {post.marketingType && (

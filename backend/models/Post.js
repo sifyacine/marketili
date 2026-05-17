@@ -35,6 +35,7 @@ const postSchema = new mongoose.Schema(
       required: [true, "Post description is required"],
       trim: true,
     },
+    objectives: { type: String, trim: true, maxlength: 500 },
     // File URLs / GridFS IDs — added in Phase file-upload
     pictures: [
       {
@@ -167,6 +168,12 @@ const postSchema = new mongoose.Schema(
 
     // ── Visibility ──
     isPublic: { type: Boolean, default: true },
+
+    // ── Provider-initiated post (provider sends proposal to a specific client) ──
+    initiatedBy: {
+      initiatorType: { type: String, enum: ["Agency", "Team", "Freelancer"] },
+      initiatorId:   { type: mongoose.Schema.Types.ObjectId },
+    },
 
     // Track reactivation history
     statusHistory: [

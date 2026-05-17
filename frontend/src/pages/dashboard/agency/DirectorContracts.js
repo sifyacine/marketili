@@ -1,5 +1,5 @@
 // frontend/src/pages/dashboard/agency/DirectorContracts.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import contractService from "../../../services/contractService";
 import { IconFileText, IconCheckSquare } from "../../../components/ui/Icons";
@@ -119,6 +119,7 @@ const DirectorContracts = ({ user }) => {
   const [filter,    setFilter]    = useState("all");
   const [fromDate,  setFromDate]  = useState("");
   const [toDate,    setToDate]    = useState("");
+  const [search,    setSearch]    = useState("");
   const [selected,  setSelected]  = useState(null);
 
   const load = (params = {}) => {
@@ -142,6 +143,16 @@ const DirectorContracts = ({ user }) => {
     contractService.getAll(user._id, "Agency")
       .then(d => setContracts(d.contracts || []))
       .catch(() => {});
+
+  const filteredContracts = useMemo(() => {
+    if (!search.trim()) return contracts;
+    const q = search.toLowerCase();
+    return contracts.filter(c =>
+      (c.partyBName || "").toLowerCase().includes(q) ||
+      (c.projectTitle || c.project?.title || "").toLowerCase().includes(q) ||
+      (c.contractType || "").toLowerCase().includes(q)
+    );
+  }, [contracts, search]);
 
   if (selected) {
     return (
@@ -211,22 +222,30 @@ const DirectorContracts = ({ user }) => {
         )}
       </div>
 
+      {/* Search */}
+      <div style={{ marginBottom: 16 }}>
+        <input className="dash-form-input"
+          placeholder="Rechercher par nom de partie, projet..."
+          value={search} onChange={e => setSearch(e.target.value)}
+          style={{ maxWidth: 380 }} />
+      </div>
+
       {loading ? (
         <div className="spinner-wrap"><div className="spinner" /></div>
-      ) : contracts.length === 0 ? (
+      ) : filteredContracts.length === 0 ? (
         <div className="card">
           <div className="empty-state" style={{ padding: "64px 24px" }}>
             <div className="empty-state-icon"><IconFileText size={20} /></div>
             <div className="empty-state-title">Aucun contrat</div>
             <div className="empty-state-desc">
-              Créez un contrat depuis la vue détail d'un projet.
+              {search ? "Aucun résultat pour cette recherche." : "Créez un contrat depuis la vue détail d'un projet."}
             </div>
           </div>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <AnimatePresence>
-            {contracts.map((c, i) => {
+            {filteredContracts.map((c, i) => {
               const meta = STATUS_META[c.status] || STATUS_META.draft;
               return (
                 <motion.div key={c._id} className="card"

@@ -48,7 +48,7 @@ const WILAYAT = [
 ];
 
 const INITIAL = {
-  title: "", description: "", deadline: "",
+  title: "", description: "", objectives: "", deadline: "",
   budget: { min: "", max: "", currency: "DZD" },
   location: { city: "", region: "", country: "Algérie" },
   categories: [],
@@ -246,9 +246,17 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                   <div className="dash-form-group">
                     <label className="dash-form-label">Description *</label>
                     <textarea className="dash-form-textarea"
-                      placeholder="Décrivez votre besoin : objectifs, contexte, attentes..."
+                      placeholder="Décrivez votre besoin : contexte, attentes..."
                       value={form.description} onChange={e => set("description", e.target.value)}
                       style={{ minHeight: 90 }} />
+                  </div>
+
+                  <div className="dash-form-group">
+                    <label className="dash-form-label">Objectifs</label>
+                    <textarea className="dash-form-textarea"
+                      placeholder="Quels sont les objectifs principaux de ce projet ?"
+                      value={form.objectives || ""} onChange={e => set("objectives", e.target.value)}
+                      style={{ minHeight: 70 }} />
                   </div>
 
                   <div className="dash-form-row">

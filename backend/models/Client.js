@@ -55,7 +55,8 @@ const clientSchema = new mongoose.Schema(
 
     // ── Profile ──
     avatar:   { type: String, default: null },
-    bio:      { type: String, trim: true, maxlength: 500 },
+    bio:          { type: String, trim: true, maxlength: 500 },
+    achievements: [{ type: String, trim: true, maxlength: 200 }],
     location: { city: String, country: String, region: String },
 
     // ── Activity references ──

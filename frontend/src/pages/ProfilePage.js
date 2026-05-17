@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import profileService from "../services/profileService";
+import postService    from "../services/postService";
 import useAuth from "../hooks/useAuth";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -314,7 +315,33 @@ const ProfilePage = () => {
       .finally(() => setLoading(false));
   }, [role, id]);
 
-  const isOwner = user && user._id === id && user.role === role;
+  const isOwner       = user && user._id === id && user.role === role;
+  const isProvider    = ["agency", "team", "freelancer"].includes(user?.role);
+  const isClientProfil = role === "client";
+  const [showProposal, setShowProposal] = useState(false);
+  const [propForm,     setPropForm]     = useState({ title: "", description: "", deadline: "" });
+  const [propSaving,   setPropSaving]   = useState(false);
+  const [propDone,     setPropDone]     = useState(false);
+
+  const handleSendProposal = async (e) => {
+    e.preventDefault();
+    if (!propForm.title.trim()) return;
+    setPropSaving(true);
+    try {
+      const senderTypeMap = { agency: "Agency", team: "Team", freelancer: "Freelancer" };
+      await postService.create({
+        clientId:     id,
+        title:        propForm.title,
+        description:  propForm.description,
+        deadline:     propForm.deadline || undefined,
+        initiatorType: senderTypeMap[user.role],
+        initiatorId:   user._id,
+        initiatorName: user.agencyName || user.teamName || `${user.firstName} ${user.lastName}`,
+      });
+      setPropDone(true);
+    } catch {}
+    setPropSaving(false);
+  };
 
   if (loading) return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center",
@@ -412,6 +439,16 @@ const ProfilePage = () => {
             )}
           </div>
 
+          {/* Send proposal — provider viewing client profile */}
+          {!isOwner && isProvider && isClientProfil && (
+            <button onClick={() => setShowProposal(true)}
+              style={{ padding: "8px 16px", borderRadius: 9, border: "1.5px solid #c0152a",
+                background: "#c0152a", color: "#fff", fontFamily: "inherit", fontSize: "0.8rem",
+                fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+              Envoyer une proposition
+            </button>
+          )}
+
           {/* Edit button for owner */}
           {isOwner && (
             <button onClick={() => navigate(`/profile/${role}/${id}/edit`)}
@@ -473,6 +510,98 @@ const ProfilePage = () => {
         <div style={{ borderRadius: 16, border: "1px solid #eee", background: "#fff",
           boxShadow: "0 4px 20px rgba(0,0,0,0.06)", padding: "24px 28px", marginBottom: 20 }}>
           <CollaborationHistory collaborations={profile.agencyCollaborations} />
+        </div>
+      )}
+
+      {/* Proposal modal */}
+      {showProposal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
+          zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 16 }} onClick={() => setShowProposal(false)}>
+          <div style={{ background: "#fff", borderRadius: 14, padding: "28px 28px 24px",
+            width: "100%", maxWidth: 480, boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}
+            onClick={e => e.stopPropagation()}>
+            {propDone ? (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <div style={{ fontSize: "2rem", marginBottom: 12 }}>✅</div>
+                <div style={{ fontWeight: 700, fontSize: "1rem" }}>Proposition envoyée !</div>
+                <div style={{ fontSize: "0.82rem", color: "#888", marginTop: 6 }}>
+                  Le client a été notifié et verra votre proposition dans son tableau de bord.
+                </div>
+                <button onClick={() => { setShowProposal(false); setPropDone(false); setPropForm({ title: "", description: "", deadline: "" }); }}
+                  className="section-cta-btn" style={{ marginTop: 18 }}>
+                  Fermer
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontWeight: 800, fontSize: "1.05rem", marginBottom: 16 }}>
+                  Envoyer une proposition à {profile.firstName || profile.companyName}
+                </div>
+                <form onSubmit={handleSendProposal}>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: "0.78rem", fontWeight: 600, display: "block", marginBottom: 4 }}>
+                      Titre *
+                    </label>
+                    <input className="dash-form-input" required
+                      value={propForm.title}
+                      onChange={e => setPropForm(p => ({ ...p, title: e.target.value }))}
+                      placeholder="Ex: Stratégie de contenu Instagram" />
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: "0.78rem", fontWeight: 600, display: "block", marginBottom: 4 }}>
+                      Description
+                    </label>
+                    <textarea className="dash-form-input"
+                      rows={3}
+                      value={propForm.description}
+                      onChange={e => setPropForm(p => ({ ...p, description: e.target.value }))}
+                      placeholder="Décrivez votre offre et ce que vous proposez..."
+                      style={{ resize: "vertical", fontFamily: "inherit" }} />
+                  </div>
+                  <div style={{ marginBottom: 18 }}>
+                    <label style={{ fontSize: "0.78rem", fontWeight: 600, display: "block", marginBottom: 4 }}>
+                      Date limite (optionnel)
+                    </label>
+                    <input type="date" className="dash-form-input"
+                      value={propForm.deadline}
+                      onChange={e => setPropForm(p => ({ ...p, deadline: e.target.value }))} />
+                  </div>
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                    <button type="button" onClick={() => setShowProposal(false)}
+                      style={{ padding: "8px 18px", borderRadius: 8, border: "1px solid #ddd",
+                        background: "transparent", cursor: "pointer", fontFamily: "inherit",
+                        fontSize: "0.82rem", fontWeight: 600 }}>
+                      Annuler
+                    </button>
+                    <button type="submit" disabled={propSaving || !propForm.title.trim()}
+                      className="section-cta-btn">
+                      {propSaving ? "Envoi..." : "Envoyer la proposition"}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Achievements — client only */}
+      {role === "client" && profile.achievements?.length > 0 && (
+        <div style={{ borderRadius: 16, border: "1px solid #eee", background: "#fff",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.06)", padding: "24px 28px", marginBottom: 20 }}>
+          <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 14, color: "#1a1a1a" }}>
+            Réalisations
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {profile.achievements.map((a, i) => (
+              <span key={i} style={{ padding: "5px 14px", borderRadius: 20, fontSize: "0.78rem",
+                fontWeight: 600, background: "#fff5f5", color: "#c0152a",
+                border: "1px solid #fca5a5" }}>
+                {a}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
