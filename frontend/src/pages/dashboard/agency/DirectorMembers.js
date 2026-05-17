@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import agencyMemberService from "../../../services/agencyMemberService";
+import collaborationRequestService from "../../../services/collaborationRequestService";
 import { IconUsers } from "../../../components/ui/Icons";
 import ConventionCollaborationForm from "../../../components/pitches/ConventionCollaborationForm";
 
@@ -121,8 +122,196 @@ const StatusSelect = ({ member, onSet, busy }) => {
   );
 };
 
+// ── IncomingRequests ──────────────────────────────────────────────────────────
+const REQ_STATUS_META = {
+  pending:   { label: "En attente", color: "#f59e0b" },
+  accepted:  { label: "Acceptée",   color: "#10b981" },
+  declined:  { label: "Refusée",    color: "#ef4444" },
+  withdrawn: { label: "Retirée",    color: "#6b7280" },
+};
+
+const IncomingRequests = ({ onAccepted }) => {
+  const [requests,    setRequests]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [filter,      setFilter]      = useState("pending");
+  const [responding,  setResponding]  = useState(null);
+  const [declineForm, setDeclineForm] = useState(null);
+  const [declineText, setDeclineText] = useState("");
+  const [msg,         setMsg]         = useState("");
+
+  const load = () => {
+    setLoading(true);
+    collaborationRequestService.getIncoming({ limit: 50 })
+      .then(d => setRequests(d.requests || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleRespond = async (id, action) => {
+    setResponding(id);
+    try {
+      await collaborationRequestService.respond(id, action, action === "decline" ? declineText : "");
+      setMsg(action === "accept" ? "Demande acceptée — collaboration créée" : "Demande refusée");
+      setDeclineForm(null);
+      setDeclineText("");
+      load();
+      if (action === "accept") onAccepted?.();
+      setTimeout(() => setMsg(""), 3500);
+    } catch (err) {
+      setMsg(err.response?.data?.message || "Erreur");
+    } finally {
+      setResponding(null);
+    }
+  };
+
+  const displayed = filter === "all" ? requests : requests.filter(r => r.status === filter);
+
+  return (
+    <div>
+      {msg && (
+        <div style={{ padding: "10px 14px", borderRadius: 8,
+          background: msg.includes("acceptée") ? "#f0fdf4" : "#fef2f2",
+          border: `1px solid ${msg.includes("acceptée") ? "#6ee7b7" : "#fecaca"}`,
+          color: msg.includes("acceptée") ? "#065f46" : "#b91c1c",
+          fontSize: "0.82rem", marginBottom: 14 }}>
+          {msg}
+        </div>
+      )}
+
+      <div className="filters-bar" style={{ marginBottom: 16 }}>
+        {[
+          { v: "pending",  l: "En attente" },
+          { v: "accepted", l: "Acceptées"  },
+          { v: "declined", l: "Refusées"   },
+          { v: "all",      l: "Toutes"     },
+        ].map(o => (
+          <button key={o.v}
+            className={`filter-btn${filter === o.v ? " active" : ""}`}
+            onClick={() => setFilter(o.v)}>
+            {o.l}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="spinner-wrap" style={{ padding: 32 }}><div className="spinner" /></div>
+      ) : displayed.length === 0 ? (
+        <div className="card">
+          <div className="empty-state" style={{ padding: "40px 24px" }}>
+            <div className="empty-state-title">Aucune demande de collaboration</div>
+            <div className="empty-state-desc">
+              Les freelancers intéressés peuvent vous envoyer des demandes depuis la page Explorer.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          <AnimatePresence>
+            {displayed.map((r, i) => {
+              const meta = REQ_STATUS_META[r.status] || REQ_STATUS_META.pending;
+              return (
+                <motion.div key={r._id}
+                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  style={{ padding: "16px 18px",
+                    borderBottom: i < displayed.length - 1 ? "1px solid var(--d-border-soft)" : "none" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--d-ink)" }}>
+                          {r.fromName}
+                        </span>
+                        <span style={{ padding: "1px 8px", borderRadius: 10, fontSize: "0.68rem",
+                          fontWeight: 700, background: meta.color + "18", color: meta.color }}>
+                          {meta.label}
+                        </span>
+                      </div>
+                      {r.proposedRole && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--d-muted)" }}>
+                          Rôle proposé : <strong>{r.proposedRole}</strong>
+                        </div>
+                      )}
+                      {r.message && (
+                        <div style={{ fontSize: "0.78rem", color: "var(--d-muted)",
+                          marginTop: 4, lineHeight: 1.5,
+                          display: "-webkit-box", WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                          {r.message}
+                        </div>
+                      )}
+                      {r.declineReason && (
+                        <div style={{ fontSize: "0.72rem", color: "#ef4444", marginTop: 4 }}>
+                          Motif de refus : {r.declineReason}
+                        </div>
+                      )}
+                      <div style={{ fontSize: "0.68rem", color: "#bbb", marginTop: 6 }}>
+                        {new Date(r.createdAt).toLocaleDateString("fr-DZ",
+                          { day: "2-digit", month: "short", year: "numeric" })}
+                      </div>
+                    </div>
+
+                    {r.status === "pending" && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                        <button
+                          onClick={() => handleRespond(r._id, "accept")}
+                          disabled={responding === r._id}
+                          style={{ padding: "6px 14px", borderRadius: 7, fontSize: "0.75rem",
+                            fontWeight: 700, border: "none", background: "#10b981",
+                            color: "#fff", cursor: "pointer", fontFamily: "inherit",
+                            opacity: responding === r._id ? 0.5 : 1 }}>
+                          {responding === r._id ? "..." : "Accepter"}
+                        </button>
+                        {declineForm !== r._id ? (
+                          <button
+                            onClick={() => { setDeclineForm(r._id); setDeclineText(""); }}
+                            style={{ padding: "6px 14px", borderRadius: 7, fontSize: "0.75rem",
+                              fontWeight: 700, border: "1.5px solid #fecaca", background: "#fef2f2",
+                              color: "#dc2626", cursor: "pointer", fontFamily: "inherit" }}>
+                            Refuser
+                          </button>
+                        ) : (
+                          <div style={{ minWidth: 200 }}>
+                            <input value={declineText} onChange={e => setDeclineText(e.target.value)}
+                              placeholder="Motif (optionnel)"
+                              style={{ width: "100%", padding: "6px 10px", borderRadius: 6,
+                                border: "1.5px solid #f0dede", fontSize: "0.75rem",
+                                fontFamily: "inherit", marginBottom: 6, boxSizing: "border-box" }} />
+                            <div style={{ display: "flex", gap: 6 }}>
+                              <button onClick={() => handleRespond(r._id, "decline")}
+                                disabled={responding === r._id}
+                                style={{ flex: 1, padding: "5px 0", borderRadius: 6, border: "none",
+                                  background: "#dc2626", color: "#fff", fontSize: "0.72rem",
+                                  fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                Confirmer
+                              </button>
+                              <button onClick={() => setDeclineForm(null)}
+                                style={{ padding: "5px 8px", borderRadius: 6,
+                                  border: "1.5px solid #f0dede", background: "none",
+                                  fontSize: "0.72rem", color: "#9a6060",
+                                  cursor: "pointer", fontFamily: "inherit" }}>
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── FreelancerSection ─────────────────────────────────────────────────────────
 const FreelancerSection = ({ user }) => {
+  const [tab,            setTab]            = useState("freelancers");
   const [freelancers,    setFreelancers]    = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [showAttach,     setShowAttach]     = useState(false);
@@ -207,12 +396,35 @@ const FreelancerSection = ({ user }) => {
             {active.length} collaboration{active.length !== 1 ? "s" : ""} active{active.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <button className="section-cta-btn" style={{ fontSize: "0.8rem", padding: "7px 14px" }}
-          onClick={() => setShowAttach(o => !o)}>
-          + Attacher un freelancer
-        </button>
+        {tab === "freelancers" && (
+          <button className="section-cta-btn" style={{ fontSize: "0.8rem", padding: "7px 14px" }}
+            onClick={() => setShowAttach(o => !o)}>
+            + Attacher un freelancer
+          </button>
+        )}
       </div>
 
+      {/* Sub-tab bar */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
+        {[
+          { id: "freelancers", label: "Actifs & historique" },
+          { id: "requests",    label: "Demandes reçues"     },
+        ].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{ padding: "7px 16px", borderRadius: 8, fontFamily: "inherit",
+              fontWeight: 700, fontSize: "0.78rem", cursor: "pointer",
+              border: tab === t.id ? "2px solid #c0152a" : "1.5px solid var(--d-border-soft)",
+              background: tab === t.id ? "#c0152a" : "transparent",
+              color: tab === t.id ? "#fff" : "var(--d-muted)",
+              transition: "all 0.15s" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "requests" && <IncomingRequests onAccepted={loadFreelancers} />}
+
+      {tab === "freelancers" && <>
       <AnimatePresence>
         {msg && (
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
@@ -362,6 +574,8 @@ const FreelancerSection = ({ user }) => {
           </div>
         </details>
       )}
+
+      </> /* end tab === "freelancers" */}
 
       {/* Convention de collaboration form modal */}
       <AnimatePresence>

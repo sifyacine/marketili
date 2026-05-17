@@ -74,6 +74,11 @@ const notificationSchema = new mongoose.Schema(
         // Internal workflow
         "director_approval_needed", // pitch moved to chef or director for review
 
+        // Collaboration requests
+        "collaboration_request",          // incoming collab request
+        "collaboration_request_accepted", // request was accepted
+        "collaboration_request_declined", // request was declined
+
         // System
         "system",               // general platform announcement
       ],

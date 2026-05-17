@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import profileService from "../services/profileService";
+import useAuth from "../hooks/useAuth";
+import CollaborationRequestModal from "../components/collaborations/CollaborationRequestModal";
 import { IconSearch } from "../components/ui/Icons";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -26,7 +28,7 @@ const ROLE_LABELS = {
 };
 
 // ── Provider card ─────────────────────────────────────────────────────────────
-const ProviderCard = ({ provider, index }) => {
+const ProviderCard = ({ provider, index, onCollab, isFreelancer }) => {
   const navigate = useNavigate();
   const role     = provider._role;
   const color    = ROLE_COLORS[role] || "#6b7280";
@@ -113,18 +115,29 @@ const ProviderCard = ({ provider, index }) => {
 
       {/* Stats footer */}
       <div style={{ display: "flex", gap: 14, borderTop: "1px solid #f0f0f0", paddingTop: 10,
-        marginTop: 4 }}>
-        {membersCount !== null && (
-          <div style={{ fontSize: "0.72rem", color: "#888" }}>
-            <span style={{ fontWeight: 700, color: color }}>{membersCount}</span> membres
-          </div>
-        )}
-        {provider.followersCount > 0 && (
-          <div style={{ fontSize: "0.72rem", color: "#888" }}>
-            <span style={{ fontWeight: 700, color: "#d97706" }}>
-              {provider.followersCount?.toLocaleString()}
-            </span> abonnés
-          </div>
+        marginTop: 4, justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 14 }}>
+          {membersCount !== null && (
+            <div style={{ fontSize: "0.72rem", color: "#888" }}>
+              <span style={{ fontWeight: 700, color: color }}>{membersCount}</span> membres
+            </div>
+          )}
+          {provider.followersCount > 0 && (
+            <div style={{ fontSize: "0.72rem", color: "#888" }}>
+              <span style={{ fontWeight: 700, color: "#d97706" }}>
+                {provider.followersCount?.toLocaleString()}
+              </span> abonnés
+            </div>
+          )}
+        </div>
+        {isFreelancer && (role === "agency" || role === "team") && (
+          <button
+            onClick={e => { e.stopPropagation(); onCollab(provider); }}
+            style={{ padding: "5px 12px", borderRadius: 8, fontSize: "0.72rem", fontWeight: 700,
+              border: "1.5px solid #7c3aed", background: "#f3f0ff", color: "#7c3aed",
+              cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+            + Collaborer
+          </button>
         )}
       </div>
     </motion.div>
@@ -135,15 +148,19 @@ const ProviderCard = ({ provider, index }) => {
 // ROOT
 // ═════════════════════════════════════════════════════════════════════════════
 const BrowseProvidersPage = () => {
-  const [providers, setProviders] = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [type,      setType]      = useState("all");
-  const [search,    setSearch]    = useState("");
-  const [specialty, setSpecialty] = useState("");
-  const [region,    setRegion]    = useState("");
-  const [page,      setPage]      = useState(1);
-  const [pages,     setPages]     = useState(1);
-  const [total,     setTotal]     = useState(0);
+  const { user } = useAuth();
+  const isFreelancer = user?.role === "freelancer";
+
+  const [providers,   setProviders]   = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [type,        setType]        = useState("all");
+  const [search,      setSearch]      = useState("");
+  const [specialty,   setSpecialty]   = useState("");
+  const [region,      setRegion]      = useState("");
+  const [page,        setPage]        = useState(1);
+  const [pages,       setPages]       = useState(1);
+  const [total,       setTotal]       = useState(0);
+  const [collabTarget, setCollabTarget] = useState(null);
 
   const load = useCallback(async (pg = 1) => {
     setLoading(true);
@@ -252,7 +269,9 @@ const BrowseProvidersPage = () => {
             gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
             <AnimatePresence>
               {providers.map((p, i) => (
-                <ProviderCard key={p._id} provider={p} index={i} />
+                <ProviderCard key={p._id} provider={p} index={i}
+                  isFreelancer={isFreelancer}
+                  onCollab={setCollabTarget} />
               ))}
             </AnimatePresence>
           </div>
@@ -275,6 +294,15 @@ const BrowseProvidersPage = () => {
           )}
         </>
       )}
+      <AnimatePresence>
+        {collabTarget && (
+          <CollaborationRequestModal
+            target={collabTarget}
+            onClose={() => setCollabTarget(null)}
+            onSuccess={() => setCollabTarget(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -53,6 +53,7 @@ app.use("/api/freelancer",     require("./routes/freelancerRoutes"));
 app.use("/api/notes",          require("./routes/noteRoutes"));
 app.use("/api/calendar",       require("./routes/calendarRoutes"));
 app.use("/api/chat",           require("./routes/chatRoutes"));
+app.use("/api/collaboration-requests", require("./routes/collaborationRequestRoutes"));
 
 // ── Health check ──
 app.get("/api/health", (req, res) => {
