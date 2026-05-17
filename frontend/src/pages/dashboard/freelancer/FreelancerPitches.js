@@ -11,35 +11,182 @@ const STATUS_META = {
   withdrawn: { label: "Retirée",    color: "#6b7280", bg: "#f9fafb" },
 };
 
+const CONTRACT_TYPE_LABEL = { cdd: "CDD", cdi: "CDI" };
+
 const FILTER_TABS = [
-  { v: "all",       l: "Toutes"     },
-  { v: "pending",   l: "En attente" },
-  { v: "accepted",  l: "Acceptées"  },
-  { v: "rejected",  l: "Rejetées"   },
-  { v: "withdrawn", l: "Retirées"   },
+  { v: "all",         l: "Toutes"        },
+  { v: "pending",     l: "En attente"    },
+  { v: "accepted",    l: "Acceptées"     },
+  { v: "rejected",    l: "Rejetées"      },
+  { v: "withdrawn",   l: "Retirées"      },
+  { v: "conventions", l: "Conventions"   },
 ];
 
 const fmt = (d) => d
   ? new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" })
   : "—";
 
+// ── Convention card ────────────────────────────────────────────
+const ConventionCard = ({ p, index }) => {
+  const [expanded, setExpanded] = useState(false);
+  const meta      = STATUS_META[p.status] || STATUS_META.pending;
+  const agencyName = p.senderAgency?.agencyName || "Agence inconnue";
+
+  return (
+    <motion.div
+      key={p._id}
+      className="card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      style={{ padding: "18px 22px", borderLeft: "3px solid #7c3aed" }}>
+
+      <div style={{ display: "flex", justifyContent: "space-between",
+        alignItems: "flex-start", gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ padding: "2px 8px", borderRadius: 20, fontSize: "0.65rem",
+              fontWeight: 700, background: "#7c3aed18", color: "#7c3aed" }}>
+              Convention
+            </span>
+            {p.contractType && (
+              <span style={{ padding: "2px 8px", borderRadius: 20, fontSize: "0.65rem",
+                fontWeight: 700, background: "#0891b218", color: "#0891b2" }}>
+                {CONTRACT_TYPE_LABEL[p.contractType] || p.contractType}
+              </span>
+            )}
+          </div>
+          <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 4 }}>
+            Convention de collaboration — {agencyName}
+          </div>
+          <div style={{ fontSize: "0.75rem", color: "var(--d-muted)", marginBottom: 6 }}>
+            Reçue le {fmt(p.createdAt)}
+          </div>
+          {p.description && (
+            <div style={{ fontSize: "0.78rem", color: "#555", lineHeight: 1.55,
+              display: "-webkit-box", WebkitLineClamp: expanded ? "none" : 2,
+              WebkitBoxOrient: "vertical", overflow: expanded ? "visible" : "hidden" }}>
+              {p.description}
+            </div>
+          )}
+          {p.workRequirements && expanded && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#555",
+                marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Conditions de travail
+              </div>
+              <div style={{ fontSize: "0.78rem", color: "#555", lineHeight: 1.55 }}>
+                {p.workRequirements}
+              </div>
+            </div>
+          )}
+          {(p.description || p.workRequirements) && (
+            <button onClick={() => setExpanded(e => !e)}
+              style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer",
+                fontSize: "0.72rem", color: "#7c3aed", fontWeight: 600,
+                fontFamily: "inherit", padding: 0 }}>
+              {expanded ? "Réduire ▲" : "Voir détails ▼"}
+            </button>
+          )}
+        </div>
+
+        <span style={{ padding: "3px 11px", borderRadius: 20, fontSize: "0.7rem",
+          fontWeight: 700, background: meta.bg, color: meta.color,
+          whiteSpace: "nowrap", flexShrink: 0 }}>
+          {meta.label}
+        </span>
+      </div>
+    </motion.div>
+  );
+};
+
+// ── Pitch card ─────────────────────────────────────────────────
+const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
+  const meta = STATUS_META[p.status] || STATUS_META.pending;
+  return (
+    <motion.div
+      key={p._id}
+      className="card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      style={{ padding: "18px 22px", borderLeft: `3px solid ${meta.color}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between",
+        alignItems: "flex-start", gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 4 }}>
+            {p.post?.title || "Post supprimé"}
+          </div>
+          {p.post?.budget && (
+            <div style={{ fontSize: "0.75rem", color: "var(--d-muted)", marginBottom: 6 }}>
+              Budget client : {p.post.budget.toLocaleString("fr-DZ")} DZD
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            {p.price && (
+              <div style={{ fontSize: "0.78rem", color: "#555" }}>
+                Offre : <strong>{p.price.toLocaleString("fr-DZ")} {p.currency || "DZD"}</strong>
+              </div>
+            )}
+            {p.duration && (
+              <div style={{ fontSize: "0.78rem", color: "#555" }}>
+                Durée : <strong>{p.duration} {p.durationUnit || ""}</strong>
+              </div>
+            )}
+            <div style={{ fontSize: "0.78rem", color: "var(--d-muted)" }}>
+              Envoyée le {fmt(p.createdAt)}
+            </div>
+          </div>
+          {p.description && (
+            <div style={{ fontSize: "0.78rem", color: "#555", marginTop: 8,
+              lineHeight: 1.55, display: "-webkit-box", WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+              {p.description}
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+          <span style={{ padding: "3px 11px", borderRadius: 20, fontSize: "0.7rem",
+            fontWeight: 700, background: meta.bg, color: meta.color,
+            whiteSpace: "nowrap" }}>
+            {meta.label}
+          </span>
+          {p.status === "pending" && (
+            <button
+              onClick={() => onWithdraw(p)}
+              disabled={withdrawing === p._id}
+              style={{ padding: "4px 12px", borderRadius: 8, fontSize: "0.72rem",
+                fontWeight: 600, cursor: "pointer",
+                border: "1px solid #ef4444", color: "#ef4444",
+                background: "none", opacity: withdrawing === p._id ? 0.5 : 1 }}>
+              {withdrawing === p._id ? "..." : "Retirer"}
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ═════════════════════════════════════════════════════════════
+// ROOT
+// ═════════════════════════════════════════════════════════════
 const FreelancerPitches = ({ user }) => {
-  const [pitches,  setPitches]  = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [filter,   setFilter]   = useState("all");
-  const [page,     setPage]     = useState(1);
-  const [total,    setTotal]    = useState(0);
-  const [pages,    setPages]    = useState(1);
+  const [pitches,     setPitches]     = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [filter,      setFilter]      = useState("all");
+  const [page,        setPage]        = useState(1);
+  const [total,       setTotal]       = useState(0);
+  const [pages,       setPages]       = useState(1);
   const [withdrawing, setWithdrawing] = useState(null);
 
   const load = useCallback(() => {
     if (!user?._id) return;
     setLoading(true);
-    freelancerService.getPitches(user._id, {
-      status: filter !== "all" ? filter : undefined,
-      page,
-      limit: 12,
-    })
+    const params = { page, limit: 12 };
+    if (filter !== "all" && filter !== "conventions") params.status = filter;
+    freelancerService.getPitches(user._id, params)
       .then(d => {
         setPitches(d.pitches || []);
         setTotal(d.total || 0);
@@ -68,18 +215,25 @@ const FreelancerPitches = ({ user }) => {
     setPage(1);
   };
 
+  const displayed = filter === "conventions"
+    ? pitches.filter(p => p.pitchType === "agency_to_freelancer")
+    : pitches;
+
+  const sentCount = pitches.filter(p => p.pitchType !== "agency_to_freelancer").length;
+  const convCount = pitches.filter(p => p.pitchType === "agency_to_freelancer").length;
+
   return (
     <div>
       <div className="section-header">
         <div className="section-header-left">
-          <h2>Mes offres</h2>
+          <h2>Mes offres & conventions</h2>
           <p style={{ color: "var(--d-muted)" }}>
-            {total} offre{total !== 1 ? "s" : ""} envoyée{total !== 1 ? "s" : ""}
+            {sentCount} offre{sentCount !== 1 ? "s" : ""} envoyée{sentCount !== 1 ? "s" : ""}
+            {convCount > 0 && ` · ${convCount} convention${convCount !== 1 ? "s" : ""} reçue${convCount !== 1 ? "s" : ""}`}
           </p>
         </div>
       </div>
 
-      {/* Filter tabs */}
       <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
         {FILTER_TABS.map(tab => (
           <button
@@ -99,12 +253,16 @@ const FreelancerPitches = ({ user }) => {
 
       {loading ? (
         <div className="spinner-wrap"><div className="spinner" /></div>
-      ) : pitches.length === 0 ? (
+      ) : displayed.length === 0 ? (
         <div className="card" style={{ padding: "48px 24px", textAlign: "center" }}>
           <div style={{ color: "#ccc", marginBottom: 12 }}><IconSend size={24} /></div>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Aucune offre</div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>
+            {filter === "conventions" ? "Aucune convention" : "Aucune offre"}
+          </div>
           <div style={{ fontSize: "0.8rem", color: "var(--d-muted)" }}>
-            {filter !== "all"
+            {filter === "conventions"
+              ? "Aucune convention de collaboration reçue"
+              : filter !== "all"
               ? "Aucune offre dans ce statut"
               : "Explorez les posts et envoyez votre première offre"}
           </div>
@@ -118,81 +276,15 @@ const FreelancerPitches = ({ user }) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {pitches.map((p, i) => {
-                const meta = STATUS_META[p.status] || STATUS_META.pending;
-                return (
-                  <motion.div
-                    key={p._id}
-                    className="card"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    style={{ padding: "18px 22px", borderLeft: `3px solid ${meta.color}` }}>
-                    <div style={{ display: "flex", justifyContent: "space-between",
-                      alignItems: "flex-start", gap: 12 }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 4 }}>
-                          {p.post?.title || "Post supprimé"}
-                        </div>
-                        {p.post?.budget && (
-                          <div style={{ fontSize: "0.75rem", color: "var(--d-muted)", marginBottom: 6 }}>
-                            Budget client : {p.post.budget.toLocaleString("fr-DZ")} DZD
-                          </div>
-                        )}
-                        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                          {p.price && (
-                            <div style={{ fontSize: "0.78rem", color: "#555" }}>
-                              Offre : <strong>{p.price.toLocaleString("fr-DZ")} {p.currency || "DZD"}</strong>
-                            </div>
-                          )}
-                          {p.duration && (
-                            <div style={{ fontSize: "0.78rem", color: "#555" }}>
-                              Durée : <strong>{p.duration} {p.durationUnit || ""}</strong>
-                            </div>
-                          )}
-                          <div style={{ fontSize: "0.78rem", color: "var(--d-muted)" }}>
-                            Envoyée le {fmt(p.createdAt)}
-                          </div>
-                        </div>
-                        {p.description && (
-                          <div style={{ fontSize: "0.78rem", color: "#555", marginTop: 8,
-                            lineHeight: 1.55, display: "-webkit-box", WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                            {p.description}
-                          </div>
-                        )}
-                      </div>
-
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
-                        <span style={{
-                          padding: "3px 11px", borderRadius: 20, fontSize: "0.7rem",
-                          fontWeight: 700, background: meta.bg, color: meta.color,
-                          whiteSpace: "nowrap",
-                        }}>
-                          {meta.label}
-                        </span>
-                        {p.status === "pending" && (
-                          <button
-                            onClick={() => handleWithdraw(p)}
-                            disabled={withdrawing === p._id}
-                            style={{
-                              padding: "4px 12px", borderRadius: 8, fontSize: "0.72rem",
-                              fontWeight: 600, cursor: "pointer",
-                              border: "1px solid #ef4444", color: "#ef4444",
-                              background: "none", opacity: withdrawing === p._id ? 0.5 : 1,
-                            }}>
-                            {withdrawing === p._id ? "..." : "Retirer"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {displayed.map((p, i) =>
+                p.pitchType === "agency_to_freelancer"
+                  ? <ConventionCard key={p._id} p={p} index={i} />
+                  : <PitchCard key={p._id} p={p} index={i}
+                      onWithdraw={handleWithdraw} withdrawing={withdrawing} />
+              )}
             </div>
 
-            {/* Pagination */}
-            {pages > 1 && (
+            {pages > 1 && filter !== "conventions" && (
               <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 24 }}>
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}

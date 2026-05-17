@@ -26,6 +26,7 @@ const WorkerTasks = ({ user }) => {
   const { user: authUser } = useAuth();
   const [tasks,   setTasks]   = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search,  setSearch]  = useState("");
 
   const load = useCallback(() => {
     projectService.getMemberTasks(user._id)
@@ -45,14 +46,21 @@ const WorkerTasks = ({ user }) => {
 
   // Group by project, sort tasks within each group by dueDate
   const grouped = useMemo(() => {
+    const q = search.toLowerCase();
+    const filtered = q
+      ? tasks.filter(t =>
+          t.title.toLowerCase().includes(q) ||
+          t.projectTitle?.toLowerCase().includes(q)
+        )
+      : tasks;
     const map = {};
-    tasks.forEach(t => {
+    filtered.forEach(t => {
       const pid = t.projectId;
       if (!map[pid]) map[pid] = { title: t.projectTitle, tasks: [] };
       map[pid].tasks.push(t);
     });
     return Object.values(map).map(g => ({ ...g, tasks: sortByDue(g.tasks) }));
-  }, [tasks]);
+  }, [tasks, search]);
 
   return (
     <div>
@@ -63,12 +71,22 @@ const WorkerTasks = ({ user }) => {
         </div>
       </div>
 
+      <div style={{ position: "relative", marginBottom: 16 }}>
+        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
+          color: "var(--d-muted)", pointerEvents: "none", fontSize: "0.8rem" }}>🔍</span>
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Rechercher une tâche..."
+          className="dash-form-input" style={{ paddingLeft: 36 }} />
+      </div>
+
       {loading ? <div className="spinner-wrap"><div className="spinner" /></div>
       : grouped.length === 0 ? (
         <div className="card">
           <div className="empty-state" style={{ padding: "64px 24px" }}>
             <div className="empty-state-icon"><IconCheckSquare size={20} /></div>
-            <div className="empty-state-title">Aucune tâche assignée</div>
+            <div className="empty-state-title">
+              {search ? "Aucune tâche correspondante" : "Aucune tâche assignée"}
+            </div>
           </div>
         </div>
       ) : grouped.map((group, gi) => (

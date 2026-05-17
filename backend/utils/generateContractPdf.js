@@ -68,6 +68,8 @@ const generateContractPdf = (contract) =>
     doc.text(`Date : ${fmtDate(contract.createdAt)}`, { align: "center" });
     doc.moveDown(1);
 
+    const s = contract.sections || {};
+
     // ── PRÉAMBULE ──
     doc
       .fontSize(11)
@@ -75,6 +77,10 @@ const generateContractPdf = (contract) =>
       .fillColor("#000")
       .text("PRÉAMBULE", { underline: true });
     doc.moveDown(0.5);
+    if (s.preambule) {
+      doc.fontSize(9).font("Helvetica").fillColor("#333").text(s.preambule, { lineGap: 3 });
+      doc.moveDown(0.4);
+    }
     doc
       .fontSize(9)
       .font("Helvetica")
@@ -103,21 +109,21 @@ const generateContractPdf = (contract) =>
     doc.moveTo(60, doc.y).lineTo(535, doc.y).stroke("#ccc");
 
     // ── ARTICLES 01–03 ──
-    addArticle("01", "OBJET DU CONTRAT", contract.objet || "Non défini.");
+    addArticle("01", "OBJET DU CONTRAT", s.article1 || contract.objet || "Non défini.");
     addArticle(
       "02",
       "NATURE DES PRESTATIONS",
-      contract.prestations || "Non défini."
+      s.article2 || contract.prestations || "Non défini."
     );
     addArticle(
       "03",
       "PÉRIMÈTRE DU PROJET ET LIVRABLES",
-      contract.livrables || "Non défini."
+      s.article3 || contract.livrables || "Non défini."
     );
     addArticle(
       "04",
       "OBLIGATIONS DES PARTIES",
-      "Chaque partie s'engage à respecter les termes du présent contrat et à coopérer de bonne foi pour atteindre les objectifs définis."
+      s.article4 || "Chaque partie s'engage à respecter les termes du présent contrat et à coopérer de bonne foi pour atteindre les objectifs définis."
     );
 
     // ── ARTICLE 05 — Financial ──
@@ -128,27 +134,31 @@ const generateContractPdf = (contract) =>
       .fillColor("#1a1a1a")
       .text("ARTICLE 05 : DISPOSITIONS FINANCIÈRES");
     doc.moveDown(0.3);
-    if (contract.financialTerms?.amount) {
-      addField(
-        "Montant",
-        `${contract.financialTerms.amount.toLocaleString("fr-DZ")} ${
-          contract.financialTerms.currency || "DZD"
-        }`
-      );
-    }
-    if (contract.financialTerms?.paymentMethod) {
-      addField("Mode de paiement", contract.financialTerms.paymentMethod);
+    if (s.article5) {
+      doc.fontSize(9).font("Helvetica").fillColor("#333").text(s.article5, { lineGap: 3 });
+    } else {
+      if (contract.financialTerms?.amount) {
+        addField(
+          "Montant",
+          `${contract.financialTerms.amount.toLocaleString("fr-DZ")} ${
+            contract.financialTerms.currency || "DZD"
+          }`
+        );
+      }
+      if (contract.financialTerms?.paymentMethod) {
+        addField("Mode de paiement", contract.financialTerms.paymentMethod);
+      }
     }
 
     addArticle(
       "06",
       "RÉVISION DES PRIX",
-      "Les prix convenus sont fermes et non révisables pendant la durée du contrat, sauf accord écrit des deux parties."
+      s.article6 || "Les prix convenus sont fermes et non révisables pendant la durée du contrat, sauf accord écrit des deux parties."
     );
     addArticle(
       "07",
       "MODALITÉS DE PAIEMENT",
-      contract.financialTerms?.paymentSchedule ||
+      s.article7 || contract.financialTerms?.paymentSchedule ||
         "Selon accord entre les parties."
     );
 
@@ -160,55 +170,59 @@ const generateContractPdf = (contract) =>
       .fillColor("#1a1a1a")
       .text("ARTICLE 08 : DURÉE");
     doc.moveDown(0.3);
-    addField("Date de début", fmtDate(contract.duration?.startDate));
-    addField("Date de fin", fmtDate(contract.duration?.endDate));
-    if (contract.duration?.notes) {
-      doc
-        .fontSize(9)
-        .font("Helvetica")
-        .fillColor("#333")
-        .text(contract.duration.notes, { lineGap: 3 });
+    if (s.article8) {
+      doc.fontSize(9).font("Helvetica").fillColor("#333").text(s.article8, { lineGap: 3 });
+    } else {
+      addField("Date de début", fmtDate(contract.duration?.startDate));
+      addField("Date de fin", fmtDate(contract.duration?.endDate));
+      if (contract.duration?.notes) {
+        doc
+          .fontSize(9)
+          .font("Helvetica")
+          .fillColor("#333")
+          .text(contract.duration.notes, { lineGap: 3 });
+      }
     }
 
     addArticle(
       "09",
       "CONFIDENTIALITÉ",
-      contract.confidentialityClause
+      s.article9 || (contract.confidentialityClause
         ? "Les parties s'engagent à maintenir la stricte confidentialité de toutes les informations échangées dans le cadre du présent contrat."
-        : "Sans clause de confidentialité particulière."
+        : "Sans clause de confidentialité particulière.")
     );
     addArticle(
       "10",
       "CLAUSE D'EXCLUSIVITÉ",
-      contract.exclusivityClause
+      s.article10 || (contract.exclusivityClause
         ? "Le prestataire s'engage à ne pas travailler pour des concurrents directs du client pendant la durée du contrat."
-        : "Aucune exclusivité n'est prévue par le présent contrat."
+        : "Aucune exclusivité n'est prévue par le présent contrat.")
     );
     addArticle(
       "11",
       "FORCE MAJEURE",
-      "Aucune des parties ne sera tenue responsable de l'inexécution de ses obligations résultant d'un cas de force majeure tel que défini par la loi algérienne."
+      s.article11 || "Aucune des parties ne sera tenue responsable de l'inexécution de ses obligations résultant d'un cas de force majeure tel que défini par la loi algérienne."
     );
     addArticle(
       "12",
       "DISPOSITIONS DIVERSES",
-      contract.additionalClauses || "Sans disposition particulière."
+      s.article12 || contract.additionalClauses || "Sans disposition particulière."
     );
     addArticle(
       "13",
       "RÈGLEMENT DES LITIGES",
-      "Tout litige relatif à l'interprétation ou à l'exécution du présent contrat sera soumis, à défaut d'accord amiable, aux tribunaux compétents de la wilaya où le prestataire est établi."
+      s.article13 || "Tout litige relatif à l'interprétation ou à l'exécution du présent contrat sera soumis, à défaut d'accord amiable, aux tribunaux compétents de la wilaya où le prestataire est établi."
     );
     addArticle(
       "14",
       "RÉSILIATION",
-      contract.resiliationTerms ||
+      s.article14 || contract.resiliationTerms ||
         "Le présent contrat peut être résilié par l'une ou l'autre des parties sous réserve d'un préavis de 15 jours notifié par écrit."
     );
     addArticle(
       "15",
       "ÉLECTION DE DOMICILE",
-      `Pour l'exécution du présent contrat, les parties font élection de domicile à leurs adresses respectives :\n- Partie A : ${
+      s.article15 || `Pour l'exécution du présent contrat, les parties font élection de domicile à leurs adresses respectives :\n- Partie A : ${
         contract.partyAName || "—"
       }\n- Partie B : ${contract.partyBName || "—"}`
     );

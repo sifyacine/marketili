@@ -68,14 +68,19 @@ exports.getFreelancerProjects = async (req, res) => {
 
 // ─────────────────────────────────────────────────────────────
 // GET FREELANCER PITCHES  GET /api/freelancer/:id/pitches
-// Returns all pitches sent by this freelancer
+// Returns pitches sent by this freelancer AND conventions received
 // ─────────────────────────────────────────────────────────────
 exports.getFreelancerPitches = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, page = 1, limit = 20 } = req.query;
 
-    const filter = { senderFreelancer: id };
+    const filter = {
+      $or: [
+        { senderFreelancer: id },
+        { pitchType: "agency_to_freelancer", freelancer: id },
+      ],
+    };
     if (status && status !== "all") filter.status = status;
 
     const pageNum  = Math.max(1, parseInt(page, 10));
@@ -83,8 +88,9 @@ exports.getFreelancerPitches = async (req, res) => {
 
     const [pitches, total] = await Promise.all([
       Pitch.find(filter)
-        .populate("post",   "title status deadline budget")
-        .populate("client", "firstName lastName companyName accountType")
+        .populate("post",         "title status deadline budget")
+        .populate("client",       "firstName lastName companyName accountType")
+        .populate("senderAgency", "agencyName logo")
         .sort({ createdAt: -1 })
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)

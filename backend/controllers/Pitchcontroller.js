@@ -58,20 +58,23 @@ const sendPitch = async (req, res) => {
       senderType,
       senderId,
       pitchType,
+      receiverId,    // for agency_to_freelancer conventions
+      receiverType,
 
       strategy,
       content,
       analysis,
       targetAudience,
+      workRequirements,
 
       description,
       proposedPrice,
       timeline,
+      contractType,
 
       attachments,
     } = req.body;
 
-    if (!postId) return fail(res, "postId requis");
     if (!senderType) return fail(res, "senderType requis");
     if (!senderId) return fail(res, "senderId requis");
 
@@ -83,10 +86,19 @@ const sendPitch = async (req, res) => {
       return fail(res, "senderType invalide");
     }
 
-    const post = await Post.findById(postId);
-    if (!post) return fail(res, "Post introuvable", 404);
-    if (!["open", "reactivated"].includes(post.status)) {
-      return fail(res, "Ce post n'accepte plus de nouvelles offres");
+    const isConvention = finalPitchType === "agency_to_freelancer";
+
+    // For regular pitches (not conventions), postId is required
+    let post = null;
+    if (!isConvention) {
+      if (!postId) return fail(res, "postId requis");
+      post = await Post.findById(postId);
+      if (!post) return fail(res, "Post introuvable", 404);
+      if (!["open", "reactivated"].includes(post.status)) {
+        return fail(res, "Ce post n'accepte plus de nouvelles offres");
+      }
+    } else {
+      if (!receiverId) return fail(res, "receiverId requis pour une convention");
     }
 
     const senderField =
@@ -96,21 +108,21 @@ const sendPitch = async (req, res) => {
         ? "senderTeam"
         : "senderFreelancer";
 
-    const existing = await Pitch.findOne({
-      post: postId,
-      [senderField]: senderId,
-    });
-    if (existing) {
-      return fail(res, "Vous avez déjà envoyé une offre pour ce post");
+    if (!isConvention) {
+      const existing = await Pitch.findOne({ post: postId, [senderField]: senderId });
+      if (existing) {
+        return fail(res, "Vous avez déjà envoyé une offre pour ce post");
+      }
     }
 
     const pitchData = {
       pitchType: finalPitchType,
-      post: postId,
-      client: post.client,
       senderType: normalizedSenderType,
       [senderField]: senderId,
       status: "pending",
+      ...(post && { post: postId, client: post.client }),
+      ...(isConvention && receiverId && { freelancer: receiverId }),
+      ...(contractType && { contractType }),
     };
 
     const parsedStrategy = parseMaybeJSON(strategy);
@@ -126,6 +138,7 @@ const sendPitch = async (req, res) => {
     if (parsedAnalysis) pitchData.analysis = parsedAnalysis;
     if (parsedTargetAudience) pitchData.targetAudience = parsedTargetAudience;
     if (description) pitchData.description = description;
+    if (workRequirements) pitchData.workRequirements = workRequirements;
     if (parsedProposedPrice) pitchData.proposedPrice = parsedProposedPrice;
     if (parsedTimeline) pitchData.timeline = parsedTimeline;
 
@@ -145,25 +158,36 @@ const sendPitch = async (req, res) => {
 
     const pitch = await Pitch.create(pitchData);
 
-    await Post.findByIdAndUpdate(postId, {
-      $push: { pitches: pitch._id },
-    });
+    if (!isConvention && post) {
+      await Post.findByIdAndUpdate(postId, { $push: { pitches: pitch._id } });
 
-    // Notify client
-    Notification.notify({
-      recipient: post.client, recipientRole: "client", recipientModel: "Client",
-      type: "pitch_received", category: "pitches",
-      title: "Nouvelle offre reçue",
-      body: `Une offre a été soumise sur votre post "${post.title}"`,
-      link: `/dashboard/client/pitches`,
-      metadata: { postId: post._id, pitchId: pitch._id },
-    });
+      Notification.notify({
+        recipient: post.client, recipientRole: "client", recipientModel: "Client",
+        type: "pitch_received", category: "pitches",
+        title: "Nouvelle offre reçue",
+        body: `Une offre a été soumise sur votre post "${post.title}"`,
+        link: `/dashboard/client/pitches`,
+        metadata: { postId: post._id, pitchId: pitch._id },
+      });
+    }
+
+    if (isConvention && receiverId) {
+      const Freelancer = require("../models/Freelancer");
+      Notification.notify({
+        recipient: receiverId, recipientRole: "freelancer", recipientModel: "Freelancer",
+        type: "pitch_received", category: "pitches",
+        title: "Nouvelle convention de collaboration",
+        body: `Une agence vous a envoyé une convention de collaboration.`,
+        link: `/dashboard/freelancer/pitches`,
+        metadata: { pitchId: pitch._id },
+      });
+    }
 
     logActivity({
       actorId: pitch.senderAgency || pitch.senderTeam || pitch.senderFreelancer,
       actorRole: pitch.senderType?.toLowerCase(), actorName: pitch.senderName || String(pitch.senderAgency || ""),
       actionType: "pitch_sent", targetId: pitch._id, targetType: "Pitch",
-      description: `Offre envoyée sur "${post.title}"`,
+      description: isConvention ? "Convention envoyée à un freelancer" : `Offre envoyée sur "${post?.title}"`,
     });
     return ok(res, { pitch }, 201);
   } catch (err) {

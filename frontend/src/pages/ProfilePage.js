@@ -420,6 +420,19 @@ const ProfilePage = () => {
                 {locationStr}
               </div>
             )}
+            {role === "client" && profile.industry && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "4px 12px", borderRadius: 20,
+                background: "#fff0f0", color: "#c0152a",
+                fontSize: "0.8rem", fontWeight: 700, marginTop: 8, marginBottom: 4 }}>
+                {profile.industry}
+              </div>
+            )}
+            {role === "client" && profile.fieldOfWork && (
+              <p style={{ fontSize: "0.84rem", color: "#6b7280", marginTop: 4, marginBottom: 0 }}>
+                {profile.fieldOfWork}
+              </p>
+            )}
             {bio && (
               <p style={{ fontSize: "0.88rem", color: "#555", marginTop: 10, lineHeight: 1.6,
                 maxWidth: 520 }}>

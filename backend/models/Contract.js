@@ -109,6 +109,26 @@ const contractSchema = new mongoose.Schema(
     // Free-form additional clauses
     additionalClauses: { type: String, trim: true },
 
+    // Full editable sections (proforma form output)
+    sections: {
+      preambule:  { type: String, trim: true },
+      article1:   { type: String, trim: true },
+      article2:   { type: String, trim: true },
+      article3:   { type: String, trim: true },
+      article4:   { type: String, trim: true },
+      article5:   { type: String, trim: true },
+      article6:   { type: String, trim: true },
+      article7:   { type: String, trim: true },
+      article8:   { type: String, trim: true },
+      article9:   { type: String, trim: true },
+      article10:  { type: String, trim: true },
+      article11:  { type: String, trim: true },
+      article12:  { type: String, trim: true },
+      article13:  { type: String, trim: true },
+      article14:  { type: String, trim: true },
+      article15:  { type: String, trim: true },
+    },
+
     // ── Status ──
     status: {
       type: String,

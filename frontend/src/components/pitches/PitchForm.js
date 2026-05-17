@@ -38,6 +38,7 @@ const PitchForm = ({ post, senderType, onSubmit, onClose, loading }) => {
   const [postingFrequency, setPostingFrequency] = useState("");
   const [feedOrganization, setFeedOrganization] = useState("");
   const [competitiveAnalysis, setCompetitiveAnalysis] = useState("");
+  const [colorPalette,        setColorPalette]        = useState("");
   const [positioningStrategy, setPositioningStrategy] = useState("");
   const [ageMin, setAgeMin] = useState("");
   const [ageMax, setAgeMax] = useState("");
@@ -120,6 +121,7 @@ const PitchForm = ({ post, senderType, onSubmit, onClose, loading }) => {
         };
         pitchData.analysis = {
           competitiveAnalysis,
+          colorPalette: colorPalette.split(",").map(s => s.trim()).filter(Boolean),
           positioningStrategy,
         };
         pitchData.targetAudience = {
@@ -271,6 +273,11 @@ const PitchForm = ({ post, senderType, onSubmit, onClose, loading }) => {
                   <textarea className="dash-form-textarea pitch-form-textarea-xl"
                     placeholder="Analyse de la concurrence..."
                     value={competitiveAnalysis} onChange={e => setCompetitiveAnalysis(e.target.value)} />
+                </div>
+                <div className="dash-form-group">
+                  <label className="dash-form-label">Palette de couleurs (séparées par virgule)</label>
+                  <input className="dash-form-input" placeholder="#FF5733, #C70039..."
+                    value={colorPalette} onChange={e => setColorPalette(e.target.value)} />
                 </div>
                 <div className="dash-form-group">
                   <label className="dash-form-label">Stratégie de positionnement</label>

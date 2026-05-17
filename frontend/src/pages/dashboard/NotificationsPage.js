@@ -1,5 +1,5 @@
 // frontend/src/pages/dashboard/NotificationsPage.js
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import notificationService from "../../services/notificationService";
@@ -145,6 +145,16 @@ const NotificationsPage = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [category,    setCategory]    = useState("all");
   const [markingAll,  setMarkingAll]  = useState(false);
+  const [search,      setSearch]      = useState("");
+
+  const displayedNotifs = useMemo(() => {
+    if (!search) return notifs;
+    const q = search.toLowerCase();
+    return notifs.filter(n =>
+      n.title?.toLowerCase().includes(q) ||
+      n.body?.toLowerCase().includes(q)
+    );
+  }, [notifs, search]);
 
   const load = useCallback(async (pg = 1, cat = category) => {
     setLoading(true);
@@ -207,7 +217,15 @@ const NotificationsPage = () => {
         )}
       </div>
 
-      {/* Category tabs */}
+      {/* Search + category tabs */}
+      <div style={{ position: "relative", marginBottom: 12 }}>
+        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
+          color: "var(--d-muted)", pointerEvents: "none", fontSize: "0.8rem" }}>🔍</span>
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Rechercher dans les notifications..."
+          className="dash-form-input" style={{ paddingLeft: 36 }} />
+      </div>
+
       <div className="filters-bar" style={{ marginBottom: 16 }}>
         {CATEGORY_TABS.map(t => (
           <button key={t.v}
@@ -233,9 +251,16 @@ const NotificationsPage = () => {
                 : "Vous n'avez pas encore de notifications."}
             </div>
           </div>
+        ) : displayedNotifs.length === 0 ? (
+          <div className="empty-state" style={{ padding: "56px 24px" }}>
+            <div className="empty-state-icon"><IconBell size={20} /></div>
+            <div className="empty-state-title">
+              {search ? "Aucune notification correspondante" : "Aucune notification dans cette catégorie."}
+            </div>
+          </div>
         ) : (
           <AnimatePresence mode="popLayout">
-            {notifs.map((n, i) => (
+            {displayedNotifs.map((n) => (
               <NotifCard
                 key={n._id}
                 n={n}

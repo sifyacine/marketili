@@ -21,7 +21,8 @@ const ROLE_FIELDS = {
   ],
   client: [
     { name: "bio",          label: "Bio",                       type: "textarea" },
-    { name: "industry",     label: "Secteur",                   type: "text"     },
+    { name: "industry",     label: "Secteur d'activité",        type: "text"     },
+    { name: "fieldOfWork",  label: "Domaine / Description",     type: "text"     },
     { name: "achievements", label: "Réalisations / Références", type: "tags"     },
   ],
   team: [
@@ -159,6 +160,7 @@ const EditProfilePage = () => {
           phone:        p.phone        || "",
           website:      p.website      || "",
           industry:     p.industry     || "",
+          fieldOfWork:  p.fieldOfWork  || "",
           specialties:  p.specialties  || [],
           skills:       p.skills       || [],
           categories:   p.categories   || [],

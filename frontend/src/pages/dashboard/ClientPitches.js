@@ -4,6 +4,132 @@ import { usePitchesForClient } from "../../hooks/usePitches";
 import pitchService from "../../services/pitchService";
 import { IconInbox, IconSearch } from "../../components/ui/Icons";
 
+// ── Pitch Detail Modal ────────────────────────────────────────────────────────
+const PitchDetailModal = ({ pitch, onClose }) => {
+  if (!pitch) return null;
+  const s = pitch.strategy || {};
+  const c = pitch.content   || {};
+  const a = pitch.analysis  || {};
+  const t = pitch.targetAudience || {};
+
+  const Section = ({ title, children }) => (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ fontWeight: 800, fontSize: "0.78rem", letterSpacing: "0.07em",
+        textTransform: "uppercase", color: "#c0152a", marginBottom: 8 }}>
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+  const Row = ({ label, value }) => value ? (
+    <div style={{ marginBottom: 6 }}>
+      <span style={{ fontSize: "0.72rem", color: "#888", fontWeight: 600 }}>{label} : </span>
+      <span style={{ fontSize: "0.82rem", color: "#333" }}>{value}</span>
+    </div>
+  ) : null;
+  const Tags = ({ label, values }) => values?.length ? (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: "0.72rem", color: "#888", fontWeight: 600, marginBottom: 4 }}>{label}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+        {values.map((v, i) => (
+          <span key={i} style={{ padding: "2px 10px", borderRadius: 20, fontSize: "0.7rem",
+            fontWeight: 600, background: "#f3f0ff", color: "#7c3aed" }}>
+            {v}
+          </span>
+        ))}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+      zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: "#fff", borderRadius: 14, padding: "28px 28px 24px",
+        width: "100%", maxWidth: 600, maxHeight: "85vh", overflowY: "auto",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>Détail de l'offre</div>
+            <div style={{ fontSize: "0.78rem", color: "#888", marginTop: 2 }}>
+              {pitch.post?.title || "Post supprimé"}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer",
+            fontSize: "1.1rem", color: "#999", padding: "2px 6px" }}>✕</button>
+        </div>
+
+        {(s.strategyOverview || s.creativeIdea || s.objectives) && (
+          <Section title="Stratégie">
+            <Row label="Aperçu" value={s.strategyOverview} />
+            <Row label="Idée créative" value={s.creativeIdea} />
+            <Row label="Objectifs" value={s.objectives} />
+            <Row label="Buts mesurables" value={s.measurableGoals} />
+            <Row label="Techniques" value={s.techniques} />
+          </Section>
+        )}
+
+        {(c.contentPillars?.length || c.postingFrequency || c.publicationCalendar) && (
+          <Section title="Contenu">
+            <Tags label="Piliers de contenu" values={c.contentPillars} />
+            <Row label="Fréquence de posting" value={c.postingFrequency} />
+            <Row label="Calendrier" value={c.publicationCalendar} />
+            <Row label="Organisation du feed" value={c.feedOrganization} />
+          </Section>
+        )}
+
+        {(a.competitiveAnalysis || a.colorPalette?.length || a.positioningStrategy) && (
+          <Section title="Analyse">
+            <Row label="Analyse concurrentielle" value={a.competitiveAnalysis} />
+            <Tags label="Palette de couleurs" values={a.colorPalette} />
+            <Row label="Positionnement" value={a.positioningStrategy} />
+          </Section>
+        )}
+
+        {(t.ageMin || t.ageMax || t.gender || t.niche?.length || t.locations?.length) && (
+          <Section title="Audience cible">
+            {(t.ageMin || t.ageMax) && (
+              <Row label="Âge" value={[t.ageMin, t.ageMax].filter(Boolean).join(" – ")} />
+            )}
+            <Row label="Genre" value={t.gender} />
+            <Tags label="Niches" values={t.niche} />
+            <Tags label="Localisations" values={t.locations} />
+          </Section>
+        )}
+
+        {pitch.description && (
+          <Section title="Description">
+            <p style={{ fontSize: "0.85rem", color: "#444", lineHeight: 1.6, margin: 0 }}>
+              {pitch.description}
+            </p>
+          </Section>
+        )}
+
+        <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
+          {pitch.proposedPrice?.amount && (
+            <div style={{ padding: "10px 16px", borderRadius: 10, background: "#f8f8f8",
+              border: "1px solid #eee", textAlign: "center" }}>
+              <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "#c0152a" }}>
+                {pitch.proposedPrice.amount.toLocaleString()} {pitch.proposedPrice.currency || "DZD"}
+              </div>
+              <div style={{ fontSize: "0.7rem", color: "#888" }}>Prix proposé</div>
+            </div>
+          )}
+          {pitch.timeline?.duration && (
+            <div style={{ padding: "10px 16px", borderRadius: 10, background: "#f8f8f8",
+              border: "1px solid #eee", textAlign: "center" }}>
+              <div style={{ fontWeight: 800, fontSize: "1.1rem" }}>
+                {pitch.timeline.duration} {pitch.timeline.unit === "days" ? "j" : pitch.timeline.unit === "weeks" ? "sem" : "mois"}
+              </div>
+              <div style={{ fontSize: "0.7rem", color: "#888" }}>Durée</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const STATUS_META = {
   pending:   { label: "En attente", color: "#f59e0b", bg: "#fffbeb" },
   accepted:  { label: "Acceptée",   color: "#10b981", bg: "#f0fdf4" },
@@ -24,10 +150,11 @@ const fmt = (d) =>
 
 const ClientPitches = ({ user }) => {
   const { pitches, loading, refetch } = usePitchesForClient(user?._id);
-  const [statusF,    setStatusF]    = useState("all");
-  const [search,     setSearch]     = useState("");
-  const [actionLoad, setActionLoad] = useState(null);
-  const [successMsg, setSuccessMsg] = useState("");
+  const [statusF,       setStatusF]       = useState("all");
+  const [search,        setSearch]        = useState("");
+  const [actionLoad,    setActionLoad]    = useState(null);
+  const [successMsg,    setSuccessMsg]    = useState("");
+  const [selectedPitch, setSelectedPitch] = useState(null);
 
   const filtered = useMemo(() => {
     let data = [...pitches];
@@ -147,6 +274,10 @@ const ClientPitches = ({ user }) => {
         </span>
       </div>
 
+      {selectedPitch && (
+        <PitchDetailModal pitch={selectedPitch} onClose={() => setSelectedPitch(null)} />
+      )}
+
       {/* Table */}
       {loading ? (
         <div className="spinner-wrap"><div className="spinner" /></div>
@@ -229,6 +360,12 @@ const ClientPitches = ({ user }) => {
                       </td>
                       <td className="td-muted">{fmt(pitch.createdAt)}</td>
                       <td onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setSelectedPitch(pitch)}
+                          style={{ padding: "3px 9px", borderRadius: 6, border: "1px solid #ddd",
+                            background: "none", cursor: "pointer", fontSize: "0.7rem",
+                            color: "#555", fontFamily: "inherit", marginBottom: 6, display: "block" }}>
+                          Voir détail
+                        </button>
                         {pitch.status === "pending" && (
                           <div style={{ display: "flex", gap: 4 }}>
                             <button

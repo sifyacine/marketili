@@ -220,6 +220,7 @@ const TeamMemberProjects = ({ user }) => {
   const [loading,  setLoading]  = useState(true);
   const [filter,   setFilter]   = useState("all");
   const [selected, setSelected] = useState(null);
+  const [search,   setSearch]   = useState("");
 
   const load = useCallback(() => {
     if (!user?._id) return;
@@ -236,9 +237,19 @@ const TeamMemberProjects = ({ user }) => {
     return <ProjectDetail project={selected} userId={user?._id} onBack={() => setSelected(null)} />;
   }
 
-  const filtered = filter === "all"
-    ? projects
-    : projects.filter(p => p.projectStatus === filter);
+  const filtered = projects.filter(p => {
+    if (filter !== "all" && p.projectStatus !== filter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const clientName = p.client
+        ? (p.client.accountType === "company"
+            ? p.client.companyName
+            : `${p.client.firstName} ${p.client.lastName}`)
+        : "";
+      return p.title.toLowerCase().includes(q) || clientName.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   const active = projects.filter(p => p.projectStatus === "active").length;
   const done   = projects.filter(p => p.projectStatus === "completed").length;
@@ -252,6 +263,14 @@ const TeamMemberProjects = ({ user }) => {
             {active} actif{active !== 1 ? "s" : ""} · {done} terminé{done !== 1 ? "s" : ""}
           </p>
         </div>
+      </div>
+
+      <div style={{ position: "relative", marginBottom: 12 }}>
+        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
+          color: "var(--d-muted)", pointerEvents: "none", fontSize: "0.8rem" }}>🔍</span>
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Rechercher un projet..."
+          className="dash-form-input" style={{ paddingLeft: 36 }} />
       </div>
 
       <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>

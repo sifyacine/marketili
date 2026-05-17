@@ -8,6 +8,7 @@ const Conversation = require("../models/Conversation");
 const Message      = require("../models/Message");
 const { conn }     = require("../config/db");
 const generateContractPdf = require("../utils/generateContractPdf");
+const findDirectorId      = require("../utils/findDirector");
 
 // ── Helpers ──
 const ok   = (res, data, code = 200) => res.status(code).json({ success: true,  ...data });
@@ -217,14 +218,18 @@ exports.uploadReceipt = async (req, res) => {
 
     // Notify agency director
     if (contract.partyAType === "Agency" && contract.partyAId) {
-      Notification.notify({
-        recipient: contract.partyAId, recipientRole: "agency", recipientModel: "Agency",
+      const notifPayload = {
         type: "contract_acknowledged", category: "contracts",
         title: "Reçu reçu",
         body: `Le client a uploadé un reçu pour le contrat "${contract.title}". Envoyez le bon de commande.`,
         link: `/dashboard/agency/contracts`,
         metadata: { projectId: contract.project },
-      });
+      };
+      Notification.notify({ recipient: contract.partyAId, recipientRole: "agency", recipientModel: "Agency", ...notifPayload });
+      const directorId = await findDirectorId(contract.partyAId);
+      if (directorId) {
+        Notification.notify({ recipient: directorId, recipientRole: "agency_member", recipientModel: "AgencyMember", ...notifPayload });
+      }
     }
 
     return ok(res, { contract, message: "Reçu enregistré — en attente du bon de commande" });
@@ -272,14 +277,18 @@ exports.sendBonDeCommande = async (req, res) => {
       });
     }
     if (contract.partyAType === "Agency" && contract.partyAId) {
-      Notification.notify({
-        recipient: contract.partyAId, recipientRole: "agency", recipientModel: "Agency",
+      const notifPayloadA = {
         type: "contract_signed", category: "contracts",
         title: "Contrat finalisé",
         body: `Le contrat "${contract.title}" est maintenant signé par les deux parties.`,
         link: `/dashboard/agency/contracts`,
         metadata: { projectId: contract.project },
-      });
+      };
+      Notification.notify({ recipient: contract.partyAId, recipientRole: "agency", recipientModel: "Agency", ...notifPayloadA });
+      const directorId = await findDirectorId(contract.partyAId);
+      if (directorId) {
+        Notification.notify({ recipient: directorId, recipientRole: "agency_member", recipientModel: "AgencyMember", ...notifPayloadA });
+      }
     }
 
     return ok(res, { contract, message: "Contrat finalisé avec succès" });
@@ -324,7 +333,10 @@ exports.updateContract = async (req, res) => {
   try {
     const contract = await Contract.findById(req.params.id);
     if (!contract) return fail(res, "Contrat introuvable", 404);
-    if (contract.status !== "draft") {
+
+    // Non-draft contracts can only update sections (proforma content)
+    const isSectionsOnly = req.body.sections && Object.keys(req.body).length === 1;
+    if (contract.status !== "draft" && !isSectionsOnly) {
       return fail(res, "Seul un brouillon peut être modifié");
     }
 
@@ -337,6 +349,9 @@ exports.updateContract = async (req, res) => {
     allowed.forEach(field => {
       if (req.body[field] !== undefined) contract[field] = req.body[field];
     });
+    if (req.body.sections) {
+      contract.sections = { ...(contract.sections?.toObject?.() || contract.sections || {}), ...req.body.sections };
+    }
 
     await contract.save();
     return ok(res, { contract });
@@ -367,6 +382,9 @@ exports.generateAndSendPdf = async (req, res) => {
     editable.forEach(field => {
       if (req.body[field] !== undefined) contract[field] = req.body[field];
     });
+    if (req.body.sections) {
+      contract.sections = { ...(contract.sections?.toObject?.() || contract.sections || {}), ...req.body.sections };
+    }
 
     // Generate PDF buffer
     const pdfBuffer = await generateContractPdf(contract);
