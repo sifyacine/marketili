@@ -98,8 +98,22 @@ exports.setMemberStatus = async (req, res) => {
     if (!member) {
       return res.status(404).json({ success: false, message: "Membre introuvable" });
     }
+    const prevStatus = member.accountStatus;
     member.accountStatus = status;
     await member.save();
+
+    // Notify member when their account is restored to active
+    if (status === "active" && prevStatus && prevStatus !== "active") {
+      const Notification = require("../models/Notification");
+      Notification.notify({
+        recipient: member._id, recipientRole: "agency_member", recipientModel: "AgencyMember",
+        type: "system", category: "admin",
+        title: "Votre compte a été réactivé",
+        body: "Votre accès à la plateforme a été restauré par l'administrateur.",
+        link: "/dashboard",
+      });
+    }
+
     res.json({ success: true, accountStatus: member.accountStatus });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

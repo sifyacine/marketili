@@ -22,6 +22,10 @@ const notificationService = {
   // Delete one
   delete: (id) =>
     api.delete(`/notifications/${id}`).then(r => r.data),
+
+  // Check for approaching deadlines — call once on dashboard mount
+  checkDeadlines: () =>
+    api.get("/notifications/check-deadlines").then(r => r.data).catch(() => {}),
 };
 
 export default notificationService;

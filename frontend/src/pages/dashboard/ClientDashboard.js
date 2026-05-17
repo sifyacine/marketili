@@ -34,6 +34,7 @@ const ClientDashboard = () => {
     notificationService.getUnreadCount()
       .then(c => setUnreadCount(c || 0))
       .catch(() => {});
+    notificationService.checkDeadlines();
     const iv = setInterval(() =>
       notificationService.getUnreadCount().then(c => setUnreadCount(c || 0)).catch(() => {}),
     30000);

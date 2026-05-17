@@ -13,6 +13,8 @@ const CATEGORY_TABS = [
   { v: "contracts", l: "Contrats"  },
   { v: "tasks",     l: "Tâches"    },
   { v: "deadlines", l: "Délais"    },
+  { v: "messages",  l: "Messages"  },
+  { v: "admin",     l: "Admin"     },
 ];
 
 const CATEGORY_COLORS = {

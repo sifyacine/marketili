@@ -4,6 +4,7 @@ const express = require("express");
 const router  = express.Router();
 const { protect } = require("../middleware/auth");
 const Notification = require("../models/Notification");
+const Project      = require("../models/Project");
 
 // All notification routes require auth
 router.use(protect);
@@ -35,6 +36,99 @@ router.get("/", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// GET /api/notifications/check-deadlines — create deadline_approaching notifs for items due within 3 days
+router.get("/check-deadlines", async (req, res) => {
+  try {
+    const userId   = req.user._id;
+    const role     = req.userRole;
+    const now      = new Date();
+    const in3Days  = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    const ago24h   = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    // Build project filter based on role
+    let projectFilter = {};
+    if (role === "client")           projectFilter = { client: userId };
+    else if (role === "agency")      projectFilter = { providerAgency: userId };
+    else if (role === "team")        projectFilter = { providerTeam: userId };
+    else if (role === "freelancer")  projectFilter = { "assignedMembers.memberId": userId };
+    else if (role === "agency_member" || role === "team_member") {
+      projectFilter = { "assignedMembers.memberId": userId };
+    }
+
+    const activeFilter = { ...projectFilter, projectStatus: { $nin: ["completed", "cancelled"] } };
+    const projects = await Project.find(activeFilter).select("title deadline tasks").lean();
+
+    let created = 0;
+
+    for (const proj of projects) {
+      // Check project deadline
+      if (proj.deadline && proj.deadline > now && proj.deadline <= in3Days) {
+        const already = await Notification.findOne({
+          recipient: userId, type: "deadline_approaching",
+          "metadata.projectId": proj._id, createdAt: { $gte: ago24h },
+        });
+        if (!already) {
+          await Notification.notify({
+            recipient: userId, recipientRole: role,
+            recipientModel: roleToModel(role),
+            type: "deadline_approaching", category: "deadlines",
+            title: `Échéance proche : ${proj.title}`,
+            body: `Le projet "${proj.title}" arrive à échéance dans moins de 3 jours.`,
+            link: `/dashboard/${rolePath(role)}/projects`,
+            metadata: { projectId: proj._id },
+          });
+          created++;
+        }
+      }
+
+      // Check task due dates
+      for (const task of (proj.tasks || [])) {
+        if (!task.dueDate || task.status === "done") continue;
+        const due = new Date(task.dueDate);
+        if (due > now && due <= in3Days) {
+          const alreadyTask = await Notification.findOne({
+            recipient: userId, type: "deadline_approaching",
+            "metadata.projectId": proj._id, title: { $regex: task.title, $options: "i" },
+            createdAt: { $gte: ago24h },
+          });
+          if (!alreadyTask) {
+            await Notification.notify({
+              recipient: userId, recipientRole: role,
+              recipientModel: roleToModel(role),
+              type: "deadline_approaching", category: "deadlines",
+              title: `Tâche urgente : ${task.title}`,
+              body: `La tâche "${task.title}" dans le projet "${proj.title}" arrive à échéance bientôt.`,
+              link: `/dashboard/${rolePath(role)}/projects`,
+              metadata: { projectId: proj._id },
+            });
+            created++;
+          }
+        }
+      }
+    }
+
+    res.json({ success: true, created });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+function roleToModel(role) {
+  const map = {
+    client: "Client", agency: "Agency", team: "Team", freelancer: "Freelancer",
+    agency_member: "AgencyMember", team_member: "TeamMember",
+  };
+  return map[role] || "Client";
+}
+
+function rolePath(role) {
+  const map = {
+    client: "client", agency: "agency", team: "team", freelancer: "freelancer",
+    agency_member: "agency", team_member: "team",
+  };
+  return map[role] || "client";
+}
 
 // GET /api/notifications/unread-count — quick badge count
 router.get("/unread-count", async (req, res) => {

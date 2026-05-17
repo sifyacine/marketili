@@ -1,6 +1,7 @@
 const Pitch        = require("../models/Pitch");
 const Post         = require("../models/Post");
 const Notification = require("../models/Notification");
+const AgencyMember = require("../models/AgencyMember");
 
 const ok = (res, data, code = 200) =>
   res.status(code).json({ success: true, ...data });
@@ -501,6 +502,50 @@ const updateInternalStatus = async (req, res) => {
     pitch.internalStatus = newStatus;
     if (internalNotes !== undefined) pitch.internalNotes = internalNotes;
     await pitch.save();
+
+    // Fire internal workflow notifications
+    if (pitch.senderAgency) {
+      if (newStatus === "with_chef_de_projet") {
+        // Notify the chef de projet(s) in this agency
+        const chefs = await AgencyMember.find({
+          agency: pitch.senderAgency, jobTitle: "chef_de_projet", accountStatus: "active",
+        }).select("_id").lean();
+        chefs.forEach(chef => {
+          Notification.notify({
+            recipient: chef._id, recipientRole: "agency_member", recipientModel: "AgencyMember",
+            type: "director_approval_needed", category: "pitches",
+            title: "Pitch à valider",
+            body: `Un pitch vous a été soumis pour validation.`,
+            link: "/dashboard/agency/pitches",
+            metadata: { pitchId: pitch._id },
+          });
+        });
+      } else if (newStatus === "approved") {
+        // Notify the director of this agency
+        const directors = await AgencyMember.find({
+          agency: pitch.senderAgency, jobTitle: "director", accountStatus: "active",
+        }).select("_id").lean();
+        // Also notify the Agency entity itself (the director account)
+        Notification.notify({
+          recipient: pitch.senderAgency, recipientRole: "agency", recipientModel: "Agency",
+          type: "director_approval_needed", category: "pitches",
+          title: "Pitch approuvé — prêt à envoyer",
+          body: `Le chef de projet a validé le pitch. Vous pouvez maintenant l'envoyer au client.`,
+          link: "/dashboard/agency/pitches",
+          metadata: { pitchId: pitch._id },
+        });
+        directors.forEach(dir => {
+          Notification.notify({
+            recipient: dir._id, recipientRole: "agency_member", recipientModel: "AgencyMember",
+            type: "director_approval_needed", category: "pitches",
+            title: "Pitch approuvé — prêt à envoyer",
+            body: `Le chef de projet a validé le pitch.`,
+            link: "/dashboard/agency/pitches",
+            metadata: { pitchId: pitch._id },
+          });
+        });
+      }
+    }
 
     return ok(res, { pitch, message: "Statut interne mis à jour" });
   } catch (err) {

@@ -79,6 +79,7 @@ const FreelancerDashboard = () => {
     notificationService.getUnreadCount()
       .then(c => setUnreadCount(c || 0))
       .catch(() => {});
+    notificationService.checkDeadlines();
     const iv = setInterval(() =>
       notificationService.getUnreadCount()
         .then(c => setUnreadCount(c || 0))

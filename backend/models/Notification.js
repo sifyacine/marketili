@@ -69,6 +69,10 @@ const notificationSchema = new mongoose.Schema(
 
         // Deadline / task events
         "task_overdue",         // a task has passed its due date
+        "deadline_approaching", // project/task deadline within 3 days
+
+        // Internal workflow
+        "director_approval_needed", // pitch moved to chef or director for review
 
         // System
         "system",               // general platform announcement
