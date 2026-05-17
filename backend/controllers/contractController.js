@@ -1,8 +1,13 @@
 // backend/controllers/contractController.js
 
+const mongoose     = require("mongoose");
 const Contract     = require("../models/Contract");
 const Project      = require("../models/Project");
 const Notification = require("../models/Notification");
+const Conversation = require("../models/Conversation");
+const Message      = require("../models/Message");
+const { conn }     = require("../config/db");
+const generateContractPdf = require("../utils/generateContractPdf");
 
 // ── Helpers ──
 const ok   = (res, data, code = 200) => res.status(code).json({ success: true,  ...data });
@@ -337,5 +342,114 @@ exports.updateContract = async (req, res) => {
     return ok(res, { contract });
   } catch (err) {
     return fail(res, "Erreur serveur", 500);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// GENERATE & SEND PDF   POST /api/contracts/:id/generate-pdf
+// Agency director fills form → PDF created → sent to chat → status: sent
+// ─────────────────────────────────────────────────────────────
+exports.generateAndSendPdf = async (req, res) => {
+  try {
+    const contract = await Contract.findById(req.params.id)
+      .populate("project", "title client providerAgency conversationId");
+    if (!contract) return fail(res, "Contrat introuvable", 404);
+    if (contract.status !== "draft") {
+      return fail(res, "Seul un contrat en brouillon peut être généré");
+    }
+
+    // Update content fields from form submission
+    const editable = [
+      "title", "objet", "prestations", "livrables", "financialTerms",
+      "duration", "confidentialityClause", "exclusivityClause",
+      "resiliationTerms", "additionalClauses",
+    ];
+    editable.forEach(field => {
+      if (req.body[field] !== undefined) contract[field] = req.body[field];
+    });
+
+    // Generate PDF buffer
+    const pdfBuffer = await generateContractPdf(contract);
+
+    // Upload buffer directly to GridFS
+    const bucket = new mongoose.mongo.GridFSBucket(conn().db, { bucketName: "uploads" });
+    const filename = `contrat-${contract._id}-${Date.now()}.pdf`;
+    const uploadStream = bucket.openUploadStream(filename, {
+      contentType: "application/pdf",
+      metadata: { contractId: contract._id.toString(), type: "contract_pdf" },
+    });
+    await new Promise((resolve, reject) => {
+      uploadStream.on("finish", resolve);
+      uploadStream.on("error", reject);
+      uploadStream.write(pdfBuffer);
+      uploadStream.end();
+    });
+    const fileId = uploadStream.id;
+    const fileUrl = `/api/upload/${fileId}`;
+
+    // Save PDF ref + advance status
+    contract.contractPdf = { fileId: fileId.toString(), filename, url: fileUrl, generatedAt: new Date() };
+    contract.status = "sent";
+    contract.statusHistory.push({
+      status: "sent", changedAt: new Date(), changedBy: req.user._id,
+      note: "Contrat proforma généré et envoyé via messagerie",
+    });
+    await contract.save();
+
+    // Find or create conversation for the project
+    let conversation = await Conversation.findOne({ project: contract.project._id });
+    if (!conversation) {
+      const participants = [];
+      if (contract.project.client) {
+        participants.push({ participantType: "Client", participantId: contract.project.client });
+      }
+      if (contract.project.providerAgency) {
+        participants.push({ participantType: "Agency", participantId: contract.project.providerAgency });
+      }
+      conversation = await Conversation.create({ project: contract.project._id, participants });
+    }
+
+    // Sender info
+    const senderTypeMap = {
+      agency: "Agency", agency_member: "AgencyMember",
+      client: "Client", freelancer: "Freelancer",
+      team: "Team", team_member: "TeamMember",
+    };
+    const senderType = senderTypeMap[req.userRole] || "Agency";
+    const senderName =
+      req.user.agencyName ||
+      req.user.companyName ||
+      `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim() ||
+      "Prestataire";
+
+    // Post contract_pdf message
+    await Message.create({
+      conversation: conversation._id,
+      sender: req.user._id, senderRole: req.userRole, senderName, senderType,
+      messageType: "contract_pdf",
+      content: `Contrat proforma : ${contract.title || "Contrat"}`,
+      file: {
+        fileId: fileId.toString(), filename, url: fileUrl,
+        mimeType: "application/pdf", size: pdfBuffer.length,
+      },
+      metadata: { contractId: contract._id },
+    });
+
+    // Notify client
+    if (contract.partyBType === "Client" && contract.partyBId) {
+      Notification.notify({
+        recipient: contract.partyBId, recipientRole: "client", recipientModel: "Client",
+        type: "contract_sent", category: "contracts",
+        title: "Contrat envoyé",
+        body: `Un contrat proforma "${contract.title || ""}" vous a été envoyé. Veuillez envoyer un reçu.`,
+        link: "/dashboard/client/contracts",
+        metadata: { projectId: contract.project._id },
+      });
+    }
+
+    return ok(res, { contract, fileUrl, message: "Contrat généré et envoyé avec succès" });
+  } catch (err) {
+    console.error("generateAndSendPdf:", err);
+    return fail(res, "Erreur serveur: " + err.message, 500);
   }
 };

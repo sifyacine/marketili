@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import contractService from "../../../services/contractService";
 import { IconFileText, IconCheckSquare } from "../../../components/ui/Icons";
+import ContratProformaForm from "../../../components/contracts/ContratProformaForm";
 
 // ── Status system ─────────────────────────────────────────────────────────────
 const STATUS_META = {
@@ -283,14 +284,15 @@ const DirectorContracts = ({ user }) => {
 
 // ── Contract detail — director can manage workflow ────────────────────────────
 const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
-  const [contract,      setContract]      = useState(initial);
-  const [saving,        setSaving]        = useState(false);
-  const [msg,           setMsg]           = useState("");
-  const [error,         setError]         = useState("");
-  const [showResiliate, setShowResiliate] = useState(false);
-  const [resilReason,   setResilReason]   = useState("");
-  const [bdcForm,       setBdcForm]       = useState({ url: "", filename: "" });
-  const [showBdc,       setShowBdc]       = useState(false);
+  const [contract,        setContract]        = useState(initial);
+  const [saving,          setSaving]          = useState(false);
+  const [msg,             setMsg]             = useState("");
+  const [error,           setError]           = useState("");
+  const [showResiliate,   setShowResiliate]   = useState(false);
+  const [resilReason,     setResilReason]     = useState("");
+  const [bdcForm,         setBdcForm]         = useState({ url: "", filename: "" });
+  const [showBdc,         setShowBdc]         = useState(false);
+  const [showProformaForm, setShowProformaForm] = useState(false);
 
   const meta = STATUS_META[contract.status] || STATUS_META.draft;
 
@@ -382,6 +384,21 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
     );
   };
 
+  // Show proforma form in place of detail view
+  if (showProformaForm) {
+    return (
+      <ContratProformaForm
+        contract={contract}
+        onSuccess={(updatedContract) => {
+          setContract(updatedContract);
+          setShowProformaForm(false);
+          setMsg("Contrat PDF généré et envoyé au client via la messagerie.");
+        }}
+        onCancel={() => setShowProformaForm(false)}
+      />
+    );
+  }
+
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}>
@@ -455,6 +472,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         setBdcForm={setBdcForm}
         onSend={handleSend}
         onBdc={handleBdc}
+        onOpenProforma={() => setShowProformaForm(true)}
       />
 
       {/* Parties */}
@@ -635,7 +653,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
 // ── Workflow action card — changes per status ─────────────────────────────────
 const WorkflowCard = ({
   contract, user, saving, showBdc, setShowBdc,
-  bdcForm, setBdcForm, onSend, onBdc,
+  bdcForm, setBdcForm, onSend, onBdc, onOpenProforma,
 }) => {
   if (contract.status === "draft") {
     return (
@@ -644,15 +662,24 @@ const WorkflowCard = ({
           borderLeft: "4px solid #f59e0b", background: "#fffbeb" }}>
         <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#92400e",
           marginBottom: 6 }}>
-          Prochaine action — Envoyer au client
+          Prochaine action — Générer le Contrat Proforma
         </div>
         <p style={{ fontSize: "0.82rem", color: "#78350f", lineHeight: 1.6, marginBottom: 14 }}>
-          Ce contrat est en brouillon. Cliquez sur "Envoyer" pour le transmettre au client
-          afin qu'il envoie son reçu.
+          Remplissez le formulaire Contrat Proforma pour générer un PDF officiel et l'envoyer
+          automatiquement au client via la messagerie du projet.
         </p>
-        <button onClick={onSend} disabled={saving} className="section-cta-btn">
-          {saving ? "Envoi..." : "Envoyer au client"}
-        </button>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button onClick={onOpenProforma} disabled={saving} className="section-cta-btn">
+            Remplir le Contrat Proforma
+          </button>
+          <button onClick={onSend} disabled={saving}
+            style={{ padding: "9px 16px", borderRadius: 8,
+              border: "1.5px solid #d97706", background: "none",
+              color: "#d97706", fontWeight: 600, fontSize: "0.83rem",
+              cursor: "pointer", fontFamily: "inherit" }}>
+            {saving ? "Envoi..." : "Envoyer sans PDF"}
+          </button>
+        </div>
       </motion.div>
     );
   }

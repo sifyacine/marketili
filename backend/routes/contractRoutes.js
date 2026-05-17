@@ -16,7 +16,8 @@ router.get("/:id",                        c.getContract);          // get single
 router.patch("/:id",                      c.updateContract);       // edit draft
 
 // ── Workflow steps ──
-router.patch("/:id/send",                 c.sendContract);         // draft → sent
+router.post("/:id/generate-pdf",          c.generateAndSendPdf);   // fill form + generate PDF → sent
+router.patch("/:id/send",                 c.sendContract);         // draft → sent (no PDF)
 router.patch("/:id/receipt",              c.uploadReceipt);        // sent → acknowledged
 router.patch("/:id/bon-de-commande",      c.sendBonDeCommande);    // acknowledged → signed
 router.patch("/:id/resiliation",          c.resiliate);            // any → resiliation

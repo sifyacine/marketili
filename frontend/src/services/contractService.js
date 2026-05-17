@@ -25,6 +25,7 @@ const contractService = {
     api.patch(`/contracts/${id}`, data).then(r => r.data),
 
   // ── Workflow steps ──
+  generatePdf:    (id, formData)           => api.post(`/contracts/${id}/generate-pdf`,      formData).then(r => r.data),
   send:           (id, sentBy)              => api.patch(`/contracts/${id}/send`,            { sentBy }).then(r => r.data),
   uploadReceipt:  (id, data)               => api.patch(`/contracts/${id}/receipt`,          data).then(r => r.data),
   sendBDC:        (id, data)               => api.patch(`/contracts/${id}/bon-de-commande`,  data).then(r => r.data),
