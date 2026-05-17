@@ -55,6 +55,7 @@ const Navbar = ({ refs }) => {
         <button className="lp-nav-link" onClick={() => scrollTo(refs.forWhom)}>Pour qui</button>
         <button className="lp-nav-link" onClick={() => scrollTo(refs.features)}>Fonctionnalités</button>
         <button className="lp-nav-link" onClick={() => scrollTo(refs.join)}>Rejoindre</button>
+        <button className="lp-nav-link" onClick={() => scrollTo(refs.contact)}>Contact</button>
       </div>
       <div className="lp-nav-actions">
         <Link to="/login" className="lp-nav-ghost">Se connecter</Link>
@@ -71,6 +72,7 @@ const Navbar = ({ refs }) => {
             <button onClick={() => scrollTo(refs.forWhom)}>Pour qui</button>
             <button onClick={() => scrollTo(refs.features)}>Fonctionnalités</button>
             <button onClick={() => scrollTo(refs.join)}>Rejoindre</button>
+            <button onClick={() => scrollTo(refs.contact)}>Contact</button>
             <Link to="/login" onClick={() => setOpen(false)}>Se connecter</Link>
             <Link to="/register" onClick={() => setOpen(false)} className="lp-mobile-cta">Créer un compte</Link>
           </motion.div>
@@ -160,6 +162,7 @@ const LandingPage = () => {
     features: useRef(null),
     stats:    useRef(null),
     join:     useRef(null),
+    contact:  useRef(null),
   };
 
   return (
@@ -365,7 +368,69 @@ const LandingPage = () => {
         </motion.div>
       </section>
 
-      {/* Section 10 — Footer */}
+      {/* Section 10 — Contact */}
+      <section ref={refs.contact} className="lp-section lp-contact">
+        <div className="lp-container">
+          <motion.div className="lp-section-head" variants={FADE_UP} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <SectionLabel>Contact</SectionLabel>
+            <h2 className="lp-h2">Une question ? Parlons-en.</h2>
+            <p className="lp-body-text">
+              Notre équipe est disponible pour répondre à vos questions sur la plateforme, vous aider à démarrer ou simplement discuter de vos besoins.
+            </p>
+          </motion.div>
+          <div className="lp-contact-cards">
+            <motion.a
+              href="mailto:contact@marketili.dz"
+              className="lp-contact-card"
+              variants={FADE_UP} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0}>
+              <div className="lp-contact-icon lp-contact-icon-email">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+              </div>
+              <div className="lp-contact-body">
+                <span className="lp-contact-label">Email</span>
+                <span className="lp-contact-value">contact@marketili.dz</span>
+                <span className="lp-contact-hint">Réponse sous 24 h</span>
+              </div>
+            </motion.a>
+
+            <motion.a
+              href="https://wa.me/213676774374"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="lp-contact-card lp-contact-card-wa"
+              variants={FADE_UP} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1}>
+              <div className="lp-contact-icon lp-contact-icon-wa">
+                <svg width="22" height="22" viewBox="0 0 32 32" fill="currentColor">
+                  <path d="M16 0C7.164 0 0 7.163 0 16c0 2.824.738 5.476 2.027 7.785L0 32l8.418-2.002A15.93 15.93 0 0 0 16 32c8.836 0 16-7.163 16-16S24.836 0 16 0zm8.27 22.516c-.343.965-2 1.84-2.742 1.957-.7.112-1.582.16-2.555-.16-.588-.188-1.344-.44-2.313-.862-4.063-1.75-6.72-5.836-6.922-6.105-.199-.27-1.625-2.164-1.625-4.129s1.028-2.93 1.395-3.328c.367-.398.8-.496 1.066-.496.266 0 .531.003.762.015.244.012.572-.093.895.684.34.8 1.156 2.766 1.258 2.965.102.2.168.434.035.7-.133.265-.2.43-.398.664-.2.234-.42.523-.601.703-.2.2-.407.414-.175.813.234.398 1.04 1.718 2.23 2.781 1.531 1.363 2.82 1.785 3.22 1.984.397.2.628.168.862-.102.234-.27 1.003-1.168 1.27-1.566.265-.398.53-.332.895-.2.367.133 2.329 1.098 2.727 1.297.398.2.664.3.762.465.1.164.1.965-.243 1.93z"/>
+                </svg>
+              </div>
+              <div className="lp-contact-body">
+                <span className="lp-contact-label">WhatsApp</span>
+                <span className="lp-contact-value">+213 676 774 374</span>
+                <span className="lp-contact-hint">Discussion rapide, réponse immédiate</span>
+              </div>
+            </motion.a>
+          </div>
+        </div>
+      </section>
+
+      {/* Floating WhatsApp button */}
+      <a
+        href="https://wa.me/213676774374"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="lp-wa-float"
+        aria-label="Contactez-nous sur WhatsApp">
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="currentColor">
+          <path d="M16 0C7.164 0 0 7.163 0 16c0 2.824.738 5.476 2.027 7.785L0 32l8.418-2.002A15.93 15.93 0 0 0 16 32c8.836 0 16-7.163 16-16S24.836 0 16 0zm8.27 22.516c-.343.965-2 1.84-2.742 1.957-.7.112-1.582.16-2.555-.16-.588-.188-1.344-.44-2.313-.862-4.063-1.75-6.72-5.836-6.922-6.105-.199-.27-1.625-2.164-1.625-4.129s1.028-2.93 1.395-3.328c.367-.398.8-.496 1.066-.496.266 0 .531.003.762.015.244.012.572-.093.895.684.34.8 1.156 2.766 1.258 2.965.102.2.168.434.035.7-.133.265-.2.43-.398.664-.2.234-.42.523-.601.703-.2.2-.407.414-.175.813.234.398 1.04 1.718 2.23 2.781 1.531 1.363 2.82 1.785 3.22 1.984.397.2.628.168.862-.102.234-.27 1.003-1.168 1.27-1.566.265-.398.53-.332.895-.2.367.133 2.329 1.098 2.727 1.297.398.2.664.3.762.465.1.164.1.965-.243 1.93z"/>
+        </svg>
+        <span className="lp-wa-float-label">WhatsApp</span>
+      </a>
+
+      {/* Section 11 — Footer */}
       <footer className="lp-footer">
         <div className="lp-container lp-footer-grid">
           <div className="lp-footer-brand">
@@ -395,6 +460,7 @@ const LandingPage = () => {
             <span className="lp-footer-link lp-footer-muted">Conditions d'utilisation</span>
             <span className="lp-footer-link lp-footer-muted">Politique de confidentialité</span>
             <a href="mailto:contact@marketili.dz" className="lp-footer-link">contact@marketili.dz</a>
+            <a href="https://wa.me/213676774374" target="_blank" rel="noopener noreferrer" className="lp-footer-link">WhatsApp : +213 676 774 374</a>
             <span className="lp-footer-link lp-footer-muted">Fait en Algérie 🇩🇿</span>
           </div>
         </div>
