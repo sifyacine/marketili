@@ -97,6 +97,7 @@ const PitchForm = ({ post, senderType, onSubmit, onClose, loading }) => {
         pitchType: finalSenderType === "Agency" ? "agency_to_client"
           : finalSenderType === "Team" ? "team_to_client"
           : "freelancer_to_client",
+        internalStatus: "draft",
         description,
         proposedPrice: { amount: Number(price), currency },
         timeline: duration ? { duration: Number(duration), unit: durationUnit } : undefined,

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import agencyMemberService from "../../../services/agencyMemberService";
 import { IconUsers } from "../../../components/ui/Icons";
+import ConventionCollaborationForm from "../../../components/pitches/ConventionCollaborationForm";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const JOB_OPTIONS = [
@@ -122,17 +123,18 @@ const StatusSelect = ({ member, onSet, busy }) => {
 
 // ── FreelancerSection ─────────────────────────────────────────────────────────
 const FreelancerSection = ({ user }) => {
-  const [freelancers,  setFreelancers]  = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [showAttach,   setShowAttach]   = useState(false);
-  const [email,        setEmail]        = useState("");
-  const [role,         setRole]         = useState("collaborateur");
-  const [searching,    setSearching]    = useState(false);
-  const [found,        setFound]        = useState(null);
-  const [notFound,     setNotFound]     = useState(false);
-  const [attaching,    setAttaching]    = useState(false);
-  const [detaching,    setDetaching]    = useState(null);
-  const [msg,          setMsg]          = useState("");
+  const [freelancers,    setFreelancers]    = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [showAttach,     setShowAttach]     = useState(false);
+  const [email,          setEmail]          = useState("");
+  const [role,           setRole]           = useState("collaborateur");
+  const [searching,      setSearching]      = useState(false);
+  const [found,          setFound]          = useState(null);
+  const [notFound,       setNotFound]       = useState(false);
+  const [attaching,      setAttaching]      = useState(false);
+  const [detaching,      setDetaching]      = useState(null);
+  const [msg,            setMsg]            = useState("");
+  const [conventionFor,  setConventionFor]  = useState(null);
 
   const loadFreelancers = () => {
     setLoading(true);
@@ -318,15 +320,25 @@ const FreelancerSection = ({ user }) => {
                       : "—"}
                   </td>
                   <td>
-                    <button
-                      disabled={detaching === f._id}
-                      onClick={() => handleDetach(f._id)}
-                      style={{ padding: "4px 10px", borderRadius: 6, border: "none",
-                        background: "#fee2e2", color: "#991b1b", fontSize: "0.72rem",
-                        fontWeight: 600, cursor: detaching === f._id ? "not-allowed" : "pointer",
-                        fontFamily: "inherit", opacity: detaching === f._id ? 0.5 : 1 }}>
-                      {detaching === f._id ? "..." : "Terminer"}
-                    </button>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <button
+                        onClick={() => setConventionFor(f)}
+                        style={{ padding: "4px 10px", borderRadius: 6,
+                          border: "1.5px solid #c0152a", background: "#fef2f2",
+                          color: "#c0152a", fontSize: "0.72rem",
+                          fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                        Convention
+                      </button>
+                      <button
+                        disabled={detaching === f._id}
+                        onClick={() => handleDetach(f._id)}
+                        style={{ padding: "4px 10px", borderRadius: 6, border: "none",
+                          background: "#fee2e2", color: "#991b1b", fontSize: "0.72rem",
+                          fontWeight: 600, cursor: detaching === f._id ? "not-allowed" : "pointer",
+                          fontFamily: "inherit", opacity: detaching === f._id ? 0.5 : 1 }}>
+                        {detaching === f._id ? "..." : "Terminer"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -350,6 +362,21 @@ const FreelancerSection = ({ user }) => {
           </div>
         </details>
       )}
+
+      {/* Convention de collaboration form modal */}
+      <AnimatePresence>
+        {conventionFor && (
+          <ConventionCollaborationForm
+            freelancer={conventionFor}
+            agencyUser={user}
+            onClose={() => setConventionFor(null)}
+            onSuccess={() => {
+              setConventionFor(null);
+              setMsg("Convention envoyée avec succès au freelancer.");
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
