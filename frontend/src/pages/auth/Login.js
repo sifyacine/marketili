@@ -40,7 +40,7 @@ const Login = () => {
 
       login(data.user, resolvedRole);
 
-      if (resolvedRole === "agency_member" && data.user?.mustChangePassword) {
+      if (["agency_member", "team_member"].includes(resolvedRole) && data.user?.mustChangePassword) {
         navigate("/change-password", { replace: true });
         return;
       }

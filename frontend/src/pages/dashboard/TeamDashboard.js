@@ -17,9 +17,10 @@ import TeamLeadProjects  from "./team/TeamLeadProjects";
 import TeamLeadPitches   from "./team/TeamLeadPitches";
 
 // ── Member views (reuse agency worker components — same endpoints) ──
-import WorkerTasks    from "./agency/WorkerTasks";
-import WorkerCalendar from "./agency/WorkerCalendar";
-import TeamMemberOverview from "./team/TeamMemberOverview";
+import WorkerTasks         from "./agency/WorkerTasks";
+import WorkerCalendar      from "./agency/WorkerCalendar";
+import TeamMemberOverview  from "./team/TeamMemberOverview";
+import TeamMemberProjects  from "./team/TeamMemberProjects";
 
 import PersonalNotes from "./shared/PersonalNotes";
 import "../../styles/Dashboard.css";
@@ -118,10 +119,14 @@ const TeamDashboard = () => {
   ];
 
   const NAV_MEMBER = [
-    { label: "Vue d'ensemble", icon: <IconHome         size={16} />, path: "/dashboard/team"          },
-    { label: "Mes tâches",     icon: <IconCheckSquare  size={16} />, path: "/dashboard/team/tasks"    },
-    { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/team/calendar" },
-    { label: "Mon profil",     icon: <IconUser         size={16} />, path: profilePath                },
+    { label: "Vue d'ensemble", icon: <IconHome         size={16} />, path: "/dashboard/team"               },
+    { label: "Mes tâches",     icon: <IconCheckSquare  size={16} />, path: "/dashboard/team/tasks"         },
+    { label: "Mes projets",    icon: <IconBriefcase    size={16} />, path: "/dashboard/team/projects"      },
+    { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/team/calendar"      },
+    { label: "Notes",          icon: <IconNote         size={16} />, path: "/dashboard/team/notes"         },
+    { label: "Notifications",  icon: <IconBell         size={16} />, path: "/dashboard/team/notifications",
+      badge: unreadCount },
+    { label: "Mon profil",     icon: <IconUser         size={16} />, path: profilePath                     },
   ];
 
   const NAV        = isLead ? NAV_LEAD : NAV_MEMBER;
@@ -149,9 +154,12 @@ const TeamDashboard = () => {
 
           {/* ── Member routes ── */}
           {!isLead && <>
-            <Route index           element={<TeamMemberOverview user={user} />} />
-            <Route path="tasks"    element={<WorkerTasks    user={user} />} />
-            <Route path="calendar" element={<WorkerCalendar user={user} />} />
+            <Route index              element={<TeamMemberOverview  user={user} />} />
+            <Route path="tasks"       element={<WorkerTasks         user={user} />} />
+            <Route path="projects"    element={<TeamMemberProjects  user={user} />} />
+            <Route path="calendar"    element={<WorkerCalendar      user={user} />} />
+            <Route path="notes"         element={<PersonalNotes />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </>}
 
           <Route path="*" element={<Navigate to="/dashboard/team" replace />} />

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import useAuth from "../../hooks/useAuth";
 import agencyMemberService from "../../services/agencyMemberService";
+import teamMemberService   from "../../services/teamMemberService";
 import "../../styles/auth.css";
 
 const pwStrength = (pw) => {
@@ -43,9 +44,16 @@ const ChangePasswordPage = () => {
 
     setLoading(true);
     try {
-      const data = await agencyMemberService.changePassword(form.password);
-      login(data.user, "agency_member");
-      navigate("/dashboard/agency", { replace: true });
+      let data;
+      if (user?.role === "team_member") {
+        data = await teamMemberService.changePassword(form.password);
+        login(data.user, "team_member");
+        navigate("/dashboard/team", { replace: true });
+      } else {
+        data = await agencyMemberService.changePassword(form.password);
+        login(data.user, "agency_member");
+        navigate("/dashboard/agency", { replace: true });
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Une erreur est survenue");
     } finally {
