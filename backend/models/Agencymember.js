@@ -26,7 +26,20 @@ const agencyMemberSchema = new mongoose.Schema(
     },
     jobTitle: {
       type: String,
-      enum: ["director", "commercial", "strategist", "chef_de_projet", "designer", "editor", "smm", "community_manager"],
+      enum: [
+        "creative_director",
+        "art_director",
+        "marketing_director",
+        "strategist",
+        "digital_manager",
+        "project_manager",
+        "social_media_manager",
+        "production_director",
+        "senior",
+        "junior",
+        // legacy values kept for existing data
+        "director", "commercial", "chef_de_projet", "designer", "editor", "smm", "community_manager",
+      ],
       trim: true,
     },
     skills:   [String],

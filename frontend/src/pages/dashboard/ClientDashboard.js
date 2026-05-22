@@ -1,6 +1,6 @@
 // frontend/src/pages/dashboard/ClientDashboard.jsx
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout   from "../../components/layout/DashboardLayout";
 import CreatePostModal   from "../../components/posts/CreatePostModal";
@@ -95,6 +95,7 @@ const ClientDashboard = () => {
 // CLIENT OVERVIEW
 // ══════════════════════════════════════════════════════════════════════════════
 const ClientOverview = ({ user, onCreatePost }) => {
+  const navigate = useNavigate();
   const { posts, loading } = useMyPosts(user._id);
 
   const stats = {
@@ -111,10 +112,10 @@ const ClientOverview = ({ user, onCreatePost }) => {
   return (
     <div>
       <div className="stats-row">
-        <StatCard icon={<IconClipboard   size={16} />} label="Total posts"   value={stats.total}        sub="publiés"       color="#c0152a" />
-        <StatCard icon={<IconCheckSquare size={16} />} label="Actifs"        value={stats.open}         sub="en attente"    color="#10b981" />
-        <StatCard icon={<IconZap         size={16} />} label="En cours"      value={stats.inProgress}   sub="collaboration" color="#f59e0b" />
-        <StatCard icon={<IconTrendingUp  size={16} />} label="Offres reçues" value={stats.totalPitches} sub="au total"      color="#6366f1" />
+        <StatCard icon={<IconClipboard   size={16} />} label="Total posts"   value={stats.total}        sub="publiés"       color="#c0152a" onClick={() => navigate("/dashboard/client/posts")} />
+        <StatCard icon={<IconCheckSquare size={16} />} label="Actifs"        value={stats.open}         sub="en attente"    color="#10b981" onClick={() => navigate("/dashboard/client/posts")} />
+        <StatCard icon={<IconZap         size={16} />} label="En cours"      value={stats.inProgress}   sub="collaboration" color="#f59e0b" onClick={() => navigate("/dashboard/client/projects")} />
+        <StatCard icon={<IconTrendingUp  size={16} />} label="Offres reçues" value={stats.totalPitches} sub="au total"      color="#6366f1" onClick={() => navigate("/dashboard/client/pitches")} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, marginBottom: 24 }}>
@@ -125,6 +126,11 @@ const ClientOverview = ({ user, onCreatePost }) => {
                 <div className="section-head-title">Posts récents</div>
                 <div className="section-head-sub">Vos 5 derniers posts publiés</div>
               </div>
+              <button onClick={() => navigate("/dashboard/client/posts")}
+                style={{ background: "none", border: "none", cursor: "pointer",
+                  fontSize: "0.75rem", color: "var(--d-muted)", fontFamily: "inherit" }}>
+                Voir tout →
+              </button>
             </div>
           </div>
           <div className="card-body" style={{ padding: "12px 0 0" }}>
@@ -138,7 +144,7 @@ const ClientOverview = ({ user, onCreatePost }) => {
                 <button className="empty-state-btn" onClick={onCreatePost}>+ Créer un post</button>
               </div>
             ) : (
-              recent.map((p, i) => <PostRow key={p._id} post={p} index={i} />)
+              recent.map((p, i) => <PostRow key={p._id} post={p} index={i} onClick={() => navigate("/dashboard/client/posts")} />)
             )}
           </div>
         </div>
@@ -179,7 +185,6 @@ const ClientPosts = ({ user, onCreatePost, refetchKey }) => {
       <PostsDataGrid
         posts={posts} loading={loading} onRefetch={refetch}
         clientId={user._id} showActions={true}
-        onRowClick={(post) => alert(`Post: ${post.title}`)}
       />
     </div>
   );
@@ -1029,9 +1034,11 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
 // ══════════════════════════════════════════════════════════════════════════════
 // SHARED COMPONENTS
 // ══════════════════════════════════════════════════════════════════════════════
-const StatCard = ({ icon, label, value, sub, color }) => (
-  <motion.div className="stat-card" style={{ "--stat-color": color }}
-    initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3 }}>
+const StatCard = ({ icon, label, value, sub, color, onClick }) => (
+  <motion.div className="stat-card" style={{ "--stat-color": color, cursor: onClick ? "pointer" : "default" }}
+    initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3 }}
+    whileHover={onClick ? { y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.10)" } : {}}
+    onClick={onClick}>
     <div className="stat-card-header">
       <span className="stat-card-label">{label}</span>
       <div className="stat-card-icon">{icon}</div>
@@ -1041,7 +1048,7 @@ const StatCard = ({ icon, label, value, sub, color }) => (
   </motion.div>
 );
 
-const PostRow = ({ post, index }) => {
+const PostRow = ({ post, index, onClick }) => {
   const STATUS = {
     open:        { label: "Ouvert",   class: "open"        },
     in_progress: { label: "En cours", class: "in_progress" },
@@ -1055,8 +1062,9 @@ const PostRow = ({ post, index }) => {
   return (
     <motion.div initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }}
       transition={{ delay: index * 0.05 }}
+      onClick={onClick}
       style={{ display:"flex", alignItems:"center", gap:14, padding:"11px 22px",
-        borderBottom:"1px solid #faeaea", cursor:"pointer",
+        borderBottom:"1px solid #faeaea", cursor: onClick ? "pointer" : "default",
         borderLeft: `3px solid ${dlColor}` }}>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>

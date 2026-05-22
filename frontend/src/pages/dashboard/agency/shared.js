@@ -10,9 +10,11 @@ const COLLAB_FR = {
   exposure:    "Exposition",
 };
 
-export const StatCard = ({ icon, label, value, sub, color }) => (
-  <motion.div className="stat-card" style={{ "--stat-color": color }}
-    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
+export const StatCard = ({ icon, label, value, sub, color, onClick }) => (
+  <motion.div className="stat-card" style={{ "--stat-color": color, cursor: onClick ? "pointer" : "default" }}
+    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}
+    whileHover={onClick ? { y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.10)" } : {}}
+    onClick={onClick}>
     <div className="stat-card-header">
       <span className="stat-card-label">{label}</span>
       <div className="stat-card-icon" style={{ color }}>

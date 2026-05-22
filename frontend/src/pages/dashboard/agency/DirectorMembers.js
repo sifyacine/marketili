@@ -7,25 +7,43 @@ import { IconUsers } from "../../../components/ui/Icons";
 import ConventionCollaborationForm from "../../../components/pitches/ConventionCollaborationForm";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
+// Grouped by tier so the director understands the hierarchy when creating members
 const JOB_OPTIONS = [
-  { value: "commercial",        label: "Commercial"        },
-  { value: "strategist",        label: "Stratégiste"       },
-  { value: "chef_de_projet",    label: "Chef de projet"    },
-  { value: "designer",          label: "Designer"          },
-  { value: "editor",            label: "Monteur"           },
-  { value: "smm",               label: "SMM"               },
-  { value: "community_manager", label: "Community Manager" },
+  // Sub-directors
+  { value: "creative_director",    label: "Directeur Créatif"       },
+  { value: "marketing_director",   label: "Directeur Marketing"     },
+  { value: "production_director",  label: "Directeur de Production" },
+  // Managers
+  { value: "art_director",         label: "Directeur Artistique"    },
+  { value: "strategist",           label: "Stratégiste"             },
+  { value: "digital_manager",      label: "Digital Manager"         },
+  { value: "project_manager",      label: "Chef de Projet"          },
+  { value: "social_media_manager", label: "Social Media Manager"    },
+  // Workers
+  { value: "senior",               label: "Senior"                  },
+  { value: "junior",               label: "Junior"                  },
 ];
 
 const JOB_LABEL = {
-  director:          "Directeur",
-  commercial:        "Commercial",
-  strategist:        "Stratégiste",
-  chef_de_projet:    "Chef de projet",
-  designer:          "Designer",
-  editor:            "Monteur",
-  smm:               "SMM",
-  community_manager: "Community Manager",
+  // New titles
+  creative_director:    "Directeur Créatif",
+  marketing_director:   "Directeur Marketing",
+  production_director:  "Directeur de Production",
+  art_director:         "Directeur Artistique",
+  strategist:           "Stratégiste",
+  digital_manager:      "Digital Manager",
+  project_manager:      "Chef de Projet",
+  social_media_manager: "Social Media Manager",
+  senior:               "Senior",
+  junior:               "Junior",
+  // Legacy labels kept for existing data
+  director:             "Directeur",
+  commercial:           "Commercial",
+  chef_de_projet:       "Chef de projet",
+  designer:             "Designer",
+  editor:               "Monteur",
+  smm:                  "SMM",
+  community_manager:    "Community Manager",
 };
 
 const STATUS_META = {
@@ -754,7 +772,7 @@ const DirectorMembers = ({ user }) => {
   const [historyMember, setHistoryMember] = useState(null);
   const [form,         setForm]         = useState({
     firstName: "", lastName: "", email: "",
-    password: "", jobTitle: "commercial", phone: "",
+    password: "", jobTitle: "junior", phone: "",
   });
   const [formError, setFormError] = useState("");
   const [saving,    setSaving]    = useState(false);
@@ -781,7 +799,7 @@ const DirectorMembers = ({ user }) => {
     try {
       await agencyMemberService.createMember(form);
       setShowModal(false);
-      setForm({ firstName: "", lastName: "", email: "", password: "", jobTitle: "commercial", phone: "" });
+      setForm({ firstName: "", lastName: "", email: "", password: "", jobTitle: "junior", phone: "" });
       load();
     } catch (err) {
       setFormError(err.response?.data?.message || "Une erreur est survenue");

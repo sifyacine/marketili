@@ -201,20 +201,25 @@ const EditProfilePage = () => {
   );
 
   return (
+    <div style={{ minHeight: "100vh", background: "#f5f4f2" }}>
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
+      style={{ maxWidth: 680, margin: "0 auto", padding: "32px 16px" }}>
 
       <button onClick={() => navigate(-1)}
         style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-          fontSize: "0.8rem", color: "#888", marginBottom: 20, padding: 0 }}>
+          fontSize: "0.82rem", color: "#888", marginBottom: 24, padding: 0,
+          fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
         ← Retour
       </button>
 
-      <div style={{ borderRadius: 16, border: "1px solid #eee", background: "#fff",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.06)", padding: "28px" }}>
-        <h2 style={{ margin: "0 0 24px", fontWeight: 800, fontSize: "1.2rem" }}>
+      <div style={{ borderRadius: 16, border: "1px solid #ebebeb", background: "#fff",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.05)", padding: "32px 32px 28px" }}>
+        <h2 style={{ margin: "0 0 6px", fontWeight: 800, fontSize: "1.25rem", color: "#111" }}>
           Modifier mon profil
         </h2>
+        <p style={{ margin: "0 0 28px", fontSize: "0.82rem", color: "#999" }}>
+          Les informations sont visibles sur votre profil public.
+        </p>
 
         {form && (
           <form onSubmit={handleSave} className="dash-form">
@@ -280,6 +285,7 @@ const EditProfilePage = () => {
         )}
       </div>
     </motion.div>
+    </div>
   );
 };
 

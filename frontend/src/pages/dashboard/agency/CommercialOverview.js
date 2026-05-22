@@ -1,10 +1,12 @@
 // src/pages/dashboard/agency/CommercialOverview.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { StatCard } from "./shared";
 import projectService from "../../../services/projectService";
 import { IconFlag, IconClipboard, IconSearch } from "../../../components/ui/Icons";
 
 const CommercialOverview = ({ user }) => {
+  const navigate = useNavigate();
   const [flaggedPosts, setFlaggedPosts] = useState([]);
   const [loading,      setLoading]      = useState(true);
 
@@ -30,17 +32,18 @@ const CommercialOverview = ({ user }) => {
     <div>
       <div className="stats-row" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
         <StatCard icon={<IconFlag      size={16} />} label="Signalés cette semaine" value={thisWeek}
-          sub="7 derniers jours" color="#f59e0b" />
+          sub="7 derniers jours" color="#f59e0b" onClick={() => navigate("/dashboard/agency/flagged")} />
         <StatCard icon={<IconClipboard size={16} />} label="Total signalés" value={flaggedPosts.length}
-          sub="au total" color="#7c3aed" />
+          sub="au total" color="#7c3aed" onClick={() => navigate("/dashboard/agency/flagged")} />
       </div>
-      <div className="card">
+      <div className="card" style={{ cursor: "pointer" }} onClick={() => navigate("/dashboard/agency/flagged")}>
         <div className="card-header">
           <div className="section-head" style={{ marginBottom: 0 }}>
             <div>
               <div className="section-head-title">Posts que j'ai signalés</div>
               <div className="section-head-sub">Statut de traitement par le directeur</div>
             </div>
+            <span style={{ fontSize: "0.75rem", color: "var(--d-muted)" }}>Voir tout →</span>
           </div>
         </div>
         <div className="card-body" style={{ padding: "12px 0 0" }}>

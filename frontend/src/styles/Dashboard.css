@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════
    MARKETILI DASHBOARD — Design System
    ═══════════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Font loaded globally via public/index.html */
 
 :root {
   /* Core ink */
@@ -63,7 +63,7 @@
 /* ── Global reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Inter', 'DM Sans', 'Segoe UI', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   background: var(--d-bg);
   color: var(--d-ink);
   -webkit-font-smoothing: antialiased;

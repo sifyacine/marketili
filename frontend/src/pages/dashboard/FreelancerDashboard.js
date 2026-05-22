@@ -14,6 +14,7 @@ import FreelancerBrowse      from "./freelancer/FreelancerBrowse";
 import FreelancerPitches     from "./freelancer/FreelancerPitches";
 import FreelancerProjects    from "./freelancer/FreelancerProjects";
 import FreelancerCalendar    from "./freelancer/FreelancerCalendar";
+import FreelancerProfile     from "./freelancer/FreelancerProfile";
 import PersonalNotes         from "./shared/PersonalNotes";
 import "../../styles/Dashboard.css";
 import {
@@ -98,8 +99,6 @@ const FreelancerDashboard = () => {
     setPitchTarget(null);
   };
 
-  const profilePath = `/profile/freelancer/${user?._id}`;
-
   const NAV = [
     { label: "Accueil",          icon: <IconHome     size={16} />, path: "/dashboard/freelancer"                },
     { label: "Collaborations",   icon: <IconUsers    size={16} />, path: "/dashboard/freelancer/collaborations" },
@@ -110,7 +109,7 @@ const FreelancerDashboard = () => {
     { label: "Notes",            icon: <IconNote     size={16} />, path: "/dashboard/freelancer/notes"         },
     { label: "Notifications",    icon: <IconBell     size={16} />, path: "/dashboard/freelancer/notifications",
       badge: unreadCount },
-    { label: "Mon profil",       icon: <IconUser     size={16} />, path: profilePath                           },
+    { label: "Mon profil",       icon: <IconUser     size={16} />, path: "/dashboard/freelancer/profile"       },
   ];
 
   const topbarTitle = activeContext
@@ -169,6 +168,7 @@ const FreelancerDashboard = () => {
           <Route path="calendar"      element={<FreelancerCalendar user={user} />} />
           <Route path="notes"         element={<PersonalNotes />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="profile"       element={<FreelancerProfile />} />
 
           <Route path="*" element={<Navigate to="/dashboard/freelancer" replace />} />
         </Routes>

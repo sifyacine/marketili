@@ -1430,7 +1430,7 @@ const AdminDashboard = () => {
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
-        body { font-family: 'Inter', 'DM Sans', 'Segoe UI', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
       `}</style>
 
       <AdminSidebar

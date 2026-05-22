@@ -27,6 +27,7 @@ import WorkerCalendar       from "./agency/WorkerCalendar";
 import WorkerProjects       from "./agency/WorkerProjects";
 import DirectorCalendar     from "./agency/DirectorCalendar";
 import DirectorAnalytics    from "./agency/DirectorAnalytics";
+import AgencyProfile        from "./agency/AgencyProfile";
 import PersonalNotes        from "./shared/PersonalNotes";
 import { PostCard }         from "./agency/shared";
 import { usePosts }         from "../../hooks/usePosts";
@@ -36,16 +37,22 @@ import {
 } from "../../components/ui/Icons";
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
-const WORKER_TITLES = ["strategist", "designer", "editor", "smm", "community_manager"];
+// Sub-directors: department heads who manage teams and flag/browse posts
+const SUB_DIRECTOR_TITLES = ["creative_director", "marketing_director", "production_director"];
+// Managers: mid-level who handle projects, tasks and their sub-team
+const MANAGER_TITLES = ["art_director", "strategist", "digital_manager", "project_manager", "social_media_manager"];
+// Workers: seniors and juniors — execution level
 
 const getAgencyRole = (user) => {
   if (!user) return "director";
   if (user.role === "agency") return "director";
   const jt = user.jobTitle;
-  if (jt === "director")  return "director";
-  if (jt === "commercial") return "commercial";
-  if (WORKER_TITLES.includes(jt)) return "worker";
-  return "worker";
+  if (jt === "director") return "director";
+  // legacy mapping
+  if (jt === "commercial") return "sub_director";
+  if (SUB_DIRECTOR_TITLES.includes(jt)) return "sub_director";
+  if (MANAGER_TITLES.includes(jt)) return "manager";
+  return "worker"; // senior, junior, and any unrecognised legacy titles
 };
 
 // ── Nav configs ───────────────────────────────────────────────────────────────
@@ -62,15 +69,29 @@ const NAV_DIRECTOR = [
   { label: "Analytique",      icon: <IconTrendingUp  size={16} />, path: "/dashboard/agency/analytics" },
   { label: "Notes",           icon: <IconNote        size={16} />, path: "/dashboard/agency/notes"     },
 ];
-const NAV_COMMERCIAL = [
-  { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"         },
-  { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"  },
+// Sub-directors: Creative Director, Marketing Director, Production Director
+const NAV_SUB_DIRECTOR = [
+  { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"           },
+  { label: "Posts signalés",  icon: <IconFlag        size={16} />, path: "/dashboard/agency/flagged"   },
+  { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"    },
+  { label: "Projets",         icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects"  },
+  { label: "Calendrier",      icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"  },
+  { label: "Mon profil",      icon: <IconUser        size={16} />, path: "/dashboard/agency/profile"   },
 ];
-const NAV_WORKER = [
+// Managers: Art Director, Strategist, Digital Manager, Project Manager, Social Media Manager
+const NAV_MANAGER = [
   { label: "Vue d'ensemble", icon: <IconHome         size={16} />, path: "/dashboard/agency"           },
   { label: "Mes tâches",     icon: <IconCheckSquare  size={16} />, path: "/dashboard/agency/tasks"     },
   { label: "Mes projets",    icon: <IconBriefcase    size={16} />, path: "/dashboard/agency/projects"  },
   { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/agency/calendar"  },
+  { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/agency/profile"   },
+];
+// Workers: Seniors and Juniors — execution only
+const NAV_WORKER = [
+  { label: "Vue d'ensemble", icon: <IconHome         size={16} />, path: "/dashboard/agency"           },
+  { label: "Mes tâches",     icon: <IconCheckSquare  size={16} />, path: "/dashboard/agency/tasks"     },
+  { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/agency/calendar"  },
+  { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/agency/profile"   },
 ];
 
 // ── Browse posts (director version with pitch action) ─────────────────────────
@@ -139,21 +160,24 @@ const AgencyDashboard = () => {
     return () => clearInterval(iv);
   }, []);
 
-  // Director-only prefetch
+  // Director + sub_director prefetch (flagged posts & projects)
   useEffect(() => {
-    if (agencyRole !== "director" || !user?._id) {
+    if ((agencyRole !== "director" && agencyRole !== "sub_director") || !user?._id) {
       setDataLoading(false);
       return;
     }
+    // Director owns the agency; sub_director is a member whose agency field is the agency ID
+    const agencyId = user.role === "agency" ? user._id : user.agency;
+    if (!agencyId) { setDataLoading(false); return; }
     Promise.all([
-      projectService.getFlaggedPosts(user._id)
+      projectService.getFlaggedPosts(agencyId)
         .then(d => setFlaggedPosts(d.flaggedPosts || [])),
-      projectService.getAgencyProjects(user._id)
+      projectService.getAgencyProjects(agencyId)
         .then(d => setProjects(d.projects || [])),
     ])
       .catch(() => {})
       .finally(() => setDataLoading(false));
-  }, [agencyRole, user?._id]);
+  }, [agencyRole, user?._id, user?.agency]);
 
   const handlePitchSubmit = async (pitchData) => {
     await pitchService.send({
@@ -173,23 +197,21 @@ const AgencyDashboard = () => {
     setPitchTarget(null);
   };
 
-  const profilePath = user?.role === "agency"
-    ? `/profile/agency/${user?._id}`
-    : `/profile/agency_member/${user?._id}`;
-
   const NAV_DIRECTOR_FULL = [
     ...NAV_DIRECTOR,
     { label: "Notifications", icon: <IconBell size={16} />, path: "/dashboard/agency/notifications",
       badge: unreadCount },
-    { label: "Mon profil",    icon: <IconUser size={16} />, path: profilePath },
+    { label: "Mon profil",    icon: <IconUser size={16} />, path: "/dashboard/agency/profile" },
   ];
 
-  const NAV = agencyRole === "director" ? NAV_DIRECTOR_FULL
-    : agencyRole === "commercial" ? NAV_COMMERCIAL
+  const NAV = agencyRole === "director"    ? NAV_DIRECTOR_FULL
+    : agencyRole === "sub_director" ? NAV_SUB_DIRECTOR
+    : agencyRole === "manager"      ? NAV_MANAGER
     : NAV_WORKER;
 
-  const topbarTitle = agencyRole === "director"   ? "Espace Agence — Directeur"
-    : agencyRole === "commercial" ? "Espace Agence — Commercial"
+  const topbarTitle = agencyRole === "director"    ? "Espace Agence — Directeur"
+    : agencyRole === "sub_director" ? "Espace Agence — Directeur de département"
+    : agencyRole === "manager"      ? "Espace Agence — Manager"
     : "Espace Agence — Équipe";
 
   return (
@@ -222,20 +244,40 @@ const AgencyDashboard = () => {
             <Route path="analytics"     element={<DirectorAnalytics user={user} />} />
             <Route path="notes"         element={<PersonalNotes />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="profile"       element={<AgencyProfile />} />
           </>}
 
-          {/* ── Commercial ── */}
-          {agencyRole === "commercial" && <>
-            <Route index       element={<CommercialOverview user={user} />} />
-            <Route path="browse" element={<CommercialBrowse user={user} />} />
+          {/* ── Sub-Director (Creative Dir, Marketing Dir, Production Dir) ── */}
+          {agencyRole === "sub_director" && <>
+            <Route index           element={<CommercialOverview user={user} />} />
+            <Route path="flagged"  element={
+              <DirectorFlaggedPosts user={user} onPitch={setPitchTarget}
+                flaggedPosts={flaggedPosts} loading={dataLoading}
+                onRefresh={() =>
+                  projectService.getFlaggedPosts(user.agency || user._id)
+                    .then(d => setFlaggedPosts(d.flaggedPosts || []))} />
+            } />
+            <Route path="browse"   element={<CommercialBrowse  user={user} />} />
+            <Route path="projects" element={<WorkerProjects    user={user} />} />
+            <Route path="calendar" element={<WorkerCalendar    user={user} />} />
+            <Route path="profile"  element={<AgencyProfile />} />
           </>}
 
-          {/* ── Worker ── */}
+          {/* ── Manager (Art Dir, Strategist, Digital Mgr, Project Mgr, SMM) ── */}
+          {agencyRole === "manager" && <>
+            <Route index           element={<WorkerOverview  user={user} />} />
+            <Route path="tasks"    element={<WorkerTasks     user={user} />} />
+            <Route path="projects" element={<WorkerProjects  user={user} />} />
+            <Route path="calendar" element={<WorkerCalendar  user={user} />} />
+            <Route path="profile"  element={<AgencyProfile />} />
+          </>}
+
+          {/* ── Worker (Senior, Junior) ── */}
           {agencyRole === "worker" && <>
-            <Route index            element={<WorkerOverview  user={user} />} />
-            <Route path="tasks"     element={<WorkerTasks     user={user} />} />
-            <Route path="projects"  element={<WorkerProjects  user={user} />} />
-            <Route path="calendar"  element={<WorkerCalendar  user={user} />} />
+            <Route index           element={<WorkerOverview user={user} />} />
+            <Route path="tasks"    element={<WorkerTasks    user={user} />} />
+            <Route path="calendar" element={<WorkerCalendar user={user} />} />
+            <Route path="profile"  element={<AgencyProfile />} />
           </>}
 
           <Route path="*" element={<Navigate to="/dashboard/agency" replace />} />

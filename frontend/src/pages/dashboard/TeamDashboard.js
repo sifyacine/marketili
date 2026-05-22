@@ -23,6 +23,7 @@ import TeamMemberOverview  from "./team/TeamMemberOverview";
 import TeamMemberProjects  from "./team/TeamMemberProjects";
 
 import PersonalNotes from "./shared/PersonalNotes";
+import TeamProfile   from "./team/TeamProfile";
 import "../../styles/Dashboard.css";
 import {
   IconHome, IconUsers, IconCompass, IconSend,
@@ -103,9 +104,6 @@ const TeamDashboard = () => {
     setPitchTarget(null);
   };
 
-  const profileRole = user?.role === "team" ? "team" : "team_member";
-  const profilePath = `/profile/${profileRole}/${user?._id}`;
-
   const NAV_LEAD = [
     { label: "Vue d'ensemble", icon: <IconHome      size={16} />, path: "/dashboard/team"              },
     { label: "Explorer",       icon: <IconCompass   size={16} />, path: "/dashboard/team/browse"       },
@@ -115,7 +113,7 @@ const TeamDashboard = () => {
     { label: "Notes",          icon: <IconNote      size={16} />, path: "/dashboard/team/notes"         },
     { label: "Notifications",  icon: <IconBell      size={16} />, path: "/dashboard/team/notifications",
       badge: unreadCount },
-    { label: "Mon profil",     icon: <IconUser      size={16} />, path: profilePath                    },
+    { label: "Mon profil",     icon: <IconUser      size={16} />, path: "/dashboard/team/profile"      },
   ];
 
   const NAV_MEMBER = [
@@ -126,7 +124,7 @@ const TeamDashboard = () => {
     { label: "Notes",          icon: <IconNote         size={16} />, path: "/dashboard/team/notes"         },
     { label: "Notifications",  icon: <IconBell         size={16} />, path: "/dashboard/team/notifications",
       badge: unreadCount },
-    { label: "Mon profil",     icon: <IconUser         size={16} />, path: profilePath                     },
+    { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/team/profile"       },
   ];
 
   const NAV        = isLead ? NAV_LEAD : NAV_MEMBER;
@@ -150,6 +148,7 @@ const TeamDashboard = () => {
             <Route path="members"       element={<TeamLeadMembers />} />
             <Route path="notes"         element={<PersonalNotes />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="profile"       element={<TeamProfile />} />
           </>}
 
           {/* ── Member routes ── */}
@@ -160,6 +159,7 @@ const TeamDashboard = () => {
             <Route path="calendar"    element={<WorkerCalendar      user={user} />} />
             <Route path="notes"         element={<PersonalNotes />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="profile"       element={<TeamProfile />} />
           </>}
 
           <Route path="*" element={<Navigate to="/dashboard/team" replace />} />

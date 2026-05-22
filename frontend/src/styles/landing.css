@@ -17,14 +17,16 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
-  background: var(--lp-bg);
-  color: var(--lp-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── ROOT ── */
-.lp-root { min-height: 100vh; }
+/* ── ROOT — dark background scoped here so it doesn't leak to other pages ── */
+.lp-root {
+  min-height: 100vh;
+  background: var(--lp-bg);
+  color: var(--lp-text);
+}
 
 /* ── CONTAINER ── */
 .lp-container {
@@ -854,7 +856,7 @@ body {
   border-radius: 9px;
   padding: 11px 14px;
   font-size: 0.875rem;
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   color: #fff;
   outline: none;
   transition: border-color 0.18s, background 0.18s;
@@ -912,7 +914,7 @@ body {
   box-shadow: 0 4px 24px rgba(37, 211, 102, 0.4);
   font-size: 0.875rem;
   font-weight: 600;
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   transition: box-shadow 0.25s, transform 0.25s;
   overflow: hidden;
   max-width: 56px;
