@@ -1,46 +1,15 @@
 // backend/config/db.js
 const mongoose = require("mongoose");
-const Grid = require("gridfs-stream");
-const { GridFsStorage } = require("multer-gridfs-storage");
 const multer = require("multer");
 
-let _gfs;
-let _upload;
 let _conn;
 
 const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGO_URI;
-
     _conn = await mongoose.connect(mongoURI);
     console.log(`✅ MongoDB connected: ${_conn.connection.host}`);
-
-    _gfs = Grid(_conn.connection.db, mongoose.mongo);
-    _gfs.collection("uploads");
-    console.log("✅ GridFS initialized");
-
-    const storage = new GridFsStorage({
-      url: mongoURI,
-      options: { useNewUrlParser: true, useUnifiedTopology: true },
-      file: (req, file) => {
-        const allowed = [
-          "image/jpeg", "image/png", "image/webp", "image/gif",
-          "video/mp4", "video/quicktime", "video/webm",
-          "application/pdf",
-        ];
-        if (!allowed.includes(file.mimetype)) {
-          return new Error("Type de fichier non supporté");
-        }
-        return {
-          bucketName: "uploads",
-          filename: `${Date.now()}-${file.originalname.replace(/\s/g, "_")}`,
-          metadata: { originalName: file.originalname, uploadedAt: new Date() },
-        };
-      },
-    });
-
-    _upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
-
+    console.log(`✅ GridFS ready for file operations`);
     return _conn;
   } catch (error) {
     console.error(`❌ MongoDB connection error: ${error.message}`);
@@ -48,26 +17,40 @@ const connectDB = async () => {
   }
 };
 
-const upload = {
-  single: (field) => (req, res, next) => {
-    if (!_upload) return res.status(500).json({ message: "Upload not initialized" });
-    _upload.single(field)(req, res, next);
-  },
-  array: (field, max) => (req, res, next) => {
-    if (!_upload) return res.status(500).json({ message: "Upload not initialized" });
-    _upload.array(field, max)(req, res, next);
-  },
-  fields: (fields) => (req, res, next) => {
-    if (!_upload) return res.status(500).json({ message: "Upload not initialized" });
-    _upload.fields(fields)(req, res, next);
-  },
-  none: () => (req, res, next) => {
-    if (!_upload) return res.status(500).json({ message: "Upload not initialized" });
-    _upload.none()(req, res, next);
-  },
-};
+// Simple memory storage for multer - we'll handle GridFS manually in routes
+const storage = multer.memoryStorage();
 
-const getGfs = () => _gfs;
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "video/mp4",
+      "video/quicktime",
+      "video/webm",
+      "application/pdf",
+    ];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Type de fichier non supporté"), false);
+    }
+  },
+});
+
 const getConn = () => _conn?.connection || mongoose.connection;
 
-module.exports = { connectDB, conn: getConn, gfs: getGfs, upload };
+module.exports = {
+  connectDB,
+  conn: getConn,
+  upload: {
+    single: (field) => upload.single(field),
+    array: (field, max) => upload.array(field, max),
+    fields: (fields) => upload.fields(fields),
+    none: () => upload.none(),
+  },
+};

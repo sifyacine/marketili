@@ -1,3 +1,4 @@
+// backend/server.js
 require("dotenv").config({ path: require("path").resolve(__dirname, ".env") });
 
 const express      = require("express");
@@ -8,7 +9,7 @@ const { connectDB } = require("./config/db");
 const app = express();
 
 // ── Middleware — order matters ──
-app.use(cookieParser());                               // 1. parse cookies first
+app.use(cookieParser());
 
 const corsOptions = {
   origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:5001"],
@@ -16,12 +17,12 @@ const corsOptions = {
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
-app.options("/{*path}", cors(corsOptions));             // 2a. handle preflight for all routes
-app.use(cors(corsOptions));                            // 2b. cors headers on all responses
-app.use(express.json({ limit: "10mb" }));              // 3. body parsing
+
+app.use(cors(corsOptions));
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// ── Soft-delete guard — reject DELETE on business-critical resources ──
+// ── Soft-delete guard ──
 const SOFT_DELETE_PROTECTED = [
   "/api/pitches", "/api/projects", "/api/contracts",
   "/api/agency-members", "/api/team-members", "/api/chat",
@@ -44,8 +45,7 @@ app.use("/api/pitches",        require("./routes/Pitchroutes"));
 app.use("/api/projects",       require("./routes/projectRoutes"));
 app.use("/api/admin",          require("./routes/adminRoutes"));
 app.use("/api/agency-members", require("./routes/agencyMemberRoutes"));
-app.use("/api/team-members",  require("./routes/teamMemberRoutes"));
-
+app.use("/api/team-members",   require("./routes/teamMemberRoutes"));
 app.use("/api/contracts",      require("./routes/contractRoutes"));
 app.use("/api/notifications",  require("./routes/notificationRoutes"));
 app.use("/api/profile",        require("./routes/profileRoutes"));
@@ -54,8 +54,8 @@ app.use("/api/notes",          require("./routes/noteRoutes"));
 app.use("/api/calendar",       require("./routes/calendarRoutes"));
 app.use("/api/chat",           require("./routes/chatRoutes"));
 app.use("/api/collaboration-requests", require("./routes/collaborationRequestRoutes"));
-app.use("/api/analytics",              require("./routes/analyticsRoutes"));
-app.use("/api/ads",                    require("./routes/adRoutes"));
+app.use("/api/analytics",      require("./routes/analyticsRoutes"));
+app.use("/api/ads",            require("./routes/adRoutes"));
 
 // ── Health check ──
 app.get("/api/health", (req, res) => {
