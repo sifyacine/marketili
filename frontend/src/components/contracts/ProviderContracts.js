@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import contractService from "../../services/contractService";
 import uploadService  from "../../services/uploadService";
 import ContratProformaForm from "./ContratProformaForm";
+import FileViewerModal from "../ui/FileViewerModal";
 
 const STATUS_META = {
   draft:        { label: "À remplir",    color: "#f59e0b", bg: "#fffbeb" },
@@ -192,6 +193,7 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
   const [msg,              setMsg]              = useState("");
   const [error,            setError]            = useState("");
   const [showProformaForm, setShowProformaForm] = useState(false);
+  const [viewer,           setViewer]           = useState(null);
 
   const meta = STATUS_META[contract.status] || STATUS_META.draft;
 
@@ -236,6 +238,9 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      {viewer && (
+        <FileViewerModal url={viewer.url} filename={viewer.filename} onClose={() => setViewer(null)} />
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack}
           style={{ background: "none", border: "1.5px solid var(--d-border-soft)",
@@ -381,13 +386,27 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
             textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
             Documents
           </div>
-          <a href={uploadService.resolveUrl(contract.contractPdf.url)} target="_blank" rel="noreferrer"
-            style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px",
-              borderRadius: 8, border: "1px solid var(--d-border-soft)",
-              textDecoration: "none", color: "var(--d-ink)", fontSize: "0.83rem" }}>
-            <span>{contract.contractPdf.filename || "Contrat PDF"}</span>
-            <span style={{ color: "#c0152a", fontWeight: 600 }}>↗</span>
-          </a>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "8px 12px", borderRadius: 8, border: "1px solid var(--d-border-soft)", gap: 12 }}>
+            <span style={{ fontSize: "0.83rem", fontWeight: 600, color: "var(--d-ink)",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+              {contract.contractPdf.filename || "Contrat PDF"}
+            </span>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button onClick={() => setViewer({ url: contract.contractPdf.url, filename: contract.contractPdf.filename || "Contrat.pdf" })}
+                style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+                  cursor: "pointer", fontFamily: "inherit" }}>
+                Visualiser
+              </button>
+              <a href={`${uploadService.resolveUrl(contract.contractPdf.url)}?download=1`}
+                style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid var(--d-border-soft)", background: "none", color: "var(--d-muted)",
+                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                ↓
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </motion.div>

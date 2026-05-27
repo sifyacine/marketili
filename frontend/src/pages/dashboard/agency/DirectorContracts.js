@@ -5,6 +5,7 @@ import contractService from "../../../services/contractService";
 import uploadService  from "../../../services/uploadService";
 import { IconFileText, IconCheckSquare } from "../../../components/ui/Icons";
 import ContratProformaForm from "../../../components/contracts/ContratProformaForm";
+import FileViewerModal from "../../../components/ui/FileViewerModal";
 
 // ── Status system ─────────────────────────────────────────────────────────────
 const STATUS_META = {
@@ -313,6 +314,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   const [bdcForm,         setBdcForm]         = useState({ url: "", filename: "" });
   const [showBdc,         setShowBdc]         = useState(false);
   const [showProformaForm, setShowProformaForm] = useState(false);
+  const [viewer,           setViewer]           = useState(null);
 
   const handleConfirmStart = async () => {
     setSaving(true); setError(""); setMsg("");
@@ -405,25 +407,36 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
 
   const DocLink = ({ label, filename, url }) => {
     if (!url) return null;
+    const resolved = uploadService.resolveUrl(url);
     return (
-      <a href={uploadService.resolveUrl(url)} target="_blank" rel="noreferrer"
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "10px 14px", borderRadius: 8, border: "1px solid var(--d-border-soft)",
-          background: "#fff", textDecoration: "none", marginBottom: 8 }}>
-        <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding: "10px 14px", borderRadius: 8, border: "1px solid var(--d-border-soft)",
+        background: "#fff", marginBottom: 8, gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--d-muted)",
             textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 2 }}>
             {label}
           </div>
-          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--d-ink)" }}>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--d-ink)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {filename || url}
           </div>
         </div>
-        <span style={{ fontSize: "0.75rem", color: "#c0152a", fontWeight: 600,
-          whiteSpace: "nowrap" }}>
-          Télécharger ↗
-        </span>
-      </a>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <button onClick={() => setViewer({ url, filename })}
+            style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+              border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+              cursor: "pointer", fontFamily: "inherit" }}>
+            Visualiser
+          </button>
+          <a href={`${resolved}?download=1`}
+            style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+              border: "1.5px solid var(--d-border-soft)", background: "none", color: "var(--d-muted)",
+              textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+            ↓
+          </a>
+        </div>
+      </div>
     );
   };
 
@@ -445,6 +458,9 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}>
+      {viewer && (
+        <FileViewerModal url={viewer.url} filename={viewer.filename} onClose={() => setViewer(null)} />
+      )}
       {/* Back + title */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
         <button onClick={onBack}

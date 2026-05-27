@@ -12,6 +12,7 @@ import useAuth           from "../../hooks/useAuth";
 import projectService    from "../../services/projectService";
 import contractService   from "../../services/contractService";
 import uploadService     from "../../services/uploadService";
+import FileViewerModal   from "../../components/ui/FileViewerModal";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 import NotificationsPage from "./NotificationsPage";
 import notificationService from "../../services/notificationService";
@@ -756,6 +757,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
   const [showResiliate, setShowResiliate] = useState(false);
   const [resilReason,   setResilReason]   = useState("");
   const [resiliating,   setResiliating]   = useState(false);
+  const [viewer,        setViewer]        = useState(null);
 
   const meta = CONTRACT_STATUS_META[contract.status] || CONTRACT_STATUS_META.draft;
 
@@ -807,6 +809,9 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      {viewer && (
+        <FileViewerModal url={viewer.url} filename={viewer.filename} onClose={() => setViewer(null)} />
+      )}
       {/* Back */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack}
@@ -878,15 +883,28 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
             textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
             Contrat PDF
           </div>
-          <a href={uploadService.resolveUrl(contract.contractPdf.url)} target="_blank" rel="noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
-              background: "#fff", color: "#1a0a0a", textDecoration: "none" }}>
-            <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
+            background: "#fff", gap: 12 }}>
+            <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "#1a0a0a",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
               {contract.contractPdf.filename || "Contrat.pdf"}
             </span>
-            <span style={{ fontSize: "0.75rem", color: "#9a6060" }}>Télécharger</span>
-          </a>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button onClick={() => setViewer({ url: contract.contractPdf.url, filename: contract.contractPdf.filename || "Contrat.pdf" })}
+                style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+                  cursor: "pointer", fontFamily: "inherit" }}>
+                Visualiser
+              </button>
+              <a href={`${uploadService.resolveUrl(contract.contractPdf.url)}?download=1`}
+                style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #f0dede", background: "none", color: "#9a6060",
+                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                ↓
+              </a>
+            </div>
+          </div>
         </div>
       )}
 
@@ -897,15 +915,28 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
             textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
             Bon de commande
           </div>
-          <a href={uploadService.resolveUrl(contract.bonDeCommande.url)} target="_blank" rel="noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
-              background: "#fff", color: "#1a0a0a", textDecoration: "none" }}>
-            <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
+            background: "#fff", gap: 12 }}>
+            <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "#1a0a0a",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
               {contract.bonDeCommande.filename || "Bon de commande"}
             </span>
-            <span style={{ fontSize: "0.75rem", color: "#9a6060" }}>Télécharger</span>
-          </a>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button onClick={() => setViewer({ url: contract.bonDeCommande.url, filename: contract.bonDeCommande.filename || "BonDeCommande.pdf" })}
+                style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+                  cursor: "pointer", fontFamily: "inherit" }}>
+                Visualiser
+              </button>
+              <a href={`${uploadService.resolveUrl(contract.bonDeCommande.url)}?download=1`}
+                style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #f0dede", background: "none", color: "#9a6060",
+                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                ↓
+              </a>
+            </div>
+          </div>
         </div>
       )}
 
