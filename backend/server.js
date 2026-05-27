@@ -10,8 +10,14 @@ const app = express();
 // ── Middleware — order matters ──
 app.use(cookieParser());                               // 1. parse cookies first
 
+const defaultOrigins = ["http://localhost:3000", "http://localhost:3001", "http://localhost:5001"];
+const envOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map(o => o.trim())
+  : [];
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
+
 const corsOptions = {
-  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:5001"],
+  origin: allowedOrigins,
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
