@@ -303,7 +303,7 @@ const Register = () => {
                       onClick={() => { setAccountType(t.id); setStep(3); }}
                     >
                       <div className="account-type-icon-wrap">
-                        <span style={{ fontSize: "1.5rem", fontWeight: 900, color: "#c0152a" }}>{t.icon}</span>
+                        <span style={{ fontSize: "1.5rem", fontWeight: 900 }}>{t.icon}</span>
                       </div>
                       <span className="account-type-name">{t.name}</span>
                       <span className="account-type-desc">{t.desc}</span>
@@ -506,7 +506,7 @@ const Register = () => {
                         <div className="pw-strength-bar">
                           {[1,2,3,4].map(i => (
                             <div key={i} className="pw-strength-seg"
-                              style={{ background: i <= pwScore ? PW_COLORS[pwScore] : "#f0d8d8" }} />
+                              style={{ background: i <= pwScore ? PW_COLORS[pwScore] : "rgba(255,255,255,0.08)" }} />
                           ))}
                         </div>
                         <span className="pw-strength-label" style={{ color: PW_COLORS[pwScore] }}>
