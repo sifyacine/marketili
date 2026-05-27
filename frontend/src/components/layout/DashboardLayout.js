@@ -61,6 +61,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
   const location   = useLocation();
   const { logout } = useAuth();
   const [collapsed,        setCollapsed]        = useState(false);
+  const [mobileOpen,       setMobileOpen]       = useState(false);
   const [showNotifs,       setShowNotifs]       = useState(false);
   const [notifs,           setNotifs]           = useState([]);
   const [unreadCount,      setUnreadCount]      = useState(0);
@@ -133,6 +134,15 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
+  // On mobile, always show labels regardless of collapsed state
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  const showLabels = !collapsed || isMobile;
+
   const activeTitle = (() => {
     const sorted = [...navItems].sort((a, b) => b.path.length - a.path.length);
     const match  = sorted.find(item => location.pathname === item.path || location.pathname.startsWith(item.path + "/"));
@@ -143,11 +153,25 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
     document.title = `${activeTitle} — Marketili`;
   }, [activeTitle]);
 
+  // Close mobile drawer on route change
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  // Prevent body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
   return (
     <div className={`dash-layout ${collapsed ? "sidebar-collapsed" : "sidebar-open"}`}>
 
+      {/* ── Mobile overlay backdrop ── */}
+      {mobileOpen && (
+        <div className="dash-sidebar-overlay" onClick={() => setMobileOpen(false)} />
+      )}
+
       {/* ── SIDEBAR ── */}
-      <aside className="dash-sidebar">
+      <aside className={`dash-sidebar${mobileOpen ? " mobile-open" : ""}`}>
 
         {/* Logo */}
         <div className="dash-sidebar-logo">
@@ -155,8 +179,8 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
             src="/marketelli_logo_1.png"
             alt="Marketili"
             style={{
-              height: collapsed ? 28 : 34,
-              maxWidth: collapsed ? 28 : 130,
+              height: showLabels ? 34 : 28,
+              maxWidth: showLabels ? 130 : 28,
               objectFit: "contain",
               objectPosition: "left center",
               transition: "all 0.2s",
@@ -176,7 +200,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           <span className="dash-role-tag-icon" style={{ color: meta.color }}>
             <RoleIcon size={13} />
           </span>
-          {!collapsed && <span>{meta.label}</span>}
+          {showLabels && <span>{meta.label}</span>}
         </div>
 
         {/* Nav */}
@@ -185,13 +209,12 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
             <NavLink key={item.path} to={item.path}
               end={item.path.split("/").length === 3}
               className={({ isActive }) => `dash-nav-item${isActive ? " active" : ""}`}
-              title={collapsed ? item.label : ""}>
+              title={!showLabels ? item.label : ""}>
               <span className="dash-nav-icon">
-                {/* item.icon is a React element (JSX) — render as-is */}
                 {item.icon}
               </span>
-              {!collapsed && <span className="dash-nav-label">{item.label}</span>}
-              {!collapsed && item.badge > 0 && (
+              {showLabels && <span className="dash-nav-label">{item.label}</span>}
+              {showLabels && item.badge > 0 && (
                 <span className="dash-nav-badge">{item.badge}</span>
               )}
             </NavLink>
@@ -202,7 +225,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
         <div className="dash-sidebar-footer">
           <div className="dash-user-chip">
             <div className="dash-user-avatar">{initials}</div>
-            {!collapsed && (
+            {showLabels && (
               <div className="dash-user-info">
                 <div className="dash-user-name">{displayName}</div>
                 <div className="dash-user-role">{meta.label}</div>
@@ -211,7 +234,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           </div>
           <button className="dash-logout-btn" onClick={handleLogout} title="Se déconnecter">
             <span className="dash-logout-icon"><IconLogOut size={15} /></span>
-            {!collapsed && <span>Déconnexion</span>}
+            {showLabels && <span>Déconnexion</span>}
           </button>
         </div>
       </aside>
@@ -220,6 +243,10 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
       <div className="dash-main">
         <header className="dash-topbar">
           <div className="dash-topbar-left">
+            <button className="dash-hamburger" onClick={() => setMobileOpen(o => !o)}
+              aria-label="Menu">
+              <span /><span /><span />
+            </button>
             <h1 className="dash-topbar-title">{activeTitle}</h1>
           </div>
           <div className="dash-topbar-right">

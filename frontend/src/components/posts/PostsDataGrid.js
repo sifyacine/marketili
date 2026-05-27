@@ -194,7 +194,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                       }}
                     >
                       {/* Title + location */}
-                      <td>
+                      <td data-label="Titre">
                         <div className="td-title">{post.title}</div>
                         {post.location?.region && (
                           <div className="td-sub">
@@ -205,14 +205,14 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                       </td>
 
                       {/* Status badge */}
-                      <td>
+                      <td data-label="Statut">
                         <span className={`status-badge ${meta.cls || post.status}`}>
                           {meta.label || post.status}
                         </span>
                       </td>
 
                       {/* Marketing type + collab type */}
-                      <td>
+                      <td data-label="Type">
                         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                           {post.marketingType && (
                             <span style={{
@@ -232,7 +232,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                       </td>
 
                       {/* Offer count */}
-                      <td>
+                      <td data-label="Offres">
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>
                             {post.pitchCount || 0}
@@ -250,7 +250,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                       </td>
 
                       {/* Deadline with urgency */}
-                      <td>
+                      <td data-label="Échéance">
                         <div style={{ fontWeight: 600, fontSize: "0.8rem", color: dlColor }}>
                           {post.deadline ? fmt(post.deadline) : "—"}
                         </div>
@@ -259,10 +259,10 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                         </div>
                       </td>
 
-                      <td className="td-muted">{fmt(post.createdAt)}</td>
+                      <td data-label="Créé le" className="td-muted">{fmt(post.createdAt)}</td>
 
                       {showActions && (
-                        <td onClick={e => e.stopPropagation()}>
+                        <td data-label="" onClick={e => e.stopPropagation()}>
                           <div style={{ display: "flex", gap: 4 }}>
                             {["open","in_progress","reactivated"].includes(post.status) && (
                               <ActionBtn

@@ -412,11 +412,11 @@ const ClientPitches = ({ user }) => {
                       transition={{ delay: i * 0.025 }}
                       style={{ borderLeft: `3px solid ${meta.color}` }}
                     >
-                      <td>
+                      <td data-label="Prestataire">
                         <div className="td-title">{senderName}</div>
                         <div className="td-sub">{senderTypeLabel}</div>
                       </td>
-                      <td>
+                      <td data-label="Post">
                         <div style={{
                           fontWeight: 600, fontSize: "0.82rem", color: "var(--d-ink)",
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
@@ -425,17 +425,17 @@ const ClientPitches = ({ user }) => {
                           {pitch.post?.title || "Post supprimé"}
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Prix proposé">
                         {pitch.proposedPrice?.amount
                           ? `${pitch.proposedPrice.amount.toLocaleString()} ${pitch.proposedPrice.currency || "DZD"}`
                           : <span className="td-muted">—</span>}
                       </td>
-                      <td className="td-muted">
+                      <td data-label="Durée" className="td-muted">
                         {pitch.timeline?.duration
                           ? `${pitch.timeline.duration} ${pitch.timeline.unit === "days" ? "j" : pitch.timeline.unit === "weeks" ? "sem" : "mois"}`
                           : "—"}
                       </td>
-                      <td>
+                      <td data-label="Statut">
                         <span style={{
                           padding: "3px 10px", borderRadius: 20, fontSize: "0.72rem",
                           fontWeight: 700, background: meta.bg, color: meta.color,
@@ -443,8 +443,8 @@ const ClientPitches = ({ user }) => {
                           {meta.label}
                         </span>
                       </td>
-                      <td className="td-muted">{fmt(pitch.createdAt)}</td>
-                      <td onClick={e => e.stopPropagation()}>
+                      <td data-label="Reçue le" className="td-muted">{fmt(pitch.createdAt)}</td>
+                      <td data-label="" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setSelectedPitch(pitch)}
                           style={{ padding: "3px 9px", borderRadius: 6, border: "1px solid #ddd",
                             background: "none", cursor: "pointer", fontSize: "0.7rem",

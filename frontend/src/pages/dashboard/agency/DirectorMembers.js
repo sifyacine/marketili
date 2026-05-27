@@ -526,7 +526,7 @@ const FreelancerSection = ({ user }) => {
             <tbody>
               {active.map(f => (
                 <tr key={f._id}>
-                  <td>
+                  <td data-label="Freelancer">
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 30, height: 30, borderRadius: "50%",
                         background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
@@ -537,19 +537,19 @@ const FreelancerSection = ({ user }) => {
                       <span className="td-title">{f.firstName} {f.lastName}</span>
                     </div>
                   </td>
-                  <td className="td-muted">{f.email}</td>
-                  <td>
+                  <td data-label="Email" className="td-muted">{f.email}</td>
+                  <td data-label="Rôle">
                     <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
                       fontWeight: 600, background: "#f0f9ff", color: "#0284c7" }}>
                       {f.collaboration?.role || "—"}
                     </span>
                   </td>
-                  <td className="td-muted">
+                  <td data-label="Depuis" className="td-muted">
                     {f.collaboration?.startDate
                       ? new Date(f.collaboration.startDate).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" })
                       : "—"}
                   </td>
-                  <td>
+                  <td data-label="">
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                       <button
                         onClick={() => setConventionFor(f)}
@@ -839,20 +839,20 @@ const DirectorMembers = ({ user }) => {
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: showRestore ? 0.75 : 1, y: 0 }}
       style={{ borderLeft: `3px solid ${STATUS_META[m.accountStatus || "active"]?.border || "#d1d5db"}` }}>
-      <td>
+      <td data-label="Membre">
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Avatar member={m} />
           <div className="td-title">{m.firstName} {m.lastName}</div>
         </div>
       </td>
-      <td>
+      <td data-label="Rôle">
         <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
           fontWeight: 600, background: "#f3f0ff", color: "#7c3aed" }}>
           {JOB_LABEL[m.jobTitle] || m.jobTitle}
         </span>
       </td>
-      <td className="td-muted">{m.email}</td>
-      <td>
+      <td data-label="Email" className="td-muted">{m.email}</td>
+      <td data-label="Mot de passe">
         <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
           fontWeight: 600,
           background: m.mustChangePassword ? "#fef3c7" : "#f3f4f6",
@@ -860,10 +860,10 @@ const DirectorMembers = ({ user }) => {
           {m.mustChangePassword ? "Temporaire" : "Changé"}
         </span>
       </td>
-      <td>
+      <td data-label="Statut">
         <StatusBadge status={m.accountStatus || "active"} />
       </td>
-      <td>
+      <td data-label="">
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <button
             onClick={() => setHistoryMember(m)}
