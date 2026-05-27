@@ -10,6 +10,8 @@ module.exports = {
         NODE_ENV: "production",
         PORT:     5000,
       },
+      // Restart if a worker exceeds 512 MB — prevents memory-exhaustion attacks
+      max_memory_restart: "512M",
       // Restart on crash, back off up to 5 s between retries
       restart_delay:   2000,
       max_restarts:    10,

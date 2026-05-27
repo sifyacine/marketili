@@ -121,11 +121,13 @@ const login = async (req, res) => {
     }
 
     if (!user) {
+      console.warn(`[AUTH_FAIL] ${new Date().toISOString()} ip=${req.ip} email=${String(email).slice(0, 3)}***`);
       return res.status(400).json({ success: false, message: "Email ou mot de passe incorrect" });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      console.warn(`[AUTH_FAIL] ${new Date().toISOString()} ip=${req.ip} email=${String(email).slice(0, 3)}***`);
       return res.status(400).json({ success: false, message: "Email ou mot de passe incorrect" });
     }
 

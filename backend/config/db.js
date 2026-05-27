@@ -12,7 +12,11 @@ const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGO_URI;
 
-    _conn = await mongoose.connect(mongoURI);
+    _conn = await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 5000,   // fail fast if MongoDB unreachable
+      connectTimeoutMS:         10000,  // max time to establish initial connection
+      socketTimeoutMS:          45000,  // max time for any single DB operation
+    });
     console.log(`✅ MongoDB connected: ${_conn.connection.host}`);
 
     _gfs = Grid(_conn.connection.db, mongoose.mongo);

@@ -2,6 +2,9 @@ const Post        = require("../models/Post");
 const Pitch       = require("../models/Pitch");
 const logActivity = require("../utils/logActivity");
 
+// Escape special regex characters to prevent ReDoS via user-supplied input
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // ─────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────
@@ -134,11 +137,11 @@ const getPosts = async (req, res) => {
     const filter = {};
     if (status !== "all") filter.status = status;
 
-    if (region)  filter["location.region"]  = new RegExp(region,  "i");
-    if (city)    filter["location.city"]    = new RegExp(city,    "i");
-    if (country) filter["location.country"] = new RegExp(country, "i");
+    if (region)  filter["location.region"]  = new RegExp(escapeRegex(region),  "i");
+    if (city)    filter["location.city"]    = new RegExp(escapeRegex(city),    "i");
+    if (country) filter["location.country"] = new RegExp(escapeRegex(country), "i");
 
-    if (category) filter.categories = { $in: [new RegExp(category, "i")] };
+    if (category) filter.categories = { $in: [new RegExp(escapeRegex(category), "i")] };
 
     if (targetProvider) {
       filter.targetProviders = { $in: [targetProvider, "all"] };
@@ -149,8 +152,8 @@ const getPosts = async (req, res) => {
 
     if (search) {
       filter.$or = [
-        { title: new RegExp(search, "i") },
-        { description: new RegExp(search, "i") },
+        { title:       new RegExp(escapeRegex(search), "i") },
+        { description: new RegExp(escapeRegex(search), "i") },
       ];
     }
 

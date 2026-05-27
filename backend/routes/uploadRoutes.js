@@ -1,11 +1,21 @@
 // backend/routes/uploadRoutes.js
-const express = require("express");
-const router = express.Router();
-const mongoose = require("mongoose");
+const express   = require("express");
+const rateLimit = require("express-rate-limit");
+const router    = express.Router();
+const mongoose  = require("mongoose");
 const { upload, conn } = require("../config/db");
 const { protect } = require("../middleware/auth");
 
-router.post("/", protect, upload.single("file"), async (req, res) => {
+// 20 uploads per 15 minutes per IP — prevents storage exhaustion
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Limite d'upload atteinte. Réessayez plus tard." },
+});
+
+router.post("/", protect, uploadLimiter, upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
