@@ -29,11 +29,12 @@ import DirectorCalendar     from "./agency/DirectorCalendar";
 import DirectorAnalytics    from "./agency/DirectorAnalytics";
 import AgencyProfile        from "./agency/AgencyProfile";
 import PersonalNotes        from "./shared/PersonalNotes";
+import HistoryPage          from "./shared/HistoryPage";
 import { PostCard }         from "./agency/shared";
 import { usePosts }         from "../../hooks/usePosts";
 import {
   IconHome, IconFlag, IconTarget, IconBriefcase,
-  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser, IconNote, IconTrendingUp,
+  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser, IconNote, IconTrendingUp, IconClock,
 } from "../../components/ui/Icons";
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
@@ -67,6 +68,7 @@ const NAV_DIRECTOR = [
   { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"    },
   { label: "Calendrier",      icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"  },
   { label: "Analytique",      icon: <IconTrendingUp  size={16} />, path: "/dashboard/agency/analytics" },
+  { label: "Historique",      icon: <IconClock       size={16} />, path: "/dashboard/agency/history"   },
   { label: "Notes",           icon: <IconNote        size={16} />, path: "/dashboard/agency/notes"     },
 ];
 // Sub-directors: Creative Director, Marketing Director, Production Director
@@ -242,6 +244,7 @@ const AgencyDashboard = () => {
             <Route path="browse"        element={<BrowsePosts onPitch={setPitchTarget} />} />
             <Route path="calendar"      element={<DirectorCalendar user={user} />} />
             <Route path="analytics"     element={<DirectorAnalytics user={user} />} />
+            <Route path="history"        element={<HistoryPage />} />
             <Route path="notes"         element={<PersonalNotes />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile"       element={<AgencyProfile />} />

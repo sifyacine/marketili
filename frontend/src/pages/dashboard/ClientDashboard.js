@@ -17,10 +17,11 @@ import notificationService from "../../services/notificationService";
 import ClientCalendar  from "./client/ClientCalendar";
 import ClientProfile   from "./client/ClientProfile";
 import PersonalNotes   from "./shared/PersonalNotes";
+import HistoryPage     from "./shared/HistoryPage";
 import {
   IconHome, IconClipboard, IconCompass, IconInbox,
   IconBriefcase, IconFileText, IconZap, IconCheckSquare,
-  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote,
+  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote, IconClock,
 } from "../../components/ui/Icons";
 import ChatWindow from "../../components/chat/ChatWindow";
 import "../../styles/Dashboard.css";
@@ -51,6 +52,7 @@ const ClientDashboard = () => {
     { label: "Contrats",        icon: <IconFileText   size={16} />, path: "/dashboard/client/contracts"      },
     { label: "Calendrier",      icon: <IconCalendar   size={16} />, path: "/dashboard/client/calendar"        },
     { label: "Notes",           icon: <IconNote       size={16} />, path: "/dashboard/client/notes"           },
+    { label: "Historique",      icon: <IconClock      size={16} />, path: "/dashboard/client/history"          },
     { label: "Notifications",   icon: <IconBell       size={16} />, path: "/dashboard/client/notifications",
       badge: unreadCount },
     { label: "Mon profil",      icon: <IconUser       size={16} />, path: "/dashboard/client/profile"   },
@@ -72,6 +74,7 @@ const ClientDashboard = () => {
           <Route path="contracts"     element={<ClientContracts   user={user} />} />
           <Route path="calendar"      element={<ClientCalendar  user={user} />} />
           <Route path="notes"         element={<PersonalNotes />} />
+          <Route path="history"       element={<HistoryPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="profile"       element={<ClientProfile />} />
           <Route path="*"             element={<Navigate to="/dashboard/client" replace />} />

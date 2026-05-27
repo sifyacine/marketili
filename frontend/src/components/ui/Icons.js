@@ -255,3 +255,10 @@ export const IconNote = (p) => (
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
   </Icon>
 );
+
+export const IconClock = (p) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
+  </Icon>
+);

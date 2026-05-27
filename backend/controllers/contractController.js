@@ -298,6 +298,111 @@ exports.sendBonDeCommande = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// CONFIRM & START   PATCH /api/contracts/:id/confirm-start
+// Provider confirms client receipt → contract signed, project active
+// Used in the contract-first flow after client uploads receipt
+// ─────────────────────────────────────────────────────────────
+exports.confirmAndStart = async (req, res) => {
+  try {
+    const { confirmedBy } = req.body;
+    const contract = await Contract.findById(req.params.id);
+    if (!contract) return fail(res, "Contrat introuvable", 404);
+    if (contract.status !== "acknowledged") {
+      return fail(res, "Le projet ne peut être démarré qu'après réception du reçu client");
+    }
+
+    contract.status = "signed";
+    contract.statusHistory.push({
+      status: "signed", changedAt: new Date(), changedBy: confirmedBy,
+      note: "Prestataire a confirmé le reçu — projet démarré",
+    });
+    await contract.save();
+
+    // Activate the project
+    await Project.findByIdAndUpdate(contract.project, {
+      projectStatus: "active",
+      $push: {
+        statusHistory: {
+          status: "active",
+          changedAt: new Date(),
+          note: "Projet activé après confirmation du contrat",
+        },
+      },
+    });
+
+    // Notify client
+    if (contract.partyBType === "Client" && contract.partyBId) {
+      Notification.notify({
+        recipient: contract.partyBId, recipientRole: "client", recipientModel: "Client",
+        type: "contract_signed", category: "contracts",
+        title: "Projet démarré",
+        body: `Le prestataire a confirmé le contrat "${contract.title || ""}". Votre projet est maintenant actif.`,
+        link: "/dashboard/client/projects",
+        metadata: { projectId: contract.project },
+      });
+    }
+
+    return ok(res, { contract, message: "Contrat confirmé — projet démarré" });
+  } catch (err) {
+    console.error("confirmAndStart:", err);
+    return fail(res, "Erreur serveur", 500);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// SKIP CONTRACT   PATCH /api/contracts/:id/skip
+// Provider skips the contract step → project activated directly
+// ─────────────────────────────────────────────────────────────
+exports.skipContract = async (req, res) => {
+  try {
+    const { skippedBy } = req.body;
+    const contract = await Contract.findById(req.params.id);
+    if (!contract) return fail(res, "Contrat introuvable", 404);
+    if (!["draft", "sent"].includes(contract.status)) {
+      return fail(res, "Seul un contrat brouillon ou envoyé peut être ignoré");
+    }
+
+    contract.status = "resiliation";
+    contract.notes = (contract.notes ? contract.notes + "\n" : "") +
+      "Contrat ignoré par le prestataire — projet démarré directement";
+    contract.statusHistory.push({
+      status: "resiliation", changedAt: new Date(), changedBy: skippedBy,
+      note: "Contrat ignoré — projet activé directement",
+    });
+    await contract.save();
+
+    // Activate the project
+    await Project.findByIdAndUpdate(contract.project, {
+      projectStatus: "active",
+      $push: {
+        statusHistory: {
+          status: "active",
+          changedAt: new Date(),
+          note: "Projet activé — contrat ignoré par le prestataire",
+        },
+      },
+    });
+
+    // Notify client
+    if (contract.partyBType === "Client" && contract.partyBId) {
+      Notification.notify({
+        recipient: contract.partyBId, recipientRole: "client", recipientModel: "Client",
+        type: "contract_signed", category: "contracts",
+        title: "Projet démarré",
+        body: `Le prestataire a démarré le projet sans contrat formel.`,
+        link: "/dashboard/client/projects",
+        metadata: { projectId: contract.project },
+      });
+    }
+
+    return ok(res, { contract, message: "Contrat ignoré — projet démarré" });
+  } catch (err) {
+    console.error("skipContract:", err);
+    return fail(res, "Erreur serveur", 500);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
 // RESILIATION   PATCH /api/contracts/:id/resiliation
 // Either party can trigger resiliation with a reason
 // ─────────────────────────────────────────────────────────────
