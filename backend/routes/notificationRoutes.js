@@ -86,6 +86,7 @@ router.get("/check-deadlines", async (req, res) => {
       for (const task of (proj.tasks || [])) {
         if (!task.dueDate || task.status === "done") continue;
         const due = new Date(task.dueDate);
+
         if (due > now && due <= in3Days) {
           const alreadyTask = await Notification.findOne({
             recipient: userId, type: "deadline_approaching",
@@ -99,7 +100,26 @@ router.get("/check-deadlines", async (req, res) => {
               type: "deadline_approaching", category: "deadlines",
               title: `Tâche urgente : ${task.title}`,
               body: `La tâche "${task.title}" dans le projet "${proj.title}" arrive à échéance bientôt.`,
-              link: `/dashboard/${rolePath(role)}/projects`,
+              link: `/dashboard/${rolePath(role)}/tasks`,
+              metadata: { projectId: proj._id },
+            });
+            created++;
+          }
+        } else if (due < now) {
+          // Task is overdue
+          const alreadyOverdue = await Notification.findOne({
+            recipient: userId, type: "task_overdue",
+            "metadata.projectId": proj._id, title: { $regex: task.title, $options: "i" },
+            createdAt: { $gte: ago24h },
+          });
+          if (!alreadyOverdue) {
+            await Notification.notify({
+              recipient: userId, recipientRole: role,
+              recipientModel: roleToModel(role),
+              type: "task_overdue", category: "deadlines",
+              title: `Tâche en retard : ${task.title}`,
+              body: `La tâche "${task.title}" dans le projet "${proj.title}" est en retard.`,
+              link: `/dashboard/${rolePath(role)}/tasks`,
               metadata: { projectId: proj._id },
             });
             created++;

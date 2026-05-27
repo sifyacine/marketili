@@ -113,6 +113,24 @@ exports.createTask = async (req, res) => {
     project.progress = calculateProgress(project);
     await project.save();
 
+    // Notify each assigned member
+    if (Array.isArray(assignedTo) && assignedTo.length > 0) {
+      assignedTo.forEach(a => {
+        const isTeam     = a.memberType === "TeamMember";
+        const mRole      = isTeam ? "team_member"  : "agency_member";
+        const mModel     = isTeam ? "TeamMember"   : "AgencyMember";
+        const mPath      = isTeam ? "team"          : "agency";
+        Notification.notify({
+          recipient: a.memberId, recipientRole: mRole, recipientModel: mModel,
+          type: "task_assigned", category: "tasks",
+          title: `Tâche assignée : ${title}`,
+          body: `Vous avez été assigné à la tâche "${title}" dans le projet "${project.title}".`,
+          link: `/dashboard/${mPath}/tasks`,
+          metadata: { projectId: project._id },
+        });
+      });
+    }
+
     res.json({ success: true, project });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -137,7 +155,9 @@ exports.updateTask = async (req, res) => {
 
     // Track handover when assignedTo changes
     if (updates.assignedTo !== undefined) {
+      const oldIds = task.assignedTo.map(a => String(a.memberId));
       const newIds = (updates.assignedTo || []).map(a => String(a.memberId));
+
       const removed = task.assignedTo.filter(a => !newIds.includes(String(a.memberId)));
       removed.forEach(a => {
         const alreadyLogged = (task.previousAssignees || []).some(
@@ -151,6 +171,23 @@ exports.updateTask = async (req, res) => {
             removedAt:  new Date(),
           });
         }
+      });
+
+      // Notify newly added assignees
+      const added = (updates.assignedTo || []).filter(a => !oldIds.includes(String(a.memberId)));
+      added.forEach(a => {
+        const isTeam  = a.memberType === "TeamMember";
+        const mRole   = isTeam ? "team_member"  : "agency_member";
+        const mModel  = isTeam ? "TeamMember"   : "AgencyMember";
+        const mPath   = isTeam ? "team"          : "agency";
+        Notification.notify({
+          recipient: a.memberId, recipientRole: mRole, recipientModel: mModel,
+          type: "task_assigned", category: "tasks",
+          title: `Tâche assignée : ${task.title}`,
+          body: `Vous avez été assigné à la tâche "${task.title}" dans le projet "${project.title}".`,
+          link: `/dashboard/${mPath}/tasks`,
+          metadata: { projectId: project._id },
+        });
       });
     }
 

@@ -185,7 +185,7 @@ exports.sendContract = async (req, res) => {
         title: "Nouveau contrat à signer",
         body: `Un contrat "${contract.title}" vous a été envoyé. Veuillez envoyer un reçu.`,
         link: `/dashboard/client/contracts`,
-        metadata: { projectId: contract.project },
+        metadata: { projectId: contract.project, contractId: contract._id },
       });
     }
 
@@ -216,19 +216,39 @@ exports.uploadReceipt = async (req, res) => {
     });
     await contract.save();
 
-    // Notify agency director
-    if (contract.partyAType === "Agency" && contract.partyAId) {
-      const notifPayload = {
-        type: "contract_acknowledged", category: "contracts",
-        title: "Reçu reçu",
-        body: `Le client a uploadé un reçu pour le contrat "${contract.title}". Envoyez le bon de commande.`,
-        link: `/dashboard/agency/contracts`,
-        metadata: { projectId: contract.project },
-      };
-      Notification.notify({ recipient: contract.partyAId, recipientRole: "agency", recipientModel: "Agency", ...notifPayload });
-      const directorId = await findDirectorId(contract.partyAId);
-      if (directorId) {
-        Notification.notify({ recipient: directorId, recipientRole: "agency_member", recipientModel: "AgencyMember", ...notifPayload });
+    // Notify provider (Agency, Freelancer, or Team)
+    if (contract.partyAId) {
+      if (contract.partyAType === "Agency") {
+        const notifPayload = {
+          type: "contract_acknowledged", category: "contracts",
+          title: "Reçu reçu",
+          body: `Le client a uploadé un reçu pour le contrat "${contract.title}". Envoyez le bon de commande.`,
+          link: `/dashboard/agency/contracts`,
+          metadata: { projectId: contract.project, contractId: contract._id },
+        };
+        Notification.notify({ recipient: contract.partyAId, recipientRole: "agency", recipientModel: "Agency", ...notifPayload });
+        const directorId = await findDirectorId(contract.partyAId);
+        if (directorId) {
+          Notification.notify({ recipient: directorId, recipientRole: "agency_member", recipientModel: "AgencyMember", ...notifPayload });
+        }
+      } else if (contract.partyAType === "Freelancer") {
+        Notification.notify({
+          recipient: contract.partyAId, recipientRole: "freelancer", recipientModel: "Freelancer",
+          type: "contract_acknowledged", category: "contracts",
+          title: "Reçu reçu",
+          body: `Le client a uploadé un reçu pour le contrat "${contract.title}". Vous pouvez confirmer et démarrer le projet.`,
+          link: `/dashboard/freelancer/contracts`,
+          metadata: { projectId: contract.project, contractId: contract._id },
+        });
+      } else if (contract.partyAType === "Team") {
+        Notification.notify({
+          recipient: contract.partyAId, recipientRole: "team", recipientModel: "Team",
+          type: "contract_acknowledged", category: "contracts",
+          title: "Reçu reçu",
+          body: `Le client a uploadé un reçu pour le contrat "${contract.title}". Vous pouvez confirmer et démarrer le projet.`,
+          link: `/dashboard/team/contracts`,
+          metadata: { projectId: contract.project, contractId: contract._id },
+        });
       }
     }
 
@@ -273,7 +293,7 @@ exports.sendBonDeCommande = async (req, res) => {
         title: "Contrat finalisé",
         body: `Le bon de commande pour "${contract.title}" a été envoyé. Le contrat est signé.`,
         link: `/dashboard/client/contracts`,
-        metadata: { projectId: contract.project },
+        metadata: { projectId: contract.project, contractId: contract._id },
       });
     }
     if (contract.partyAType === "Agency" && contract.partyAId) {
@@ -282,7 +302,7 @@ exports.sendBonDeCommande = async (req, res) => {
         title: "Contrat finalisé",
         body: `Le contrat "${contract.title}" est maintenant signé par les deux parties.`,
         link: `/dashboard/agency/contracts`,
-        metadata: { projectId: contract.project },
+        metadata: { projectId: contract.project, contractId: contract._id },
       };
       Notification.notify({ recipient: contract.partyAId, recipientRole: "agency", recipientModel: "Agency", ...notifPayloadA });
       const directorId = await findDirectorId(contract.partyAId);
@@ -338,7 +358,7 @@ exports.confirmAndStart = async (req, res) => {
         title: "Projet démarré",
         body: `Le prestataire a confirmé le contrat "${contract.title || ""}". Votre projet est maintenant actif.`,
         link: "/dashboard/client/projects",
-        metadata: { projectId: contract.project },
+        metadata: { projectId: contract.project, contractId: contract._id },
       });
     }
 
@@ -391,7 +411,7 @@ exports.skipContract = async (req, res) => {
         title: "Projet démarré",
         body: `Le prestataire a démarré le projet sans contrat formel.`,
         link: "/dashboard/client/projects",
-        metadata: { projectId: contract.project },
+        metadata: { projectId: contract.project, contractId: contract._id },
       });
     }
 
@@ -566,7 +586,7 @@ exports.generateAndSendPdf = async (req, res) => {
         title: "Contrat envoyé",
         body: `Un contrat proforma "${contract.title || ""}" vous a été envoyé. Veuillez envoyer un reçu.`,
         link: "/dashboard/client/contracts",
-        metadata: { projectId: contract.project._id },
+        metadata: { projectId: contract.project._id, contractId: contract._id },
       });
     }
 

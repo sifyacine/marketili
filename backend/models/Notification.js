@@ -68,6 +68,7 @@ const notificationSchema = new mongoose.Schema(
         "contract_signed",      // bon de commande sent, contract finalized
 
         // Deadline / task events
+        "task_assigned",        // a task was assigned to a member
         "task_overdue",         // a task has passed its due date
         "deadline_approaching", // project/task deadline within 3 days
 
@@ -119,11 +120,13 @@ const notificationSchema = new mongoose.Schema(
 
     // ── Flexible metadata for any linked resources ──
     metadata: {
-      postId:    { type: mongoose.Schema.Types.ObjectId, ref: "Post"    },
-      pitchId:   { type: mongoose.Schema.Types.ObjectId, ref: "Pitch"   },
-      projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
-      senderId:  mongoose.Schema.Types.ObjectId,
-      senderName: String,
+      postId:      { type: mongoose.Schema.Types.ObjectId, ref: "Post"     },
+      pitchId:     { type: mongoose.Schema.Types.ObjectId, ref: "Pitch"    },
+      projectId:   { type: mongoose.Schema.Types.ObjectId, ref: "Project"  },
+      contractId:  { type: mongoose.Schema.Types.ObjectId, ref: "Contract" },
+      requestId:   mongoose.Schema.Types.ObjectId,
+      senderId:    mongoose.Schema.Types.ObjectId,
+      senderName:  String,
     },
   },
   { timestamps: true }

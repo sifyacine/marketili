@@ -28,17 +28,23 @@ const CATEGORY_COLORS = {
 };
 
 const TYPE_ICON = {
-  pitch_received:        "↓",
-  pitch_accepted:        "✓",
-  pitch_rejected:        "✗",
-  project_created:       "▶",
-  project_milestone:     "★",
-  project_completed:     "◉",
-  contract_sent:         "◤",
-  contract_acknowledged: "◈",
-  contract_signed:       "✦",
-  task_overdue:          "!",
-  system:                "◎",
+  pitch_received:                "↓",
+  pitch_accepted:                "✓",
+  pitch_rejected:                "✗",
+  project_created:               "▶",
+  project_milestone:             "★",
+  project_completed:             "◉",
+  contract_sent:                 "◤",
+  contract_acknowledged:         "◈",
+  contract_signed:               "✦",
+  task_assigned:                 "→",
+  task_overdue:                  "!",
+  deadline_approaching:          "⏰",
+  director_approval_needed:      "◇",
+  collaboration_request:         "⇄",
+  collaboration_request_accepted:"✓",
+  collaboration_request_declined:"✗",
+  system:                        "◎",
 };
 
 const relativeTime = (date) => {

@@ -412,6 +412,18 @@ const acceptPitch = async (req, res) => {
       metadata: { pitchId: pitch._id, projectId: project._id, contractId: contract?._id },
     });
 
+    // Notify client that their project has been created
+    Notification.notify({
+      recipient: pitch.client, recipientRole: "client", recipientModel: "Client",
+      type: "project_created", category: "projects",
+      title: "Projet créé",
+      body: withContract
+        ? `Votre projet "${projectTitle}" a été créé et attend la signature du contrat.`
+        : `Votre projet "${projectTitle}" est maintenant actif.`,
+      link: "/dashboard/client/projects",
+      metadata: { pitchId: pitch._id, projectId: project._id },
+    });
+
     logActivity({
       actorId: req.user._id, actorRole: "client", actorName: String(req.user._id),
       actionType: "pitch_accepted", targetId: pitch._id, targetType: "Pitch",
@@ -496,12 +508,15 @@ const rejectPitch = async (req, res) => {
     const rejSenderRole      = pitch.senderType === "Agency"     ? "agency"     :
                                pitch.senderType === "Team"       ? "team"       : "freelancer";
 
+    const rejDashRoot = pitch.senderType === "Team" ? "team"
+                      : pitch.senderType === "Freelancer" ? "freelancer" : "agency";
+
     Notification.notify({
       recipient: rejSenderRecipient, recipientRole: rejSenderRole, recipientModel: rejSenderModel,
       type: "pitch_rejected", category: "pitches",
       title: "Votre offre n'a pas été retenue",
       body: reason ? `Raison : ${reason}` : "Votre offre a été rejetée.",
-      link: `/dashboard/agency/pitches`,
+      link: `/dashboard/${rejDashRoot}/pitches`,
       metadata: { pitchId: pitch._id },
     });
 

@@ -82,11 +82,11 @@ const createPost = async (req, res) => {
       const Notification = require("../models/Notification");
       Notification.notify({
         recipient: clientId, recipientRole: "client", recipientModel: "Client",
-        type: "system", category: "pitches",
+        type: "system", category: "admin",
         title: "Nouvelle proposition reçue",
         body: `Vous avez reçu une proposition de collaboration de ${body.initiatorName || initiatorType}.`,
         link: "/dashboard/client",
-        metadata: { initiatorType, initiatorId },
+        metadata: { senderId: initiatorId },
       });
     }
     const post = await Post.create(postData);
