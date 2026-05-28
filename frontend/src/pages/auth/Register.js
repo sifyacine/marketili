@@ -506,7 +506,7 @@ const Register = () => {
                         <div className="pw-strength-bar">
                           {[1,2,3,4].map(i => (
                             <div key={i} className="pw-strength-seg"
-                              style={{ background: i <= pwScore ? PW_COLORS[pwScore] : "rgba(0,0,0,0.08)" }} />
+                              style={{ background: i <= pwScore ? PW_COLORS[pwScore] : "rgba(255,255,255,0.08)" }} />
                           ))}
                         </div>
                         <span className="pw-strength-label" style={{ color: PW_COLORS[pwScore] }}>

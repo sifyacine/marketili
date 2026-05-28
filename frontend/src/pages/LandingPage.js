@@ -152,18 +152,18 @@ const ContactForm = () => {
   if (sent) return (
     <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
       style={{ textAlign: "center", padding: "48px 24px",
-        background: "#fff", borderRadius: 16,
-        border: "1px solid rgba(0,0,0,0.08)" }}>
+        background: "rgba(255,255,255,0.04)", borderRadius: 16,
+        border: "1px solid rgba(255,255,255,0.09)" }}>
       <div style={{ width: 52, height: 52, borderRadius: "50%",
-        background: "rgba(16,185,129,0.1)", border: "1.5px solid rgba(16,185,129,0.4)",
+        background: "rgba(16,185,129,0.12)", border: "1.5px solid rgba(16,185,129,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
         margin: "0 auto 18px" }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
-      <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: 700, color: "#111827" }}>Message envoyé</h3>
-      <p style={{ margin: "0 0 24px", fontSize: "0.875rem", color: "rgba(17,24,39,0.5)", lineHeight: 1.65 }}>
+      <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: 700, color: "#fff" }}>Message envoyé</h3>
+      <p style={{ margin: "0 0 24px", fontSize: "0.875rem", color: "rgba(244,244,246,0.45)", lineHeight: 1.65 }}>
         Votre client mail s'est ouvert avec le message pré-rempli.<br />
         Nous vous répondrons dans les meilleurs délais.
       </p>
@@ -211,8 +211,8 @@ const ContactForm = () => {
       </div>
       {err && (
         <div style={{ padding: "10px 14px", borderRadius: 9,
-          background: "rgba(192,21,42,0.06)", border: "1px solid rgba(192,21,42,0.2)",
-          color: "#c0152a", fontSize: "0.82rem" }}>{err}</div>
+          background: "rgba(192,21,42,0.12)", border: "1px solid rgba(192,21,42,0.3)",
+          color: "#fca5a5", fontSize: "0.82rem" }}>{err}</div>
       )}
       <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginTop: 4 }}>
         <button type="submit" className="lp-btn-primary" disabled={sending}
