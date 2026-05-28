@@ -128,10 +128,18 @@ const MessagesPage = () => {
   const location   = useLocation();
   const openConvId = location.state?.openConvId || null;
 
-  const [conversations,    setConversations]    = useState([]);
-  const [selectedConvId,   setSelectedConvId]   = useState(openConvId);
-  const [loading,          setLoading]          = useState(true);
-  const [mobileShowThread, setMobileShowThread] = useState(!!openConvId);
+  const [conversations,  setConversations]  = useState([]);
+  const [selectedConvId, setSelectedConvId] = useState(openConvId);
+  const [loading,        setLoading]        = useState(true);
+  // Mobile: show thread panel instead of list (only relevant on small screens)
+  const [mobileThread,   setMobileThread]   = useState(!!openConvId);
+  const [isMobile,       setIsMobile]       = useState(() => window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
 
   const loadConversations = useCallback(async () => {
     try {
@@ -143,29 +151,32 @@ const MessagesPage = () => {
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
-  // When navigated here with an openConvId, select it once conversations load
+  // When navigated here with an openConvId, reload list if conversation isn't in it yet
   useEffect(() => {
     if (openConvId && conversations.length > 0) {
-      const exists = conversations.find(c => c._id === openConvId);
-      if (!exists) {
-        // Conversation may be new — reload to get it
-        loadConversations();
-      }
+      if (!conversations.find(c => c._id === openConvId)) loadConversations();
     }
   }, [openConvId, conversations, loadConversations]);
 
-  // Refresh conversation list when a thread is selected (to update unread badges)
   const handleSelectConv = (convId) => {
     setSelectedConvId(convId);
-    setMobileShowThread(true);
-    // After opening, refresh list to clear unread count on this conv
+    setMobileThread(true);
     setTimeout(() => loadConversations(), 1500);
   };
 
-  const selectedConv = conversations.find((c) => c._id === selectedConvId);
+  const handleBack = () => {
+    setMobileThread(false);
+    setSelectedConvId(null);
+  };
+
+  const selectedConv     = conversations.find((c) => c._id === selectedConvId);
   const otherParticipant = selectedConv && user
     ? getOtherParticipant(selectedConv, user._id)
     : null;
+
+  // On mobile: show either list or thread. On desktop: always show both.
+  const showSidebar = !isMobile || !mobileThread;
+  const showThread  = !isMobile || mobileThread;
 
   return (
     <div style={{
@@ -182,9 +193,8 @@ const MessagesPage = () => {
       <div style={{
         width: 300, flexShrink: 0,
         borderRight: "1.5px solid var(--d-border-soft, #eee)",
-        display: "flex", flexDirection: "column",
-        // On mobile, hide when thread is shown
-        ...(mobileShowThread ? { display: "none" } : {}),
+        display: showSidebar ? "flex" : "none",
+        flexDirection: "column",
       }}
         className="messages-sidebar"
       >
@@ -245,9 +255,9 @@ const MessagesPage = () => {
       {/* ── Thread panel ── */}
       <div style={{
         flex: 1,
-        display: "flex", flexDirection: "column",
+        display: showThread ? "flex" : "none",
+        flexDirection: "column",
         minWidth: 0,
-        ...(mobileShowThread === false && window.innerWidth < 768 ? { display: "none" } : {}),
       }}>
         {/* Thread header */}
         {selectedConvId && otherParticipant ? (
@@ -257,14 +267,13 @@ const MessagesPage = () => {
               borderBottom: "1px solid var(--d-border-soft, #f0f0f0)",
               display: "flex", alignItems: "center", gap: 10,
             }}>
-              {/* Mobile back button */}
+              {/* Back button (mobile: always; desktop: always shown) */}
               <button
-                onClick={() => { setMobileShowThread(false); setSelectedConvId(null); }}
-                className="messages-back-btn"
+                onClick={handleBack}
                 style={{
                   background: "none", border: "none", cursor: "pointer",
                   color: "var(--d-ink, #1a1a1a)", fontSize: "1.1rem",
-                  padding: "0 4px 0 0", display: "none",
+                  padding: "0 4px 0 0", display: "flex", alignItems: "center",
                 }}
               >
                 ←
