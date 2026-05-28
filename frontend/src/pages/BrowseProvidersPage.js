@@ -38,9 +38,7 @@ const ProviderCard = ({ provider, index, onCollab, isFreelancer }) => {
   const avatarSrc   = provider.logo || provider.avatar || null;
   const initials    = name.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase()).join("");
   const specialties = provider.specialties || provider.skills || provider.categories || [];
-  const location    = provider.address?.city || provider.location?.city || null;
-  const region      = provider.address?.region || provider.location?.region || null;
-  const locationStr = [location, region].filter(Boolean).join(", ");
+  const locationStr = provider.address?.region || provider.location?.region || "";
   const membersCount = Array.isArray(provider.members) ? provider.members.length : null;
 
   return (

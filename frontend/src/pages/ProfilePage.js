@@ -411,10 +411,7 @@ const ProfilePage = () => {
   const avatarSrc   = profile.logo || profile.avatar || null;
   const bio         = profile.bio || "";
   const specialties = profile.specialties || profile.skills || profile.categories || [];
-  const locationStr = [
-    profile.address?.city || profile.location?.city,
-    profile.address?.country || profile.location?.country,
-  ].filter(Boolean).join(", ");
+  const locationStr = profile.address?.region || profile.location?.region || "";
   const isOwner       = user && user._id === id && user.role === role;
   const isProvider    = ["agency", "team", "freelancer"].includes(user?.role);
   const isClientRole  = role === "client";
