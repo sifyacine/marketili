@@ -1,8 +1,10 @@
 // src/pages/dashboard/agency/DirectorClients.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { ProgressBar } from "./shared";
 import projectService from "../../../services/projectService";
+import chatService    from "../../../services/chatService";
 import { IconTarget } from "../../../components/ui/Icons";
 
 const clientName = (c) =>
@@ -55,9 +57,21 @@ const ClientProjects = ({ client }) => {
 };
 
 const DirectorClients = ({ user }) => {
-  const [projects, setProjects] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [selected, setSelected] = useState(null);
+  const navigate = useNavigate();
+  const [projects,    setProjects]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [selected,    setSelected]    = useState(null);
+  const [msgLoading,  setMsgLoading]  = useState(null);
+
+  const handleMessage = async (e, clientId) => {
+    e.stopPropagation();
+    setMsgLoading(clientId);
+    try {
+      const data = await chatService.startDirectConversation(clientId, "client");
+      navigate("/dashboard/agency/messages", { state: { openConvId: data.conversation._id } });
+    } catch {}
+    finally { setMsgLoading(null); }
+  };
 
   useEffect(() => {
     projectService.getAgencyProjects(user._id)
@@ -87,12 +101,25 @@ const DirectorClients = ({ user }) => {
           <p>{selected ? "Projets avec ce client" : `${clients.length} client${clients.length !== 1 ? "s" : ""}`}</p>
         </div>
         {selected && (
-          <button className="section-cta-btn"
-            style={{ background: "transparent", color: "#9a6060",
-              border: "1.5px solid #f0dede", boxShadow: "none" }}
-            onClick={() => setSelected(null)}>
-            ← Retour aux clients
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              disabled={msgLoading === selected._id}
+              onClick={(e) => handleMessage(e, selected._id)}
+              style={{
+                padding: "7px 16px", borderRadius: 8, border: "1.5px solid #c0152a",
+                background: "transparent", color: "#c0152a",
+                fontFamily: "inherit", fontSize: "0.78rem", fontWeight: 700,
+                cursor: msgLoading === selected._id ? "not-allowed" : "pointer",
+              }}>
+              {msgLoading === selected._id ? "…" : "✉ Message"}
+            </button>
+            <button className="section-cta-btn"
+              style={{ background: "transparent", color: "#9a6060",
+                border: "1.5px solid #f0dede", boxShadow: "none" }}
+              onClick={() => setSelected(null)}>
+              ← Retour aux clients
+            </button>
+          </div>
         )}
       </div>
 
@@ -149,6 +176,23 @@ const DirectorClients = ({ user }) => {
                       <div style={{ fontSize: "0.7rem", color: "#9a6060" }}>terminés</div>
                     </div>
                   </div>
+                  <button
+                    onClick={(e) => handleMessage(e, c._id)}
+                    disabled={msgLoading === c._id}
+                    style={{
+                      marginTop: 12, width: "100%", padding: "7px 0",
+                      borderRadius: 8, border: "1.5px solid #c0152a",
+                      background: "transparent", color: "#c0152a",
+                      fontFamily: "inherit", fontSize: "0.78rem", fontWeight: 700,
+                      cursor: msgLoading === c._id ? "not-allowed" : "pointer",
+                      opacity: msgLoading === c._id ? 0.6 : 1,
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "#fff0f0"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    {msgLoading === c._id ? "…" : "✉ Envoyer un message"}
+                  </button>
                 </div>
               </motion.div>
             ))}
