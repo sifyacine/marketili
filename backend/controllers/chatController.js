@@ -245,12 +245,12 @@ exports.getMessages = async (req, res) => {
     const limit = Math.min(100, parseInt(req.query.limit) || 50);
 
     const [messages, total] = await Promise.all([
-      Message.find({ conversation: conversationId })
+      Message.find({ conversation: conversationId, isDeleted: { $ne: true } })
         .sort({ createdAt: 1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .lean(),
-      Message.countDocuments({ conversation: conversationId }),
+      Message.countDocuments({ conversation: conversationId, isDeleted: { $ne: true } }),
     ]);
 
     res.json({
@@ -411,6 +411,28 @@ exports.getUnreadCount = async (req, res) => {
     });
 
     res.json({ success: true, count });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// DELETE MESSAGE  DELETE /api/chat/:conversationId/messages/:messageId
+// ─────────────────────────────────────────────
+exports.deleteMessage = async (req, res) => {
+  try {
+    const { conversationId, messageId } = req.params;
+    const userId = req.user._id;
+
+    const msg = await Message.findOne({ _id: messageId, conversation: conversationId });
+    if (!msg) return res.status(404).json({ success: false, message: "Message introuvable" });
+    if (String(msg.sender) !== String(userId))
+      return res.status(403).json({ success: false, message: "Accès refusé" });
+
+    msg.isDeleted = true;
+    await msg.save();
+
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

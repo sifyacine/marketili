@@ -28,6 +28,7 @@ router.post(
   upload.single("file"),
   ctrl.sendMessage
 );
-router.patch("/:conversationId/read",      protect, ctrl.markRead);
+router.patch("/:conversationId/read",                              protect, ctrl.markRead);
+router.delete("/:conversationId/messages/:messageId",             protect, ctrl.deleteMessage);
 
 module.exports = router;

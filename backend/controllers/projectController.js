@@ -130,6 +130,8 @@ exports.assignMember = async (req, res) => {
 // CREATE TASK  POST /api/projects/:projectId/tasks
 // ─────────────────────────────────────────────
 exports.createTask = async (req, res) => {
+  if (req.user?.role === "client")
+    return res.status(403).json({ message: "Accès refusé" });
   try {
     const { projectId } = req.params;
     const { title, description, assignedTo, dueDate, priority } = req.body;
@@ -169,6 +171,8 @@ exports.createTask = async (req, res) => {
 // UPDATE TASK  PATCH /api/projects/:projectId/tasks/:taskId
 // ─────────────────────────────────────────────
 exports.updateTask = async (req, res) => {
+  if (req.user?.role === "client")
+    return res.status(403).json({ message: "Accès refusé" });
   try {
     const { projectId, taskId } = req.params;
     const updates = req.body; // status, priority, dueDate, assignedTo, etc.
@@ -349,6 +353,8 @@ exports.flagPost = async (req, res) => {
 // GET FLAGGED POSTS  GET /api/projects/agency/:agencyId/flagged-posts
 // ─────────────────────────────────────────────
 exports.getFlaggedPosts = async (req, res) => {
+  if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial")
+    return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
   try {
     const { agencyId } = req.params;
     const agency = await Agency.findById(agencyId)
