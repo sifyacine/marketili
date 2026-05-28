@@ -197,7 +197,38 @@ exports.removePost = async (req, res) => {
     post.adminNote = reason || "Retiré par un administrateur";
     await post.save();
 
+    logActivity({
+      actorId: req.user._id, actorRole: "admin", actorName: "Admin",
+      actionType: "post_removed", targetId: post._id, targetType: "Post",
+      description: `Post retiré : "${post.title}" — ${reason || "sans raison"}`,
+    });
+
     return ok(res, { post });
+  } catch (err) {
+    return fail(res, err.message, 500);
+  }
+};
+
+// ─────────────────────────────────────────────
+// REACTIVATE POST  PATCH /admin/posts/:id/reactivate
+// ─────────────────────────────────────────────
+exports.reactivatePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return fail(res, "Post introuvable", 404);
+
+    const prevStatus = post.status;
+    post.status    = "open";
+    post.adminNote = "";
+    await post.save();
+
+    logActivity({
+      actorId: req.user._id, actorRole: "admin", actorName: "Admin",
+      actionType: "post_reactivated", targetId: post._id, targetType: "Post",
+      description: `Post réactivé : "${post.title}" (était: ${prevStatus})`,
+    });
+
+    return ok(res, { post, prevStatus });
   } catch (err) {
     return fail(res, err.message, 500);
   }
@@ -299,7 +330,11 @@ exports.getActivityLog = async (req, res) => {
     const page  = parseInt(req.query.page)  || 1;
     const limit = parseInt(req.query.limit) || 30;
     const filter = {};
-    if (req.query.actionType) filter.actionType = req.query.actionType;
+    if (req.query.adminOnly === "true") {
+      filter.actionType = { $in: ["post_removed", "post_reactivated"] };
+    } else if (req.query.actionType) {
+      filter.actionType = req.query.actionType;
+    }
 
     const [logs, total] = await Promise.all([
       ActivityLog.find(filter)

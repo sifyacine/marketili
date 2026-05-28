@@ -24,8 +24,9 @@ router.patch("/ads/:id/toggle",  c.toggleAd);
 router.delete("/ads/:id",        c.deleteAd);
 
 // ── Posts moderation ──
-router.get("/posts",              c.getAdminPosts);
-router.patch("/posts/:id/remove", c.removePost);
+router.get("/posts",                    c.getAdminPosts);
+router.patch("/posts/:id/remove",       c.removePost);
+router.patch("/posts/:id/reactivate",   c.reactivatePost);
 
 // ── Options ──
 router.get("/options",                     c.getAllOptions);
