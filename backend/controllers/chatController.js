@@ -2,6 +2,7 @@ const Conversation = require("../models/Conversation");
 const Message      = require("../models/Message");
 const Project      = require("../models/Project");
 const AgencyMember = require("../models/AgencyMember");
+const TeamMember   = require("../models/TeamMember");
 const Client       = require("../models/Client");
 const Agency       = require("../models/Agency");
 const Freelancer   = require("../models/Freelancer");
@@ -73,18 +74,66 @@ exports.getOrCreateConversation = async (req, res) => {
 // ─────────────────────────────────────────────
 exports.getMyConversations = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId   = req.user._id;
+    const userRole = req.userRole;
 
-    const conversations = await Conversation.find({
+    // ── Direct conversations ──
+    const directConvs = await Conversation.find({
       isDirect: true,
       users: userId,
-    })
-      .sort({ lastMessageAt: -1, updatedAt: -1 })
-      .lean();
+    }).sort({ lastMessageAt: -1, updatedAt: -1 }).lean();
 
-    // Attach per-conversation unread counts
+    // ── Project conversations ──
+    let projectFilter = {};
+    if (userRole === "client")
+      projectFilter.client = userId;
+    else if (userRole === "agency")
+      projectFilter.providerAgency = userId;
+    else if (userRole === "team")
+      projectFilter.providerTeam = userId;
+    else if (userRole === "freelancer")
+      projectFilter.providerFreelancer = userId;
+    else if (userRole === "agency_member") {
+      const member = await AgencyMember.findById(userId).select("agency").lean();
+      if (member?.agency) projectFilter.providerAgency = member.agency;
+    } else if (userRole === "team_member") {
+      const member = await TeamMember.findById(userId).select("team").lean();
+      if (member?.team) projectFilter.providerTeam = member.team;
+    }
+
+    const userProjects = Object.keys(projectFilter).length
+      ? await Project.find(projectFilter).select("_id title").lean()
+      : [];
+    const projectIds = userProjects.map((p) => p._id);
+
+    const projectConvs = projectIds.length
+      ? await Conversation.find({ project: { $in: projectIds } })
+          .sort({ lastMessageAt: -1, updatedAt: -1 }).lean()
+      : [];
+
+    // Attach project title as synthetic participantInfo
+    const projectConvsWithInfo = projectConvs.map((conv) => {
+      const project = userProjects.find((p) => String(p._id) === String(conv.project));
+      return {
+        ...conv,
+        participantInfo: [{
+          userId: conv.project,
+          role: "project",
+          name: project?.title || "Projet",
+        }],
+      };
+    });
+
+    // ── Merge and sort by last activity ──
+    const allConvs = [...directConvs, ...projectConvsWithInfo].sort((a, b) => {
+      const at = new Date(a.lastMessageAt || a.updatedAt || a.createdAt || 0);
+      const bt = new Date(b.lastMessageAt || b.updatedAt || b.createdAt || 0);
+      return bt - at;
+    });
+
+    // ── Attach unread counts ──
     const withUnread = await Promise.all(
-      conversations.map(async (conv) => {
+      allConvs.map(async (conv) => {
         const unreadCount = await Message.countDocuments({
           conversation: conv._id,
           sender:       { $ne: userId },

@@ -92,6 +92,10 @@ router.get("/:id", async (req, res) => {
     const encodedName  = encodeURIComponent(file.filename || req.params.id);
     const disposition  = req.query.download === "1" ? "attachment" : "inline";
 
+    // Allow cross-origin embedding in iframes (FileViewerModal)
+    res.removeHeader("X-Frame-Options");
+    res.removeHeader("Content-Security-Policy");
+
     res.set("Content-Type",        contentType);
     res.set("Content-Disposition", `${disposition}; filename*=UTF-8''${encodedName}`);
     res.set("Cache-Control",       "private, max-age=3600");

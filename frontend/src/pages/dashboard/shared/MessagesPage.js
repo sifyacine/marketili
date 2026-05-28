@@ -13,6 +13,7 @@ const ROLE_LABELS = {
   team:          "Équipe",
   team_member:   "Membre",
   freelancer:    "Freelancer",
+  project:       "Projet",
 };
 
 const ROLE_COLORS = {
@@ -20,6 +21,7 @@ const ROLE_COLORS = {
   agency:     "#7c3aed",
   team:       "#0891b2",
   freelancer: "#d97706",
+  project:    "#059669",
 };
 
 const relativeTime = (date) => {

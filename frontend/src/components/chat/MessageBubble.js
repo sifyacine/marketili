@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import FileViewerModal from "../ui/FileViewerModal";
+import uploadService from "../../services/uploadService";
 
 const TYPE_META = {
   contract_pdf:    { label: "Contrat (PDF)",      bg: "#7c3aed", icon: "◤" },
@@ -51,6 +52,7 @@ const MessageBubble = ({ message, isMine }) => {
   // ── Document-type messages ──
   if (["contract_pdf", "receipt", "bon_de_commande"].includes(messageType)) {
     const meta = TYPE_META[messageType];
+    const resolvedFileUrl = file ? uploadService.resolveUrl(file.url) : null;
     return (
       <>
         {viewer && (
@@ -82,10 +84,10 @@ const MessageBubble = ({ message, isMine }) => {
                 {meta.label}
               </span>
             </div>
-            {file && (
+            {file && resolvedFileUrl && (
               <>
-                <BtnView color={meta.bg} onClick={() => setViewer({ url: file.url, filename: file.filename })} />
-                <a href={`${file.url}?download=1`} style={{
+                <BtnView color={meta.bg} onClick={() => setViewer({ url: resolvedFileUrl, filename: file.filename })} />
+                <a href={`${resolvedFileUrl}?download=1`} style={{
                   display: "block", fontSize: "0.75rem", color: "var(--d-muted)",
                   textDecoration: "none", textAlign: "center", marginTop: 4,
                   padding: "4px 0",
@@ -107,6 +109,7 @@ const MessageBubble = ({ message, isMine }) => {
   if (messageType === "file" && file) {
     const isPdf   = file.mimeType?.includes("pdf");
     const isImage = file.mimeType?.startsWith("image/");
+    const resolvedFileUrl = uploadService.resolveUrl(file.url);
     return (
       <>
         {viewer && (
@@ -126,14 +129,14 @@ const MessageBubble = ({ message, isMine }) => {
             padding: "10px 14px", maxWidth: "65%",
           }}>
             {isImage ? (
-              <div onClick={() => setViewer({ url: file.url, filename: file.filename })} style={{ cursor: "pointer" }}>
-                <img src={file.url} alt={file.filename}
+              <div onClick={() => setViewer({ url: resolvedFileUrl, filename: file.filename })} style={{ cursor: "pointer" }}>
+                <img src={resolvedFileUrl} alt={file.filename}
                   style={{ maxWidth: 220, maxHeight: 160, borderRadius: 8, display: "block" }} />
               </div>
             ) : isPdf ? (
               <div>
                 <button
-                  onClick={() => setViewer({ url: file.url, filename: file.filename })}
+                  onClick={() => setViewer({ url: resolvedFileUrl, filename: file.filename })}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     background: "none", border: "none", cursor: "pointer",
@@ -143,7 +146,7 @@ const MessageBubble = ({ message, isMine }) => {
                   <span style={{ fontSize: "1rem" }}>📄</span>
                   {file.filename}
                 </button>
-                <a href={`${file.url}?download=1`} style={{
+                <a href={`${resolvedFileUrl}?download=1`} style={{
                   display: "block", fontSize: "0.68rem", marginTop: 4,
                   color: isMine ? "rgba(255,255,255,0.6)" : "var(--d-muted)",
                   textDecoration: "none",
@@ -152,7 +155,7 @@ const MessageBubble = ({ message, isMine }) => {
                 </a>
               </div>
             ) : (
-              <a href={`${file.url}?download=1`} style={{
+              <a href={`${resolvedFileUrl}?download=1`} style={{
                 display: "flex", alignItems: "center", gap: 8,
                 color: isMine ? "#fff" : "#c0152a", textDecoration: "none",
                 fontSize: "0.82rem", fontWeight: 600,
