@@ -68,7 +68,14 @@ const ProjectCard = ({ project: p, index, onClick }) => {
         <ProgressBar value={p.progress || 0} />
         <div style={{ display: "flex", justifyContent: "space-between",
           fontSize: "0.72rem", color: "#9a6060", marginTop: 6 }}>
-          <span>{p.progress || 0}% · {p.tasks?.length || 0} tâche{p.tasks?.length !== 1 ? "s" : ""}</span>
+          <span>
+            {p.progress || 0}% · {p.tasks?.length || 0} tâche{p.tasks?.length !== 1 ? "s" : ""}
+            {p.deliverableCount > 0 && (
+              <span style={{ marginLeft: 6, color: "#0891b2", fontWeight: 700 }}>
+                · {p.deliverableCount} livrable{p.deliverableCount !== 1 ? "s" : ""}
+              </span>
+            )}
+          </span>
           {dlLabel && (
             <span style={{ color: dlColor, fontWeight: 600 }}>{dlLabel}</span>
           )}

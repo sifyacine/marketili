@@ -152,6 +152,7 @@ const AgencyDashboard = () => {
   const [pitchTarget,  setPitchTarget]  = useState(null);
   const [flaggedPosts, setFlaggedPosts] = useState([]);
   const [projects,     setProjects]     = useState([]);
+  const [members,      setMembers]      = useState([]);
   const [dataLoading,  setDataLoading]  = useState(true);
   const [unreadCount,  setUnreadCount]  = useState(0);
 
@@ -180,10 +181,29 @@ const AgencyDashboard = () => {
         .then(d => setFlaggedPosts(d.flaggedPosts || [])),
       projectService.getAgencyProjects(agencyId)
         .then(d => setProjects(d.projects || [])),
+      projectService.getAgencyMembers(agencyId)
+        .then(d => setMembers(d.members || [])),
     ])
       .catch(() => {})
       .finally(() => setDataLoading(false));
   }, [agencyRole, user?._id, user?.agency]);
+
+  const handleSendToStrategist = async (flagEntry, member) => {
+    const agencyId = user.role === "agency" ? user._id : user.agency;
+    const postId   = flagEntry.post._id;
+    const name     = `${member.firstName} ${member.lastName}`;
+    try {
+      await projectService.sendToStrategist(agencyId, postId, {
+        strategistId:   member._id,
+        strategistName: name,
+      });
+      setFlaggedPosts(prev => prev.map(f =>
+        f.post?._id === postId
+          ? { ...f, assignedStrategist: member._id, assignedStrategistName: name }
+          : f
+      ));
+    } catch {}
+  };
 
   const handlePitchSubmit = async (pitchData) => {
     await pitchService.send({
@@ -237,6 +257,8 @@ const AgencyDashboard = () => {
             <Route path="flagged" element={
               <DirectorFlaggedPosts user={user} onPitch={setPitchTarget}
                 flaggedPosts={flaggedPosts} loading={dataLoading}
+                members={members}
+                onSendToStrategist={handleSendToStrategist}
                 onRefresh={() =>
                   projectService.getFlaggedPosts(user._id)
                     .then(d => setFlaggedPosts(d.flaggedPosts || []))} />
@@ -262,6 +284,8 @@ const AgencyDashboard = () => {
             <Route path="flagged"  element={
               <DirectorFlaggedPosts user={user} onPitch={setPitchTarget}
                 flaggedPosts={flaggedPosts} loading={dataLoading}
+                members={members}
+                onSendToStrategist={handleSendToStrategist}
                 onRefresh={() =>
                   projectService.getFlaggedPosts(user.agency || user._id)
                     .then(d => setFlaggedPosts(d.flaggedPosts || []))} />

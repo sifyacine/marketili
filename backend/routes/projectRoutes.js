@@ -8,7 +8,8 @@ const { protect } = require("../middleware/auth");
 // ── Specific routes first (before /:projectId) ──
 router.get("/agency/:agencyId/members",            protect, c.getAgencyMembers);
 router.get("/agency/:agencyId/flagged-posts",      protect, c.getFlaggedPosts);
-router.patch("/agency/:agencyId/flagged-posts/:postId/pitched", protect, c.markFlaggedAsPitched);
+router.patch("/agency/:agencyId/flagged-posts/:postId/pitched",             protect, c.markFlaggedAsPitched);
+router.patch("/agency/:agencyId/flagged-posts/:postId/send-to-strategist",  protect, c.sendToStrategist);
 router.post("/flag-post",                          protect, c.flagPost);
 router.get("/member/:memberId/tasks",              protect, c.getMemberTasks);
 router.get("/member/:memberId/projects",           protect, c.getMemberProjects);

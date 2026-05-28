@@ -19,6 +19,9 @@ const projectService = {
   markFlaggedAsPitched: (agencyId, postId) =>
     api.patch(`/projects/agency/${agencyId}/flagged-posts/${postId}/pitched`).then(r => r.data),
 
+  sendToStrategist: (agencyId, postId, data) =>
+    api.patch(`/projects/agency/${agencyId}/flagged-posts/${postId}/send-to-strategist`, data).then(r => r.data),
+
   // ── Commercial ──
   flagPost: (agencyId, postId, memberId, memberName, note = "") =>
     api.post(`/projects/flag-post`, { agencyId, postId, memberId, memberName, note }).then(r => r.data),

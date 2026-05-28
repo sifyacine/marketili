@@ -40,6 +40,9 @@ const agencySchema = new mongoose.Schema(
         flaggedAt:  { type: Date, default: Date.now },
         note:       String,      // optional comment from commercial
         pitched:    { type: Boolean, default: false }, // true once director pitches on it
+        assignedStrategist:     { type: mongoose.Schema.Types.ObjectId, ref: "AgencyMember" },
+        assignedStrategistName: String,
+        assignedAt:             Date,
       },
     ],
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getDeadlineColor, getDeadlineLabel } from "../../../utils/deadlineColor";
-import { IconFlag, IconSend, IconSearch } from "../../../components/ui/Icons";
+import { IconFlag, IconSend, IconSearch, IconUsers } from "../../../components/ui/Icons";
 
 const COLLAB_FR = {
   service:     "Service",
@@ -10,11 +10,98 @@ const COLLAB_FR = {
   exposure:    "Exposition",
 };
 
-const FlaggedCard = ({ flagEntry, index, onPitch }) => {
+// ── Strategist selector dropdown ──────────────────────────────────────────────
+const StrategistSelector = ({ members, onSelect, onCancel }) => {
+  const strategists = (members || []).filter(
+    m => m.jobTitle === "strategist" || m.jobTitle === "art_director" ||
+         m.jobTitle === "digital_manager" || m.jobTitle === "project_manager" ||
+         m.jobTitle === "social_media_manager"
+  );
+
+  const JOB_FR = {
+    strategist:          "Stratège",
+    art_director:        "Directeur Artistique",
+    digital_manager:     "Digital Manager",
+    project_manager:     "Chef de Projet",
+    social_media_manager:"Social Media Manager",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      style={{
+        position: "absolute", bottom: "calc(100% + 6px)", right: 0, zIndex: 50,
+        background: "#fff", border: "1.5px solid #f0dede", borderRadius: 10,
+        boxShadow: "0 4px 18px rgba(0,0,0,0.12)", minWidth: 220, overflow: "hidden",
+      }}
+    >
+      <div style={{ padding: "10px 14px", fontSize: "0.72rem", fontWeight: 700,
+        color: "#9a6060", borderBottom: "1px solid #faeaea",
+        textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        Sélectionner un stratège
+      </div>
+
+      {strategists.length === 0 ? (
+        <div style={{ padding: "14px", fontSize: "0.8rem", color: "#9a6060", textAlign: "center" }}>
+          Aucun stratège disponible
+        </div>
+      ) : (
+        strategists.map(m => (
+          <button key={m._id}
+            onClick={() => onSelect(m)}
+            style={{
+              width: "100%", padding: "10px 14px", background: "white",
+              border: "none", textAlign: "left", cursor: "pointer",
+              borderBottom: "1px solid #faeaea", fontFamily: "inherit",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "#fff8f8"}
+            onMouseLeave={e => e.currentTarget.style.background = "white"}
+          >
+            <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1a0a0a" }}>
+              {m.firstName} {m.lastName}
+            </div>
+            <div style={{ fontSize: "0.7rem", color: "#9a6060" }}>
+              {JOB_FR[m.jobTitle] || m.jobTitle}
+            </div>
+          </button>
+        ))
+      )}
+
+      <div style={{ padding: "8px 14px", borderTop: "1px solid #faeaea" }}>
+        <button onClick={onCancel}
+          style={{
+            width: "100%", padding: "6px 0", borderRadius: 7,
+            border: "1.5px solid #f0dede", background: "white",
+            color: "#9a6060", fontFamily: "inherit", fontSize: "0.75rem",
+            fontWeight: 600, cursor: "pointer",
+          }}>
+          Annuler
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+// ── Flagged post card ─────────────────────────────────────────────────────────
+const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members }) => {
   const post      = flagEntry.post;
   const isPitched = flagEntry.pitched;
   const dlColor   = getDeadlineColor(post.deadline);
   const dlLabel   = getDeadlineLabel(post.deadline);
+  const [showSelector, setShowSelector] = useState(false);
+  const [sending,      setSending]      = useState(false);
+
+  const handleSelectStrategist = async (member) => {
+    setShowSelector(false);
+    setSending(true);
+    try {
+      await onSendToStrategist(flagEntry, member);
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <motion.div
@@ -99,12 +186,23 @@ const FlaggedCard = ({ flagEntry, index, onPitch }) => {
             ))}
           </div>
         )}
+
+        {/* Strategist assignment badge */}
+        {flagEntry.assignedStrategistName && (
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 5,
+            padding: "4px 10px", borderRadius: 20, fontSize: "0.7rem", fontWeight: 700,
+            background: "#ede9fe", color: "#5b21b6", marginBottom: 4 }}>
+            <IconUsers size={11} />
+            Envoyé à {flagEntry.assignedStrategistName}
+          </div>
+        )}
       </div>
 
       {/* Card footer */}
       <div style={{ borderTop: "1px solid var(--d-border-soft)",
         padding: "12px 20px", display: "flex", alignItems: "center",
-        justifyContent: "space-between", gap: 12, background: "#fafafa" }}>
+        justifyContent: "space-between", gap: 8, background: "#fafafa",
+        position: "relative" }}>
 
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Budget */}
@@ -132,33 +230,70 @@ const FlaggedCard = ({ flagEntry, index, onPitch }) => {
           </div>
         </div>
 
-        {/* Action */}
-        {isPitched ? (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "7px 14px", borderRadius: 8, fontSize: "0.78rem", fontWeight: 700,
-            background: "#d1fae5", color: "#065f46", whiteSpace: "nowrap", flexShrink: 0 }}>
-            ✓ Pitché
-          </span>
-        ) : (
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => onPitch({ post, flagEntry })}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "8px 16px", borderRadius: 8, fontSize: "0.78rem", fontWeight: 700,
-              background: "var(--d-accent)", color: "#fff", border: "none",
-              cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}>
-            <IconSend size={13} />
-            Pitcher
-          </motion.button>
-        )}
+        {/* Actions */}
+        <div style={{ display: "flex", gap: 6, flexShrink: 0, position: "relative" }}>
+
+          {/* Send to Strategist button */}
+          {!isPitched && onSendToStrategist && (
+            <div style={{ position: "relative" }}>
+              <motion.button
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                disabled={sending}
+                onClick={() => setShowSelector(s => !s)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "8px 12px", borderRadius: 8, fontSize: "0.75rem", fontWeight: 700,
+                  background: "#ede9fe", color: "#5b21b6",
+                  border: "1.5px solid #c4b5fd", cursor: sending ? "not-allowed" : "pointer",
+                  fontFamily: "inherit", whiteSpace: "nowrap",
+                  opacity: sending ? 0.6 : 1,
+                }}>
+                <IconUsers size={12} />
+                {sending ? "…" : flagEntry.assignedStrategistName ? "Réassigner" : "Stratège"}
+              </motion.button>
+
+              <AnimatePresence>
+                {showSelector && (
+                  <StrategistSelector
+                    members={members}
+                    onSelect={handleSelectStrategist}
+                    onCancel={() => setShowSelector(false)}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* Pitch / pitched badge */}
+          {isPitched ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", borderRadius: 8, fontSize: "0.78rem", fontWeight: 700,
+              background: "#d1fae5", color: "#065f46", whiteSpace: "nowrap" }}>
+              ✓ Pitché
+            </span>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+              onClick={() => onPitch({ post, flagEntry })}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "8px 14px", borderRadius: 8, fontSize: "0.78rem", fontWeight: 700,
+                background: "var(--d-accent)", color: "#fff", border: "none",
+                cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+              <IconSend size={13} />
+              Pitcher
+            </motion.button>
+          )}
+        </div>
       </div>
     </motion.div>
   );
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
-const DirectorFlaggedPosts = ({ user, onPitch, flaggedPosts = [], loading, onRefresh }) => {
+const DirectorFlaggedPosts = ({
+  user, onPitch, flaggedPosts = [], loading, onRefresh,
+  onSendToStrategist, members = [],
+}) => {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
 
@@ -192,7 +327,7 @@ const DirectorFlaggedPosts = ({ user, onPitch, flaggedPosts = [], loading, onRef
         <div className="section-header-left">
           <h2>Posts flaggés</h2>
           <p style={{ color: "var(--d-muted)" }}>
-            Signalés par votre équipe commerciale — cliquez pour pitcher
+            Signalés par votre équipe commerciale — pitchez ou envoyez à un stratège
           </p>
         </div>
       </div>
@@ -286,6 +421,8 @@ const DirectorFlaggedPosts = ({ user, onPitch, flaggedPosts = [], loading, onRef
                 flagEntry={f}
                 index={i}
                 onPitch={onPitch}
+                onSendToStrategist={onSendToStrategist}
+                members={members}
               />
             ))}
           </AnimatePresence>

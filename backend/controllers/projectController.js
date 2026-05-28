@@ -60,7 +60,14 @@ exports.getAgencyProjects = async (req, res) => {
       .populate("post",   "title categories budget")
       .sort({ deadline: 1 });
 
-    res.json({ success: true, projects });
+    const projectsWithMeta = projects.map(p => {
+      const obj = p.toObject();
+      obj.taskProgress     = calculateProgress(p);
+      obj.deliverableCount = p.deliverables.length;
+      return obj;
+    });
+
+    res.json({ success: true, projects: projectsWithMeta });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -77,13 +84,17 @@ exports.getProject = async (req, res) => {
 
     if (!project) return res.status(404).json({ message: "Project not found" });
 
+    const projectObj = project.toObject();
+    projectObj.taskProgress      = calculateProgress(project);
+    projectObj.deliverableCount  = project.deliverables.length;
+
     // Clients see progress and deliverables only — not internal task list
     if (req.user?.role === "client") {
-      const { tasks, ...rest } = project.toObject();
+      const { tasks, ...rest } = projectObj;
       return res.json({ success: true, project: rest });
     }
 
-    res.json({ success: true, project });
+    res.json({ success: true, project: projectObj });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -368,6 +379,35 @@ exports.markFlaggedAsPitched = async (req, res) => {
     await agency.save();
 
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// SEND FLAGGED POST TO STRATEGIST  PATCH /api/projects/agency/:agencyId/flagged-posts/:postId/send-to-strategist
+// ─────────────────────────────────────────────
+exports.sendToStrategist = async (req, res) => {
+  try {
+    const { agencyId, postId } = req.params;
+    const { strategistId, strategistName } = req.body;
+
+    if (!strategistId) {
+      return res.status(400).json({ message: "strategistId requis" });
+    }
+
+    const agency = await Agency.findById(agencyId);
+    if (!agency) return res.status(404).json({ message: "Agency not found" });
+
+    const flag = agency.flaggedPosts.find(f => f.post.toString() === postId);
+    if (!flag) return res.status(404).json({ message: "Flagged post not found" });
+
+    flag.assignedStrategist     = strategistId;
+    flag.assignedStrategistName = strategistName || "";
+    flag.assignedAt             = new Date();
+    await agency.save();
+
+    res.json({ success: true, flaggedPost: flag });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
