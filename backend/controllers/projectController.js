@@ -364,9 +364,66 @@ exports.getFlaggedPosts = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
+// GET DELIVERABLES  GET /api/projects/:projectId/deliverables
+// ─────────────────────────────────────────────
+exports.getDeliverables = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.projectId)
+      .select("deliverables title");
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    res.json({ success: true, deliverables: project.deliverables });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// UPDATE DELIVERABLE  PATCH /api/projects/:projectId/deliverables/:deliverableId
+// ─────────────────────────────────────────────
+exports.updateDeliverable = async (req, res) => {
+  try {
+    const { projectId, deliverableId } = req.params;
+    const { isComplete, description, fileUrl, fileName } = req.body;
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    const deliverable = project.deliverables.id(deliverableId);
+    if (!deliverable) return res.status(404).json({ message: "Deliverable not found" });
+
+    const wasIncomplete = !deliverable.isComplete;
+
+    if (isComplete  !== undefined) deliverable.isComplete  = isComplete;
+    if (description !== undefined) deliverable.description = description;
+    if (fileUrl     !== undefined) deliverable.fileUrl     = fileUrl;
+    if (fileName    !== undefined) deliverable.fileName    = fileName;
+
+    await project.save();
+
+    if (wasIncomplete && isComplete && project.providerAgency) {
+      Notification.notify({
+        recipient: project.providerAgency, recipientRole: "agency", recipientModel: "Agency",
+        type: "project_milestone", category: "projects",
+        title: "Livrable complété",
+        body: `Le livrable "${deliverable.fileName}" a été marqué complété dans "${project.title}".`,
+        link: "/dashboard/agency/projects",
+        metadata: { projectId: project._id },
+      });
+    }
+
+    res.json({ success: true, deliverable, deliverables: project.deliverables });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
 // MARK FLAGGED POST AS PITCHED  PATCH /api/projects/agency/:agencyId/flagged-posts/:postId/pitched
 // ─────────────────────────────────────────────
 exports.markFlaggedAsPitched = async (req, res) => {
+  if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial") {
+    return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
+  }
   try {
     const { agencyId, postId } = req.params;
     const agency = await Agency.findById(agencyId);
@@ -388,6 +445,9 @@ exports.markFlaggedAsPitched = async (req, res) => {
 // SEND FLAGGED POST TO STRATEGIST  PATCH /api/projects/agency/:agencyId/flagged-posts/:postId/send-to-strategist
 // ─────────────────────────────────────────────
 exports.sendToStrategist = async (req, res) => {
+  if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial") {
+    return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
+  }
   try {
     const { agencyId, postId } = req.params;
     const { strategistId, strategistName } = req.body;

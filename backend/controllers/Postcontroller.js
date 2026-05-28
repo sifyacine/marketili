@@ -140,6 +140,8 @@ const getPosts = async (req, res) => {
       marketingType,
       collaborationType,
       search,
+      dateFrom,
+      dateTo,
       sort = "deadline",
       order = "asc",
       page = 1,
@@ -176,6 +178,12 @@ const getPosts = async (req, res) => {
 
     if (marketingType)    filter.marketingType    = marketingType;
     if (collaborationType) filter.collaborationType = collaborationType;
+
+    if (dateFrom || dateTo) {
+      filter.deadline = {};
+      if (dateFrom) filter.deadline.$gte = new Date(dateFrom);
+      if (dateTo)   filter.deadline.$lte = new Date(dateTo);
+    }
 
     if (search) {
       filter.$or = [

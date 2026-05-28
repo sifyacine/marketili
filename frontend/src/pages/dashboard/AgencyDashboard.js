@@ -21,6 +21,7 @@ import DirectorMembers      from "./agency/DirectorMembers";
 import DirectorPitches      from "./agency/DirectorPitches";
 import CommercialOverview   from "./agency/CommercialOverview";
 import CommercialBrowse     from "./agency/CommercialBrowse";
+import CommercialProjects   from "./agency/CommercialProjects";
 import WorkerOverview       from "./agency/WorkerOverview";
 import WorkerTasks          from "./agency/WorkerTasks";
 import WorkerCalendar       from "./agency/WorkerCalendar";
@@ -50,8 +51,7 @@ const getAgencyRole = (user) => {
   if (user.role === "agency") return "director";
   const jt = user.jobTitle;
   if (jt === "director") return "director";
-  // legacy mapping
-  if (jt === "commercial") return "sub_director";
+  if (jt === "commercial") return "commercial";
   if (SUB_DIRECTOR_TITLES.includes(jt)) return "sub_director";
   if (MANAGER_TITLES.includes(jt)) return "manager";
   return "worker"; // senior, junior, and any unrecognised legacy titles
@@ -98,6 +98,13 @@ const NAV_WORKER = [
   { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/agency/calendar"  },
   { label: "Messages",       icon: <IconMail         size={16} />, path: "/dashboard/agency/messages"  },
   { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/agency/profile"   },
+];
+// Commercial: post browsing + flag + deliverables on assigned projects
+const NAV_COMMERCIAL_BASE = [
+  { label: "Vue d'ensemble",  icon: <IconHome      size={16} />, path: "/dashboard/agency"          },
+  { label: "Parcourir posts", icon: <IconCompass   size={16} />, path: "/dashboard/agency/browse"   },
+  { label: "Mes projets",     icon: <IconBriefcase size={16} />, path: "/dashboard/agency/projects" },
+  { label: "Messages",        icon: <IconMail      size={16} />, path: "/dashboard/agency/messages" },
 ];
 
 // ── Browse posts (director version with pitch action) ─────────────────────────
@@ -231,13 +238,23 @@ const AgencyDashboard = () => {
     { label: "Mon profil",    icon: <IconUser size={16} />, path: "/dashboard/agency/profile" },
   ];
 
+  const NAV_COMMERCIAL = [
+    ...NAV_COMMERCIAL_BASE,
+    { label: "Notifications", icon: <IconBell size={16} />, path: "/dashboard/agency/notifications",
+      badge: unreadCount },
+    { label: "Notes",         icon: <IconNote size={16} />, path: "/dashboard/agency/notes"         },
+    { label: "Mon profil",    icon: <IconUser size={16} />, path: "/dashboard/agency/profile"        },
+  ];
+
   const NAV = agencyRole === "director"    ? NAV_DIRECTOR_FULL
     : agencyRole === "sub_director" ? NAV_SUB_DIRECTOR
+    : agencyRole === "commercial"   ? NAV_COMMERCIAL
     : agencyRole === "manager"      ? NAV_MANAGER
     : NAV_WORKER;
 
   const topbarTitle = agencyRole === "director"    ? "Espace Agence — Directeur"
     : agencyRole === "sub_director" ? "Espace Agence — Directeur de département"
+    : agencyRole === "commercial"   ? "Espace Agence — Commercial"
     : agencyRole === "manager"      ? "Espace Agence — Manager"
     : "Espace Agence — Équipe";
 
@@ -275,6 +292,17 @@ const AgencyDashboard = () => {
             <Route path="notes"         element={<PersonalNotes />} />
             <Route path="messages"      element={<MessagesPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="profile"       element={<AgencyProfile />} />
+          </>}
+
+          {/* ── Commercial ── */}
+          {agencyRole === "commercial" && <>
+            <Route index           element={<CommercialOverview  user={user} />} />
+            <Route path="browse"   element={<CommercialBrowse    user={user} />} />
+            <Route path="projects" element={<CommercialProjects  user={user} />} />
+            <Route path="messages"      element={<MessagesPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="notes"         element={<PersonalNotes />} />
             <Route path="profile"       element={<AgencyProfile />} />
           </>}
 

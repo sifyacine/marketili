@@ -39,6 +39,12 @@ const projectService = {
   addNote: (projectId, data) =>
     api.post(`/projects/${projectId}/notes`, data).then(r => r.data),
 
+  getDeliverables: (projectId) =>
+    api.get(`/projects/${projectId}/deliverables`).then(r => r.data),
+
+  updateDeliverable: (projectId, deliverableId, data) =>
+    api.patch(`/projects/${projectId}/deliverables/${deliverableId}`, data).then(r => r.data),
+
   // ── Tasks ──
   createTask: (projectId, data) =>
     api.post(`/projects/${projectId}/tasks`, data).then(r => r.data),

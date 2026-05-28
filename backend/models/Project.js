@@ -152,6 +152,7 @@ const projectSchema = new mongoose.Schema(
         description: String,
         submittedBy: mongoose.Schema.Types.ObjectId,
         submittedAt: { type: Date, default: Date.now },
+        isComplete:  { type: Boolean, default: false },
       },
     ],
 
