@@ -25,6 +25,7 @@ import {
   IconBriefcase, IconFileText, IconZap, IconCheckSquare,
   IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail,
 } from "../../components/ui/Icons";
+import ChatWindow   from "../../components/chat/ChatWindow";
 import MessagesPage from "./shared/MessagesPage";
 import "../../styles/Dashboard.css";
 
@@ -414,6 +415,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
+          { id: "messagerie", label: "Messagerie" },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             style={{
@@ -428,6 +430,8 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
           </button>
         ))}
       </div>
+
+      {activeTab === "messagerie" && <ChatWindow projectId={project._id} />}
 
       {activeTab === "detail" && <>
 

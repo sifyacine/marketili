@@ -6,6 +6,7 @@ import projectService from "../../../services/projectService";
 import contractService from "../../../services/contractService";
 import { getDeadlineColor, getDeadlineLabel } from "../../../utils/deadlineColor";
 import { IconCheckSquare, IconZap, IconUsers, IconSend } from "../../../components/ui/Icons";
+import ChatWindow from "../../../components/chat/ChatWindow";
 
 const STATUS_COLOR = {
   pending: "#f59e0b", active: "#7c3aed",
@@ -428,6 +429,7 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
+          { id: "messagerie", label: "Messagerie" },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             style={{
@@ -444,6 +446,10 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
           </button>
         ))}
       </div>
+
+      {activeTab === "messagerie" && (
+        <ChatWindow projectId={project._id} />
+      )}
 
       {/* ── Detail tab ── */}
       {activeTab === "detail" && <>
