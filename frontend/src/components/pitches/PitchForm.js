@@ -343,12 +343,14 @@ const PitchForm = ({ post, senderType, onSubmit, onClose, loading }) => {
 
             {step === totalSteps && (
               <motion.div key="final" {...slideAnim} className="dash-form">
-                <div className="dash-form-group">
-                  <label className="dash-form-label">Description générale (optionnel)</label>
-                  <textarea className="dash-form-textarea pitch-form-textarea-md"
-                    placeholder="Message d'accompagnement pour le client..."
-                    value={description} onChange={e => setDescription(e.target.value)} />
-                </div>
+                {isAgency && (
+                  <div className="dash-form-group">
+                    <label className="dash-form-label">Message d'accompagnement (optionnel)</label>
+                    <textarea className="dash-form-textarea pitch-form-textarea-md"
+                      placeholder="Message d'accompagnement pour le client..."
+                      value={description} onChange={e => setDescription(e.target.value)} />
+                  </div>
+                )}
                 <div className="dash-form-row">
                   <div className="dash-form-group">
                     <label className="dash-form-label">Prix proposé *</label>

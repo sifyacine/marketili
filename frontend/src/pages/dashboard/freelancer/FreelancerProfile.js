@@ -10,8 +10,8 @@ import {
 import { IconMapPin, IconMail, IconPhone, IconCalendar, IconGlobe, IconAward } from "../../../components/ui/Icons";
 
 const SOCIAL_PLATFORMS = ["instagram", "tiktok", "youtube", "linkedin", "twitter"];
-const ACCENT = "#d97706";
-const ACCENT_BG = "#fffbeb";
+const ACCENT = "#c0152a";
+const ACCENT_BG = "#fff0f0";
 
 const FreelancerProfile = () => {
   const { user } = useAuth();
