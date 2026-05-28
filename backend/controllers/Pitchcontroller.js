@@ -492,6 +492,9 @@ const withdrawPitch = async (req, res) => {
     pitch.respondedAt = new Date();
     await pitch.save();
 
+    // Notify the client so their pitch list refreshes
+    if (pitch.client) emitPitchUpdate(pitch.client);
+
     return ok(res, { pitch, message: "Offre retirée" });
   } catch (err) {
     console.error("withdrawPitch:", err);
