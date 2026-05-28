@@ -1,12 +1,15 @@
-const Conversation = require("../models/Conversation");
-const Message      = require("../models/Message");
-const Project      = require("../models/Project");
-const AgencyMember = require("../models/AgencyMember");
-const TeamMember   = require("../models/TeamMember");
-const Client       = require("../models/Client");
-const Agency       = require("../models/Agency");
-const Freelancer   = require("../models/Freelancer");
-const Team         = require("../models/Team");
+const { Readable }  = require("stream");
+const mongoose      = require("mongoose");
+const Conversation  = require("../models/Conversation");
+const Message       = require("../models/Message");
+const Project       = require("../models/Project");
+const AgencyMember  = require("../models/AgencyMember");
+const TeamMember    = require("../models/TeamMember");
+const Client        = require("../models/Client");
+const Agency        = require("../models/Agency");
+const Freelancer    = require("../models/Freelancer");
+const Team          = require("../models/Team");
+const { conn }      = require("../config/db");
 
 const ROLE_TO_TYPE = {
   client:        "Client",
@@ -302,16 +305,26 @@ exports.sendMessage = async (req, res) => {
     if (metadata) msgData.metadata = metadata;
 
     if (req.file) {
-      const fileId =
-        (req.file.id || req.file.fileId || req.file.filename)?.toString?.() ||
-        String(req.file.filename || Date.now());
+      // Stream the buffer into GridFS to get a real ObjectId
+      const bucket = new mongoose.mongo.GridFSBucket(conn().db, { bucketName: "uploads" });
+      const storedFilename = `${Date.now()}-${req.file.originalname.replace(/\s/g, "_")}`;
+      const uploadStream = bucket.openUploadStream(storedFilename, {
+        contentType: req.file.mimetype,
+        metadata: { originalName: req.file.originalname, uploadedBy: req.user._id },
+      });
+      await new Promise((resolve, reject) => {
+        uploadStream.on("finish", resolve);
+        uploadStream.on("error",  reject);
+        Readable.from(req.file.buffer).pipe(uploadStream);
+      });
+      const fileId = uploadStream.id;
 
       msgData.messageType = msgData.messageType === "text" ? "file" : msgData.messageType;
       msgData.file = {
-        fileId,
-        filename: req.file.filename || req.file.originalname || "fichier",
+        fileId:   fileId.toString(),
+        filename: req.file.originalname || storedFilename,
         url:      `/api/upload/${fileId}`,
-        mimeType: req.file.contentType || req.file.mimetype || "application/octet-stream",
+        mimeType: req.file.mimetype || "application/octet-stream",
         size:     req.file.size || 0,
       };
     }
