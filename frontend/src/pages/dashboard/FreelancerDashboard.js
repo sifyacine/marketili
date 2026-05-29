@@ -15,6 +15,7 @@ import FreelancerPitches     from "./freelancer/FreelancerPitches";
 import FreelancerProjects    from "./freelancer/FreelancerProjects";
 import FreelancerCalendar    from "./freelancer/FreelancerCalendar";
 import FreelancerProfile     from "./freelancer/FreelancerProfile";
+import FreelancerClients     from "./freelancer/FreelancerClients";
 import PersonalNotes         from "./shared/PersonalNotes";
 import ProviderContracts     from "../../components/contracts/ProviderContracts";
 import HistoryPage           from "./shared/HistoryPage";
@@ -22,7 +23,7 @@ import "../../styles/Dashboard.css";
 import MessagesPage from "./shared/MessagesPage";
 import {
   IconHome, IconUsers, IconCompass, IconSend,
-  IconBriefcase, IconFileText, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail,
+  IconBriefcase, IconFileText, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail, IconTarget,
 } from "../../components/ui/Icons";
 
 const ContextBar = ({ collaborations, activeContext, onSwitch }) => {
@@ -105,6 +106,7 @@ const FreelancerDashboard = () => {
   const NAV = [
     { label: "Accueil",          icon: <IconHome      size={16} />, path: "/dashboard/freelancer"                },
     { label: "Collaborations",   icon: <IconUsers     size={16} />, path: "/dashboard/freelancer/collaborations" },
+    { label: "Clients",          icon: <IconTarget    size={16} />, path: "/dashboard/freelancer/clients"         },
     { label: "Explorer",         icon: <IconCompass   size={16} />, path: "/dashboard/freelancer/browse"         },
     { label: "Mes offres",       icon: <IconSend      size={16} />, path: "/dashboard/freelancer/pitches"        },
     { label: "Mes projets",      icon: <IconBriefcase size={16} />, path: "/dashboard/freelancer/projects"       },
@@ -171,6 +173,7 @@ const FreelancerDashboard = () => {
             <FreelancerProjects user={user} activeContext={activeContext} />
           } />
 
+          <Route path="clients"       element={<FreelancerClients user={user} />} />
           <Route path="contracts"     element={<ProviderContracts user={user} partyType="Freelancer" />} />
           <Route path="history"       element={<HistoryPage />} />
           <Route path="calendar"      element={<FreelancerCalendar user={user} />} />

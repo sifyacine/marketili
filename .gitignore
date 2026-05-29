@@ -34,4 +34,5 @@ yarn-error.log*
 dist
 node_modules
 backend/logs/
+DEPLOY.md
 

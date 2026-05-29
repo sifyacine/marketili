@@ -229,8 +229,6 @@ const OverviewPanel = ({ onNav }) => {
           color={C.purple} trend={s.activity?.newClientsThisMonth} />
         <StatCard icon={<IconFlag size={15} />}     label="Posts ouverts" value={s.posts?.open}
           color={C.green} sub={`${s.posts?.total || 0} au total`} />
-        <StatCard icon={<IconSend size={15} />}     label="Offres en attente" value={s.pitches?.pending}
-          color={C.yellow} sub={`${s.pitches?.accepted || 0} acceptées`} />
         <StatCard icon={<IconBriefcase size={15} />} label="Projets actifs" value={s.projects?.active}
           color={C.blue} sub={`${s.projects?.completed || 0} terminés`} />
       </div>
@@ -316,8 +314,6 @@ const OverviewPanel = ({ onNav }) => {
           { label: "Posts Ouverts",   val: s.posts?.open,        color: C.green },
           { label: "Posts En cours",  val: s.posts?.inProgress,  color: C.yellow },
           { label: "Posts Fermés",    val: s.posts?.closed,      color: C.inkMuted },
-          { label: "Offres acceptées",val: s.pitches?.accepted,  color: C.green },
-          { label: "Offres rejetées", val: s.pitches?.rejected,  color: C.red },
           { label: "Projets terminés",val: s.projects?.completed,color: C.blue },
         ].map(({ label, val, color }) => (
           <div key={label} style={{ background: C.card, borderRadius: 10,
@@ -505,8 +501,6 @@ const StatsPanel = () => {
           color={C.purple} sub={`+${stats.activity?.newClientsThisMonth || 0} ce mois`} />
         <StatCard icon={<IconFlag size={15} />}     label="Posts total"        value={stats.posts?.total}
           color={C.green}  sub={`+${stats.activity?.postsThisMonth || 0} ce mois`} />
-        <StatCard icon={<IconSend size={15} />}     label="Offres total"       value={stats.pitches?.total}
-          color={C.yellow} sub={`${stats.pitches?.accepted || 0} acceptées`} />
         <StatCard icon={<IconBriefcase size={15} />} label="Projets total"     value={stats.projects?.total}
           color={C.blue}   sub={`${stats.projects?.active || 0} actifs`} />
       </div>
@@ -524,12 +518,6 @@ const StatsPanel = () => {
         { label: "Ouverts",  value: stats.posts.open,       color: C.green },
         { label: "En cours", value: stats.posts.inProgress, color: C.yellow },
         { label: "Fermés",   value: stats.posts.closed,     color: C.inkMuted },
-      ]} />
-      <Section title="Offres (Pitches)" items={[
-        { label: "Total",      value: stats.pitches.total,    color: C.ink },
-        { label: "En attente", value: stats.pitches.pending,  color: C.yellow },
-        { label: "Acceptées",  value: stats.pitches.accepted, color: C.green },
-        { label: "Rejetées",   value: stats.pitches.rejected, color: C.red },
       ]} />
       <Section title="Projets" items={[
         { label: "Total",    value: stats.projects.total,     color: C.ink },
