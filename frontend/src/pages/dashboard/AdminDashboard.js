@@ -1229,8 +1229,12 @@ const AdminSidebar = ({ active, onNav, collapsed, onToggle, user }) => {
         justifyContent: collapsed ? "center" : "space-between",
         borderBottom: `1px solid ${C.sidebarBdr}`, minHeight: 62 }}>
         {!collapsed && (
-          <div style={{ fontWeight: 900, fontSize: "1.15rem", color: "#fff", letterSpacing: "-0.02em" }}>
-            Market<span style={{ color: C.accent }}>ili</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <img src="/marketili_logo.svg" alt="Marketili"
+              style={{ height: 28, width: 28, objectFit: "contain", flexShrink: 0 }} />
+            <span style={{ fontWeight: 900, fontSize: "1.08rem", color: "#fff", letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>
+              Market<span style={{ color: C.accent }}>ili</span>
+            </span>
           </div>
         )}
         <button onClick={onToggle} style={{ width: 28, height: 28, borderRadius: 7, border: "none",

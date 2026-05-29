@@ -39,9 +39,12 @@ const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
   return (
     <nav className={`lp-nav${scrolled ? " lp-nav-scrolled" : ""}`}>
       {/* Logo */}
-      <div className="lp-nav-logo">
-        <img src="/marketelli_logo_1.png" alt="Marketili"
-          style={{ height: 34, objectFit: "contain", display: "block" }} />
+      <div className="lp-nav-logo" style={{ gap: 9 }}>
+        <img src="/marketili_logo.svg" alt="Marketili"
+          style={{ height: 30, objectFit: "contain", display: "block", flexShrink: 0 }} />
+        <span style={{ fontWeight: 900, fontSize: "1.08rem", color: "#fff", letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>
+          Market<span style={{ color: "#c0152a" }}>ili</span>
+        </span>
       </div>
 
       {/* Center pill nav */}
@@ -79,40 +82,6 @@ const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
     </nav>
   );
 };
-
-// ── Hero mock cards ────────────────────────────────────────────────────────────
-const HeroMock = () => (
-  <div className="lp-mock">
-    <div className="lp-mock-float-badge">
-      <span className="lp-mock-float-badge-val">+240</span>
-      <span className="lp-mock-float-badge-lbl">prestataires actifs</span>
-    </div>
-    <div className="lp-mock-card">
-      <div className="lp-mock-chip lp-chip-blue">Brief</div>
-      <div className="lp-mock-title">Campagne réseaux sociaux Q1</div>
-      <div className="lp-mock-meta">Budget : 150 000 DA · Délai : 21 jours</div>
-      <div className="lp-mock-bar"><div className="lp-mock-bar-fill" style={{ width: "65%" }} /></div>
-      <div className="lp-mock-row">
-        <span className="lp-mock-badge lp-badge-green">3 offres reçues</span>
-        <span className="lp-mock-date">il y a 2 h</span>
-      </div>
-    </div>
-    <div className="lp-mock-card lp-mock-card-sm">
-      <div className="lp-mock-chip lp-chip-red">Pitch</div>
-      <div className="lp-mock-title">Agence 360° · Stratégie complète</div>
-      <div className="lp-mock-meta">Proposé · 180 000 DA</div>
-      <div className="lp-mock-row">
-        <span className="lp-mock-badge lp-badge-yellow">En attente</span>
-      </div>
-    </div>
-    <div className="lp-mock-card lp-mock-card-sm">
-      <div className="lp-mock-chip lp-chip-purple">Projet</div>
-      <div className="lp-mock-title">Shooting Produit — Oran</div>
-      <div className="lp-mock-bar"><div className="lp-mock-bar-fill" style={{ width: "40%" }} /></div>
-      <div className="lp-mock-meta">4 tâches · 2 terminées</div>
-    </div>
-  </div>
-);
 
 // ── Contact form ──────────────────────────────────────────────────────────────
 const QUESTION_TYPES = [
@@ -358,7 +327,7 @@ const LandingPage = () => {
             </motion.h1>
 
             <motion.p className="lp-hero-sub" variants={FADE_UP} initial="hidden" animate="visible" custom={2}>
-              Marketili connecte les entreprises avec les agences, équipes et créateurs — des briefs aux livrables, tout en un.
+              Gérez tous vos besoins marketing en un seul endroit.
             </motion.p>
 
             <motion.div className="lp-hero-btns" variants={FADE_UP} initial="hidden" animate="visible" custom={3}>
@@ -371,10 +340,6 @@ const LandingPage = () => {
             </motion.div>
 
           </div>
-
-          <motion.div className="lp-hero-mock-wrap" variants={FADE_UP} initial="hidden" animate="visible" custom={2}>
-            <HeroMock />
-          </motion.div>
         </div>
       </section>
 
@@ -583,8 +548,13 @@ const LandingPage = () => {
       <footer className="lp-footer">
         <div className="lp-container lp-footer-grid">
           <div className="lp-footer-brand">
-            <img src="/marketelli_logo_1.png" alt="Marketili"
-              style={{ height: 34, objectFit: "contain", display: "block" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
+              <img src="/marketili_logo.svg" alt="Marketili"
+                style={{ height: 30, objectFit: "contain", display: "block", flexShrink: 0 }} />
+              <span style={{ fontWeight: 900, fontSize: "1.08rem", color: "#fff", letterSpacing: "-0.03em" }}>
+                Market<span style={{ color: "#c0152a" }}>ili</span>
+              </span>
+            </div>
             <p className="lp-footer-tagline">La collaboration marketing professionnelle en Algérie.</p>
             <div className="lp-footer-socials">
               <a href="#" className="lp-social-link" aria-label="LinkedIn">in</a>

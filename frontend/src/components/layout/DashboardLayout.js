@@ -198,17 +198,18 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
 
         {/* Logo */}
         <div className="dash-sidebar-logo">
-          <img
-            src="/marketelli_logo_1.png"
-            alt="Marketili"
-            style={{
-              height: showLabels ? 34 : 28,
-              maxWidth: showLabels ? 130 : 28,
-              objectFit: "contain",
-              objectPosition: "left center",
-              transition: "all 0.2s",
-            }}
-          />
+          {showLabels ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <img src="/marketili_logo.svg" alt="Marketili"
+                style={{ height: 28, width: 28, objectFit: "contain", flexShrink: 0 }} />
+              <span style={{ fontWeight: 900, fontSize: "1.08rem", color: "#fff", letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>
+                Market<span style={{ color: "#c0152a" }}>ili</span>
+              </span>
+            </div>
+          ) : (
+            <img src="/marketili_logo.svg" alt="Marketili"
+              style={{ height: 28, width: 28, objectFit: "contain" }} />
+          )}
           <button className="dash-sidebar-toggle" onClick={() => setCollapsed(o => !o)}
             title={collapsed ? "Agrandir" : "Réduire"}>
             {collapsed

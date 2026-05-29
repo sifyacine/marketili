@@ -72,7 +72,13 @@ const ChangePasswordPage = () => {
         <div className="auth-left-decor">M</div>
 
         <div className="auth-left-content">
-          <div className="auth-logo">Market<span>ili</span></div>
+          <div className="auth-logo" style={{ display: "flex", alignItems: "center", gap: 11 }}>
+            <img src="/marketili_logo.svg" alt="Marketili"
+              style={{ height: 38, objectFit: "contain", display: "block", flexShrink: 0 }} />
+            <span style={{ fontWeight: 900, fontSize: "1.3rem", color: "#fff", letterSpacing: "-0.03em" }}>
+              Market<span style={{ color: "#c0152a" }}>ili</span>
+            </span>
+          </div>
           <h2 className="auth-left-title">
             Bienvenue dans <em>l'équipe.</em>
           </h2>

@@ -233,9 +233,12 @@ const Register = () => {
         <div className="auth-left-decor">M</div>
 
         <div className="auth-left-content">
-          <Link to="/" className="auth-logo">
-            <img src="/marketelli_logo_1.png" alt="Marketili"
-              style={{ height: 44, objectFit: "contain", display: "block" }} />
+          <Link to="/" className="auth-logo" style={{ display: "flex", alignItems: "center", gap: 11 }}>
+            <img src="/marketili_logo.svg" alt="Marketili"
+              style={{ height: 38, objectFit: "contain", display: "block", flexShrink: 0 }} />
+            <span style={{ fontWeight: 900, fontSize: "1.3rem", color: "#fff", letterSpacing: "-0.03em" }}>
+              Market<span style={{ color: "#c0152a" }}>ili</span>
+            </span>
           </Link>
           <h2 className="auth-left-title">
             La plateforme qui connecte les marques aux <em>experts marketing.</em>
