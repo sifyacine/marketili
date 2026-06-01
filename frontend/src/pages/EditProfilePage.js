@@ -8,32 +8,43 @@ import useAuth from "../hooks/useAuth";
 // ── Field definitions per role ────────────────────────────────────────────────
 const ROLE_FIELDS = {
   agency: [
-    { name: "bio",        label: "Bio",          type: "textarea" },
-    { name: "phone",      label: "Téléphone",    type: "text"     },
-    { name: "website",    label: "Site web",     type: "url"      },
-    { name: "specialties",label: "Spécialités",  type: "tags"     },
+    { name: "agencyName",  label: "Nom de l'agence",  type: "text"     },
+    { name: "bio",         label: "Bio",              type: "textarea" },
+    { name: "phone",       label: "Téléphone",        type: "text"     },
+    { name: "website",     label: "Site web",         type: "url"      },
+    { name: "region",      label: "Wilaya / Région",  type: "text"     },
+    { name: "specialties", label: "Spécialités",      type: "tags"     },
   ],
   freelancer: [
-    { name: "bio",           label: "Bio",              type: "textarea" },
-    { name: "skills",        label: "Compétences",      type: "tags"     },
-    { name: "categories",    label: "Catégories",       type: "tags"     },
-    { name: "followersCount",label: "Abonnés",          type: "number"   },
+    { name: "firstName",     label: "Prénom",       type: "text"     },
+    { name: "lastName",      label: "Nom",          type: "text"     },
+    { name: "bio",           label: "Bio",          type: "textarea" },
+    { name: "region",        label: "Wilaya",       type: "text"     },
+    { name: "skills",        label: "Compétences",  type: "tags"     },
+    { name: "categories",    label: "Catégories",   type: "tags"     },
+    { name: "followersCount",label: "Abonnés",      type: "number"   },
   ],
   client: [
-    { name: "bio",          label: "Bio",                       type: "textarea" },
-    { name: "industry",     label: "Secteur d'activité",        type: "text"     },
-    { name: "fieldOfWork",  label: "Domaine / Description",     type: "text"     },
-    { name: "achievements", label: "Réalisations / Références", type: "tags"     },
+    { name: "companyName",  label: "Nom / Entreprise",              type: "text"     },
+    { name: "bio",          label: "Bio",                           type: "textarea" },
+    { name: "industry",     label: "Secteur d'activité",            type: "text"     },
+    { name: "fieldOfWork",  label: "Domaine / Description",         type: "text"     },
+    { name: "region",       label: "Wilaya / Région",               type: "text"     },
+    { name: "achievements", label: "Réalisations / Références",     type: "tags"     },
   ],
   team: [
-    { name: "bio",         label: "Bio",          type: "textarea" },
-    { name: "website",     label: "Site web",     type: "url"      },
-    { name: "specialties", label: "Spécialités",  type: "tags"     },
+    { name: "teamName",    label: "Nom de l'équipe",  type: "text"     },
+    { name: "bio",         label: "Bio",              type: "textarea" },
+    { name: "website",     label: "Site web",         type: "url"      },
+    { name: "region",      label: "Wilaya / Région",  type: "text"     },
+    { name: "specialties", label: "Spécialités",      type: "tags"     },
   ],
   agency_member: [
-    { name: "bio",   label: "Bio",        type: "textarea" },
-    { name: "phone", label: "Téléphone",  type: "text"     },
-    { name: "skills",label: "Compétences",type: "tags"     },
+    { name: "firstName", label: "Prénom",       type: "text"     },
+    { name: "lastName",  label: "Nom",          type: "text"     },
+    { name: "bio",       label: "Bio",          type: "textarea" },
+    { name: "phone",     label: "Téléphone",    type: "text"     },
+    { name: "skills",    label: "Compétences",  type: "tags"     },
   ],
 };
 
@@ -156,11 +167,19 @@ const EditProfilePage = () => {
       .then(d => {
         const p = d.profile;
         setForm({
+          // Identity
+          agencyName:  p.agencyName  || "",
+          teamName:    p.teamName    || "",
+          companyName: p.companyName || "",
+          firstName:   p.firstName   || "",
+          lastName:    p.lastName    || "",
+          // Profile info
           bio:          p.bio          || "",
           phone:        p.phone        || "",
           website:      p.website      || "",
           industry:     p.industry     || "",
           fieldOfWork:  p.fieldOfWork  || "",
+          region:       p.address?.region || p.location?.region || "",
           specialties:  p.specialties  || [],
           skills:       p.skills       || [],
           categories:   p.categories   || [],

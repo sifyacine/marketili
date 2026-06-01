@@ -21,6 +21,7 @@ import DirectorMembers      from "./agency/DirectorMembers";
 import DirectorPitches      from "./agency/DirectorPitches";
 import CommercialOverview   from "./agency/CommercialOverview";
 import CommercialBrowse     from "./agency/CommercialBrowse";
+import CommercialProjects   from "./agency/CommercialProjects";
 import WorkerOverview       from "./agency/WorkerOverview";
 import WorkerTasks          from "./agency/WorkerTasks";
 import WorkerCalendar       from "./agency/WorkerCalendar";
@@ -29,11 +30,13 @@ import DirectorCalendar     from "./agency/DirectorCalendar";
 import DirectorAnalytics    from "./agency/DirectorAnalytics";
 import AgencyProfile        from "./agency/AgencyProfile";
 import PersonalNotes        from "./shared/PersonalNotes";
+import HistoryPage          from "./shared/HistoryPage";
+import MessagesPage         from "./shared/MessagesPage";
 import { PostCard }         from "./agency/shared";
 import { usePosts }         from "../../hooks/usePosts";
 import {
   IconHome, IconFlag, IconTarget, IconBriefcase,
-  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser, IconNote, IconTrendingUp,
+  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser, IconNote, IconTrendingUp, IconClock, IconMail,
 } from "../../components/ui/Icons";
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
@@ -48,8 +51,7 @@ const getAgencyRole = (user) => {
   if (user.role === "agency") return "director";
   const jt = user.jobTitle;
   if (jt === "director") return "director";
-  // legacy mapping
-  if (jt === "commercial") return "sub_director";
+  if (jt === "commercial") return "commercial";
   if (SUB_DIRECTOR_TITLES.includes(jt)) return "sub_director";
   if (MANAGER_TITLES.includes(jt)) return "manager";
   return "worker"; // senior, junior, and any unrecognised legacy titles
@@ -67,6 +69,7 @@ const NAV_DIRECTOR = [
   { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"    },
   { label: "Calendrier",      icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"  },
   { label: "Analytique",      icon: <IconTrendingUp  size={16} />, path: "/dashboard/agency/analytics" },
+  { label: "Historique",      icon: <IconClock       size={16} />, path: "/dashboard/agency/history"   },
   { label: "Notes",           icon: <IconNote        size={16} />, path: "/dashboard/agency/notes"     },
 ];
 // Sub-directors: Creative Director, Marketing Director, Production Director
@@ -76,6 +79,7 @@ const NAV_SUB_DIRECTOR = [
   { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"    },
   { label: "Projets",         icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects"  },
   { label: "Calendrier",      icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"  },
+  { label: "Messages",        icon: <IconMail        size={16} />, path: "/dashboard/agency/messages"  },
   { label: "Mon profil",      icon: <IconUser        size={16} />, path: "/dashboard/agency/profile"   },
 ];
 // Managers: Art Director, Strategist, Digital Manager, Project Manager, Social Media Manager
@@ -84,6 +88,7 @@ const NAV_MANAGER = [
   { label: "Mes tâches",     icon: <IconCheckSquare  size={16} />, path: "/dashboard/agency/tasks"     },
   { label: "Mes projets",    icon: <IconBriefcase    size={16} />, path: "/dashboard/agency/projects"  },
   { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/agency/calendar"  },
+  { label: "Messages",       icon: <IconMail         size={16} />, path: "/dashboard/agency/messages"  },
   { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/agency/profile"   },
 ];
 // Workers: Seniors and Juniors — execution only
@@ -91,7 +96,15 @@ const NAV_WORKER = [
   { label: "Vue d'ensemble", icon: <IconHome         size={16} />, path: "/dashboard/agency"           },
   { label: "Mes tâches",     icon: <IconCheckSquare  size={16} />, path: "/dashboard/agency/tasks"     },
   { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/agency/calendar"  },
+  { label: "Messages",       icon: <IconMail         size={16} />, path: "/dashboard/agency/messages"  },
   { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/agency/profile"   },
+];
+// Commercial: post browsing + flag + deliverables on assigned projects
+const NAV_COMMERCIAL_BASE = [
+  { label: "Vue d'ensemble",  icon: <IconHome      size={16} />, path: "/dashboard/agency"          },
+  { label: "Parcourir posts", icon: <IconCompass   size={16} />, path: "/dashboard/agency/browse"   },
+  { label: "Mes projets",     icon: <IconBriefcase size={16} />, path: "/dashboard/agency/projects" },
+  { label: "Messages",        icon: <IconMail      size={16} />, path: "/dashboard/agency/messages" },
 ];
 
 // ── Browse posts (director version with pitch action) ─────────────────────────
@@ -146,6 +159,7 @@ const AgencyDashboard = () => {
   const [pitchTarget,  setPitchTarget]  = useState(null);
   const [flaggedPosts, setFlaggedPosts] = useState([]);
   const [projects,     setProjects]     = useState([]);
+  const [members,      setMembers]      = useState([]);
   const [dataLoading,  setDataLoading]  = useState(true);
   const [unreadCount,  setUnreadCount]  = useState(0);
 
@@ -174,10 +188,29 @@ const AgencyDashboard = () => {
         .then(d => setFlaggedPosts(d.flaggedPosts || [])),
       projectService.getAgencyProjects(agencyId)
         .then(d => setProjects(d.projects || [])),
+      projectService.getAgencyMembers(agencyId)
+        .then(d => setMembers(d.members || [])),
     ])
       .catch(() => {})
       .finally(() => setDataLoading(false));
   }, [agencyRole, user?._id, user?.agency]);
+
+  const handleSendToStrategist = async (flagEntry, member) => {
+    const agencyId = user.role === "agency" ? user._id : user.agency;
+    const postId   = flagEntry.post._id;
+    const name     = `${member.firstName} ${member.lastName}`;
+    try {
+      await projectService.sendToStrategist(agencyId, postId, {
+        strategistId:   member._id,
+        strategistName: name,
+      });
+      setFlaggedPosts(prev => prev.map(f =>
+        f.post?._id === postId
+          ? { ...f, assignedStrategist: member._id, assignedStrategistName: name }
+          : f
+      ));
+    } catch {}
+  };
 
   const handlePitchSubmit = async (pitchData) => {
     await pitchService.send({
@@ -199,18 +232,29 @@ const AgencyDashboard = () => {
 
   const NAV_DIRECTOR_FULL = [
     ...NAV_DIRECTOR,
+    { label: "Messages",      icon: <IconMail size={16} />, path: "/dashboard/agency/messages"      },
     { label: "Notifications", icon: <IconBell size={16} />, path: "/dashboard/agency/notifications",
       badge: unreadCount },
     { label: "Mon profil",    icon: <IconUser size={16} />, path: "/dashboard/agency/profile" },
   ];
 
+  const NAV_COMMERCIAL = [
+    ...NAV_COMMERCIAL_BASE,
+    { label: "Notifications", icon: <IconBell size={16} />, path: "/dashboard/agency/notifications",
+      badge: unreadCount },
+    { label: "Notes",         icon: <IconNote size={16} />, path: "/dashboard/agency/notes"         },
+    { label: "Mon profil",    icon: <IconUser size={16} />, path: "/dashboard/agency/profile"        },
+  ];
+
   const NAV = agencyRole === "director"    ? NAV_DIRECTOR_FULL
     : agencyRole === "sub_director" ? NAV_SUB_DIRECTOR
+    : agencyRole === "commercial"   ? NAV_COMMERCIAL
     : agencyRole === "manager"      ? NAV_MANAGER
     : NAV_WORKER;
 
   const topbarTitle = agencyRole === "director"    ? "Espace Agence — Directeur"
     : agencyRole === "sub_director" ? "Espace Agence — Directeur de département"
+    : agencyRole === "commercial"   ? "Espace Agence — Commercial"
     : agencyRole === "manager"      ? "Espace Agence — Manager"
     : "Espace Agence — Équipe";
 
@@ -230,6 +274,8 @@ const AgencyDashboard = () => {
             <Route path="flagged" element={
               <DirectorFlaggedPosts user={user} onPitch={setPitchTarget}
                 flaggedPosts={flaggedPosts} loading={dataLoading}
+                members={members}
+                onSendToStrategist={handleSendToStrategist}
                 onRefresh={() =>
                   projectService.getFlaggedPosts(user._id)
                     .then(d => setFlaggedPosts(d.flaggedPosts || []))} />
@@ -242,8 +288,21 @@ const AgencyDashboard = () => {
             <Route path="browse"        element={<BrowsePosts onPitch={setPitchTarget} />} />
             <Route path="calendar"      element={<DirectorCalendar user={user} />} />
             <Route path="analytics"     element={<DirectorAnalytics user={user} />} />
+            <Route path="history"        element={<HistoryPage />} />
             <Route path="notes"         element={<PersonalNotes />} />
+            <Route path="messages"      element={<MessagesPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="profile"       element={<AgencyProfile />} />
+          </>}
+
+          {/* ── Commercial ── */}
+          {agencyRole === "commercial" && <>
+            <Route index           element={<CommercialOverview  user={user} />} />
+            <Route path="browse"   element={<CommercialBrowse    user={user} />} />
+            <Route path="projects" element={<CommercialProjects  user={user} />} />
+            <Route path="messages"      element={<MessagesPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="notes"         element={<PersonalNotes />} />
             <Route path="profile"       element={<AgencyProfile />} />
           </>}
 
@@ -253,14 +312,17 @@ const AgencyDashboard = () => {
             <Route path="flagged"  element={
               <DirectorFlaggedPosts user={user} onPitch={setPitchTarget}
                 flaggedPosts={flaggedPosts} loading={dataLoading}
+                members={members}
+                onSendToStrategist={handleSendToStrategist}
                 onRefresh={() =>
                   projectService.getFlaggedPosts(user.agency || user._id)
                     .then(d => setFlaggedPosts(d.flaggedPosts || []))} />
             } />
             <Route path="browse"   element={<CommercialBrowse  user={user} />} />
             <Route path="projects" element={<WorkerProjects    user={user} />} />
-            <Route path="calendar" element={<WorkerCalendar    user={user} />} />
-            <Route path="profile"  element={<AgencyProfile />} />
+            <Route path="calendar"  element={<WorkerCalendar    user={user} />} />
+            <Route path="messages"  element={<MessagesPage />} />
+            <Route path="profile"   element={<AgencyProfile />} />
           </>}
 
           {/* ── Manager (Art Dir, Strategist, Digital Mgr, Project Mgr, SMM) ── */}
@@ -269,6 +331,7 @@ const AgencyDashboard = () => {
             <Route path="tasks"    element={<WorkerTasks     user={user} />} />
             <Route path="projects" element={<WorkerProjects  user={user} />} />
             <Route path="calendar" element={<WorkerCalendar  user={user} />} />
+            <Route path="messages" element={<MessagesPage />} />
             <Route path="profile"  element={<AgencyProfile />} />
           </>}
 
@@ -277,6 +340,7 @@ const AgencyDashboard = () => {
             <Route index           element={<WorkerOverview user={user} />} />
             <Route path="tasks"    element={<WorkerTasks    user={user} />} />
             <Route path="calendar" element={<WorkerCalendar user={user} />} />
+            <Route path="messages" element={<MessagesPage />} />
             <Route path="profile"  element={<AgencyProfile />} />
           </>}
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import pitchService from "../../../services/pitchService";
+import { getSocket } from "../../../services/socketService";
 import { IconSend } from "../../../components/ui/Icons";
 
 const STATUS_META = {
@@ -175,6 +176,21 @@ const TeamLeadPitches = ({ user }) => {
   }, [user?._id]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Real-time: refetch when pitch status changes or a pitch notification arrives
+  useEffect(() => {
+    const socket = getSocket();
+    const onPitchUpdate = () => load();
+    const onNotif = ({ notification }) => {
+      if (notification?.category === "pitches") load();
+    };
+    socket.on("pitch_update",     onPitchUpdate);
+    socket.on("new_notification", onNotif);
+    return () => {
+      socket.off("pitch_update",     onPitchUpdate);
+      socket.off("new_notification", onNotif);
+    };
+  }, [load]);
 
   const filtered = filter === "all"
     ? allPitches

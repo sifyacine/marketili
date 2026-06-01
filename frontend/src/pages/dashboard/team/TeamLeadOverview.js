@@ -90,7 +90,7 @@ const TeamLeadOverview = ({ user }) => {
           value={pendingPitches} color="#7c3aed"
           onClick={() => navigate("/dashboard/team/pitches")} />
         <StatCard icon={<IconUsers size={16} />} label="Membres"
-          value={members.length} color="#d97706"
+          value={members.length} color="#c0152a"
           onClick={() => navigate("/dashboard/team/members")} />
         <StatCard icon={<IconBriefcase size={16} />} label="Total projets"
           value={projects.length} color="#059669" />

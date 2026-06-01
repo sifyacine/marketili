@@ -148,6 +148,85 @@ const FILTER_TABS = [
 const fmt = (d) =>
   new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" });
 
+// ── Accept modal ─────────────────────────────────────────────────────────────
+const AcceptModal = ({ pitch, onConfirm, onClose }) => {
+  const [withContract, setWithContract] = useState(false);
+  if (!pitch) return null;
+
+  const providerName =
+    pitch.senderAgency?.agencyName ||
+    pitch.senderTeam?.teamName ||
+    [pitch.senderFreelancer?.firstName, pitch.senderFreelancer?.lastName].filter(Boolean).join(" ") ||
+    "le prestataire";
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
+      zIndex: 9500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: "#fff", borderRadius: 14, padding: "28px 28px 24px",
+        width: "100%", maxWidth: 460, boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}>
+        <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "#1a0a0a", marginBottom: 6 }}>
+          Accepter cette offre ?
+        </div>
+        <div style={{ fontSize: "0.82rem", color: "#9a6060", marginBottom: 20, lineHeight: 1.5 }}>
+          Vous allez accepter l'offre de <strong>{providerName}</strong>. Les autres offres en attente seront automatiquement rejetées.
+        </div>
+
+        {/* Contract toggle */}
+        <div style={{ background: "#f9f9f9", borderRadius: 10, padding: "14px 16px", marginBottom: 20 }}>
+          <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1a0a0a", marginBottom: 12,
+            textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Mode de démarrage
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+              <input type="radio" name="contractMode" checked={!withContract}
+                onChange={() => setWithContract(false)}
+                style={{ marginTop: 2, accentColor: "#c0152a" }} />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#1a0a0a" }}>
+                  Démarrer directement
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "#9a6060", lineHeight: 1.4 }}>
+                  Le projet est créé immédiatement, sans contrat formel.
+                </div>
+              </div>
+            </label>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+              <input type="radio" name="contractMode" checked={withContract}
+                onChange={() => setWithContract(true)}
+                style={{ marginTop: 2, accentColor: "#c0152a" }} />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#1a0a0a" }}>
+                  Avec contrat
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "#9a6060", lineHeight: 1.4 }}>
+                  Le prestataire remplira un contrat proforma → PDF → vous envoyez un reçu → projet démarré.
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <button onClick={onClose}
+            style={{ padding: "9px 20px", borderRadius: 8, border: "1.5px solid #f0dede",
+              background: "none", cursor: "pointer", fontSize: "0.85rem",
+              color: "#9a6060", fontFamily: "inherit", fontWeight: 600 }}>
+            Annuler
+          </button>
+          <button onClick={() => onConfirm(withContract)}
+            style={{ padding: "9px 22px", borderRadius: 8, border: "none",
+              background: "#c0152a", color: "#fff", cursor: "pointer",
+              fontSize: "0.85rem", fontFamily: "inherit", fontWeight: 700 }}>
+            Confirmer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ClientPitches = ({ user }) => {
   const { pitches, loading, refetch } = usePitchesForClient(user?._id);
   const [statusF,       setStatusF]       = useState("all");
@@ -155,6 +234,7 @@ const ClientPitches = ({ user }) => {
   const [actionLoad,    setActionLoad]    = useState(null);
   const [successMsg,    setSuccessMsg]    = useState("");
   const [selectedPitch, setSelectedPitch] = useState(null);
+  const [acceptTarget,  setAcceptTarget]  = useState(null);
 
   const filtered = useMemo(() => {
     let data = [...pitches];
@@ -171,14 +251,19 @@ const ClientPitches = ({ user }) => {
     return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }, [pitches, statusF, search]);
 
-  const handleAccept = async (pitch) => {
-    if (!window.confirm("Accepter cette offre ? Les autres offres en attente seront automatiquement rejetées.")) return;
+  const handleAccept = (pitch) => setAcceptTarget(pitch);
+
+  const handleAcceptConfirm = async (withContract) => {
+    const pitch = acceptTarget;
+    setAcceptTarget(null);
     setActionLoad(pitch._id);
     try {
-      await pitchService.accept(pitch._id, user._id);
-      setSuccessMsg("Offre acceptée — le projet a été créé.");
+      await pitchService.accept(pitch._id, user._id, withContract);
+      setSuccessMsg(withContract
+        ? "Offre acceptée — le prestataire doit remplir le contrat pour démarrer le projet."
+        : "Offre acceptée — le projet a été créé.");
       refetch();
-      setTimeout(() => setSuccessMsg(""), 5000);
+      setTimeout(() => setSuccessMsg(""), 6000);
     } catch (err) {
       alert(err.response?.data?.message || "Erreur");
     } finally {
@@ -327,11 +412,11 @@ const ClientPitches = ({ user }) => {
                       transition={{ delay: i * 0.025 }}
                       style={{ borderLeft: `3px solid ${meta.color}` }}
                     >
-                      <td>
+                      <td data-label="Prestataire">
                         <div className="td-title">{senderName}</div>
                         <div className="td-sub">{senderTypeLabel}</div>
                       </td>
-                      <td>
+                      <td data-label="Post">
                         <div style={{
                           fontWeight: 600, fontSize: "0.82rem", color: "var(--d-ink)",
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
@@ -340,17 +425,17 @@ const ClientPitches = ({ user }) => {
                           {pitch.post?.title || "Post supprimé"}
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Prix proposé">
                         {pitch.proposedPrice?.amount
                           ? `${pitch.proposedPrice.amount.toLocaleString()} ${pitch.proposedPrice.currency || "DZD"}`
                           : <span className="td-muted">—</span>}
                       </td>
-                      <td className="td-muted">
+                      <td data-label="Durée" className="td-muted">
                         {pitch.timeline?.duration
                           ? `${pitch.timeline.duration} ${pitch.timeline.unit === "days" ? "j" : pitch.timeline.unit === "weeks" ? "sem" : "mois"}`
                           : "—"}
                       </td>
-                      <td>
+                      <td data-label="Statut">
                         <span style={{
                           padding: "3px 10px", borderRadius: 20, fontSize: "0.72rem",
                           fontWeight: 700, background: meta.bg, color: meta.color,
@@ -358,8 +443,8 @@ const ClientPitches = ({ user }) => {
                           {meta.label}
                         </span>
                       </td>
-                      <td className="td-muted">{fmt(pitch.createdAt)}</td>
-                      <td onClick={e => e.stopPropagation()}>
+                      <td data-label="Reçue le" className="td-muted">{fmt(pitch.createdAt)}</td>
+                      <td data-label="" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setSelectedPitch(pitch)}
                           style={{ padding: "3px 9px", borderRadius: 6, border: "1px solid #ddd",
                             background: "none", cursor: "pointer", fontSize: "0.7rem",
@@ -417,6 +502,12 @@ const ClientPitches = ({ user }) => {
           </table>
         </div>
       )}
+
+      <AcceptModal
+        pitch={acceptTarget}
+        onConfirm={handleAcceptConfirm}
+        onClose={() => setAcceptTarget(null)}
+      />
     </div>
   );
 };

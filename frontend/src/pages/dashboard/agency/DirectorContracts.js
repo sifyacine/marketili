@@ -2,8 +2,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import contractService from "../../../services/contractService";
+import uploadService  from "../../../services/uploadService";
 import { IconFileText, IconCheckSquare } from "../../../components/ui/Icons";
 import ContratProformaForm from "../../../components/contracts/ContratProformaForm";
+import FileViewerModal from "../../../components/ui/FileViewerModal";
 
 // ── Status system ─────────────────────────────────────────────────────────────
 const STATUS_META = {
@@ -312,6 +314,30 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   const [bdcForm,         setBdcForm]         = useState({ url: "", filename: "" });
   const [showBdc,         setShowBdc]         = useState(false);
   const [showProformaForm, setShowProformaForm] = useState(false);
+  const [viewer,           setViewer]           = useState(null);
+
+  const handleConfirmStart = async () => {
+    setSaving(true); setError(""); setMsg("");
+    try {
+      const d = await contractService.confirmAndStart(contract._id, user._id);
+      setContract(d.contract);
+      setMsg("Projet démarré — contrat finalisé.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur");
+    } finally { setSaving(false); }
+  };
+
+  const handleSkip = async () => {
+    if (!window.confirm("Ignorer le contrat et démarrer le projet directement ?")) return;
+    setSaving(true); setError(""); setMsg("");
+    try {
+      const d = await contractService.skipContract(contract._id, user._id);
+      setContract(d.contract);
+      setMsg("Contrat ignoré — projet démarré.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur");
+    } finally { setSaving(false); }
+  };
 
   const meta = STATUS_META[contract.status] || STATUS_META.draft;
 
@@ -381,25 +407,36 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
 
   const DocLink = ({ label, filename, url }) => {
     if (!url) return null;
+    const resolved = uploadService.resolveUrl(url);
     return (
-      <a href={url} target="_blank" rel="noreferrer"
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "10px 14px", borderRadius: 8, border: "1px solid var(--d-border-soft)",
-          background: "#fff", textDecoration: "none", marginBottom: 8 }}>
-        <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding: "10px 14px", borderRadius: 8, border: "1px solid var(--d-border-soft)",
+        background: "#fff", marginBottom: 8, gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--d-muted)",
             textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 2 }}>
             {label}
           </div>
-          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--d-ink)" }}>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--d-ink)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {filename || url}
           </div>
         </div>
-        <span style={{ fontSize: "0.75rem", color: "#c0152a", fontWeight: 600,
-          whiteSpace: "nowrap" }}>
-          Télécharger ↗
-        </span>
-      </a>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <button onClick={() => setViewer({ url, filename })}
+            style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+              border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+              cursor: "pointer", fontFamily: "inherit" }}>
+            Visualiser
+          </button>
+          <a href={`${resolved}?download=1`}
+            style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+              border: "1.5px solid var(--d-border-soft)", background: "none", color: "var(--d-muted)",
+              textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+            ↓
+          </a>
+        </div>
+      </div>
     );
   };
 
@@ -421,6 +458,9 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}>
+      {viewer && (
+        <FileViewerModal url={viewer.url} filename={viewer.filename} onClose={() => setViewer(null)} />
+      )}
       {/* Back + title */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
         <button onClick={onBack}
@@ -492,6 +532,8 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         onSend={handleSend}
         onBdc={handleBdc}
         onOpenProforma={() => setShowProformaForm(true)}
+        onConfirmStart={handleConfirmStart}
+        onSkip={handleSkip}
       />
 
       {/* Parties */}
@@ -673,6 +715,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
 const WorkflowCard = ({
   contract, user, saving, showBdc, setShowBdc,
   bdcForm, setBdcForm, onSend, onBdc, onOpenProforma,
+  onConfirmStart, onSkip,
 }) => {
   if (contract.status === "draft") {
     return (
@@ -698,6 +741,15 @@ const WorkflowCard = ({
               cursor: "pointer", fontFamily: "inherit" }}>
             {saving ? "Envoi..." : "Envoyer sans PDF"}
           </button>
+          {onSkip && (
+            <button onClick={onSkip} disabled={saving}
+              style={{ padding: "9px 16px", borderRadius: 8,
+                border: "1.5px solid #9ca3af", background: "none",
+                color: "#6b7280", fontWeight: 600, fontSize: "0.83rem",
+                cursor: "pointer", fontFamily: "inherit" }}>
+              Ignorer — démarrer le projet
+            </button>
+          )}
         </div>
       </motion.div>
     );
@@ -712,9 +764,18 @@ const WorkflowCard = ({
           marginBottom: 6 }}>
           En attente du reçu client
         </div>
-        <p style={{ fontSize: "0.82rem", color: "#0c4a6e", lineHeight: 1.6 }}>
+        <p style={{ fontSize: "0.82rem", color: "#0c4a6e", lineHeight: 1.6, marginBottom: onSkip ? 14 : 0 }}>
           Le contrat a été envoyé. En attente que le client uploade son reçu de paiement.
         </p>
+        {onSkip && (
+          <button onClick={onSkip} disabled={saving}
+            style={{ padding: "8px 16px", borderRadius: 8,
+              border: "1.5px solid #9ca3af", background: "none",
+              color: "#6b7280", fontWeight: 600, fontSize: "0.82rem",
+              cursor: "pointer", fontFamily: "inherit" }}>
+            Ignorer — démarrer le projet sans reçu
+          </button>
+        )}
       </motion.div>
     );
   }
@@ -726,46 +787,57 @@ const WorkflowCard = ({
           borderLeft: "4px solid #c0152a" }}>
         <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--d-ink)",
           marginBottom: 6 }}>
-          Prochaine action — Envoyer le bon de commande
+          Reçu client reçu — confirmer et démarrer le projet
         </div>
         <p style={{ fontSize: "0.82rem", color: "var(--d-muted)", lineHeight: 1.6,
           marginBottom: 14 }}>
-          Le client a envoyé son reçu. Envoyez le bon de commande pour finaliser le contrat.
+          Le client a envoyé son reçu. Confirmez pour activer le projet, ou envoyez un bon de commande.
         </p>
-        {!showBdc ? (
-          <button onClick={() => setShowBdc(true)} className="section-cta-btn">
-            Envoyer le bon de commande
-          </button>
-        ) : (
-          <form onSubmit={onBdc}>
-            <div className="dash-form-row" style={{ marginBottom: 10 }}>
-              <div className="dash-form-group">
-                <label className="dash-form-label">URL du bon de commande *</label>
-                <input className="dash-form-input" placeholder="https://..." required
-                  value={bdcForm.url}
-                  onChange={e => setBdcForm(p => ({ ...p, url: e.target.value }))} />
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {onConfirmStart && (
+            <button onClick={onConfirmStart} disabled={saving} className="section-cta-btn">
+              {saving ? "..." : "Confirmer et démarrer le projet"}
+            </button>
+          )}
+          {!showBdc ? (
+            <button onClick={() => setShowBdc(true)} disabled={saving}
+              style={{ padding: "9px 16px", borderRadius: 8,
+                border: "1.5px solid #d97706", background: "none",
+                color: "#d97706", fontWeight: 600, fontSize: "0.83rem",
+                cursor: "pointer", fontFamily: "inherit" }}>
+              Envoyer bon de commande
+            </button>
+          ) : (
+            <form onSubmit={onBdc} style={{ width: "100%" }}>
+              <div className="dash-form-row" style={{ marginBottom: 10 }}>
+                <div className="dash-form-group">
+                  <label className="dash-form-label">URL du bon de commande *</label>
+                  <input className="dash-form-input" placeholder="https://..." required
+                    value={bdcForm.url}
+                    onChange={e => setBdcForm(p => ({ ...p, url: e.target.value }))} />
+                </div>
+                <div className="dash-form-group">
+                  <label className="dash-form-label">Nom du fichier</label>
+                  <input className="dash-form-input" placeholder="bon-de-commande.pdf"
+                    value={bdcForm.filename}
+                    onChange={e => setBdcForm(p => ({ ...p, filename: e.target.value }))} />
+                </div>
               </div>
-              <div className="dash-form-group">
-                <label className="dash-form-label">Nom du fichier</label>
-                <input className="dash-form-input" placeholder="bon-de-commande.pdf"
-                  value={bdcForm.filename}
-                  onChange={e => setBdcForm(p => ({ ...p, filename: e.target.value }))} />
+              <div style={{ display: "flex", gap: 10 }}>
+                <button type="submit" className="section-cta-btn"
+                  style={{ flex: 1 }} disabled={saving}>
+                  {saving ? "Envoi..." : "Confirmer BDC"}
+                </button>
+                <button type="button" onClick={() => setShowBdc(false)}
+                  style={{ padding: "9px 14px", border: "1.5px solid var(--d-border-soft)",
+                    borderRadius: 8, background: "none", cursor: "pointer",
+                    fontSize: "0.82rem", color: "var(--d-muted)", fontFamily: "inherit" }}>
+                  Annuler
+                </button>
               </div>
-            </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button type="submit" className="section-cta-btn"
-                style={{ flex: 1 }} disabled={saving}>
-                {saving ? "Envoi..." : "Confirmer"}
-              </button>
-              <button type="button" onClick={() => setShowBdc(false)}
-                style={{ padding: "9px 14px", border: "1.5px solid var(--d-border-soft)",
-                  borderRadius: 8, background: "none", cursor: "pointer",
-                  fontSize: "0.82rem", color: "var(--d-muted)", fontFamily: "inherit" }}>
-                Annuler
-              </button>
-            </div>
-          </form>
-        )}
+            </form>
+          )}
+        </div>
       </motion.div>
     );
   }

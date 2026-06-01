@@ -39,7 +39,7 @@ const sendRequest = async (req, res) => {
 
     Notification.notify({
       recipient: toId, recipientRole: toRole, recipientModel: toModel,
-      type: "collaboration_request", category: "pitches",
+      type: "collaboration_request", category: "admin",
       title: "Demande de collaboration reçue",
       body: `${fromName} souhaite collaborer avec vous.`,
       link: `/dashboard/${dashPath}/members`,
@@ -141,7 +141,7 @@ const respondToRequest = async (req, res) => {
 
       Notification.notify({
         recipient: request.fromId, recipientRole: "freelancer", recipientModel: "Freelancer",
-        type: "collaboration_request_accepted", category: "pitches",
+        type: "collaboration_request_accepted", category: "admin",
         title: "Demande de collaboration acceptée",
         body: `${request.toName} a accepté votre demande de collaboration.`,
         link: "/dashboard/freelancer/collaborations",
@@ -154,7 +154,7 @@ const respondToRequest = async (req, res) => {
 
       Notification.notify({
         recipient: request.fromId, recipientRole: "freelancer", recipientModel: "Freelancer",
-        type: "collaboration_request_declined", category: "pitches",
+        type: "collaboration_request_declined", category: "admin",
         title: "Demande de collaboration refusée",
         body: declineReason
           ? `${request.toName} a refusé votre demande : ${declineReason}`

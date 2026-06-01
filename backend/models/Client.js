@@ -58,7 +58,7 @@ const clientSchema = new mongoose.Schema(
     avatar:   { type: String, default: null },
     bio:          { type: String, trim: true, maxlength: 500 },
     achievements: [{ type: String, trim: true, maxlength: 200 }],
-    location: { city: String, country: String, region: String },
+    location: { region: String },
 
     // ── Activity references ──
     // We store only IDs here. Mongoose "populate" fills in the full objects when needed.

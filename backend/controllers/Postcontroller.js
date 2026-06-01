@@ -2,6 +2,9 @@ const Post        = require("../models/Post");
 const Pitch       = require("../models/Pitch");
 const logActivity = require("../utils/logActivity");
 
+// Escape special regex characters to prevent ReDoS via user-supplied input
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // ─────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────
@@ -36,6 +39,8 @@ const createPost = async (req, res) => {
       collaborationType,
       compensationType,
       benefits,
+      visibility,
+      targetProvider,
     } = body;
 
     const clientId     = body.clientId;
@@ -74,7 +79,17 @@ const createPost = async (req, res) => {
       compensationType,
       benefits,
       file,
+      visibility: visibility || "public",
     };
+
+    if (visibility === "private" && targetProvider?.providerId) {
+      postData.targetProvider = {
+        providerType: targetProvider.providerType,
+        providerId:   targetProvider.providerId,
+      };
+      postData.isPublic = false;
+    }
+
     if (initiatorType && initiatorId) {
       postData.initiatedBy = { initiatorType, initiatorId };
       postData.isPublic = false;
@@ -82,11 +97,11 @@ const createPost = async (req, res) => {
       const Notification = require("../models/Notification");
       Notification.notify({
         recipient: clientId, recipientRole: "client", recipientModel: "Client",
-        type: "system", category: "pitches",
+        type: "system", category: "admin",
         title: "Nouvelle proposition reçue",
         body: `Vous avez reçu une proposition de collaboration de ${body.initiatorName || initiatorType}.`,
         link: "/dashboard/client",
-        metadata: { initiatorType, initiatorId },
+        metadata: { senderId: initiatorId },
       });
     }
     const post = await Post.create(postData);
@@ -125,6 +140,8 @@ const getPosts = async (req, res) => {
       marketingType,
       collaborationType,
       search,
+      dateFrom,
+      dateTo,
       sort = "deadline",
       order = "asc",
       page = 1,
@@ -134,23 +151,44 @@ const getPosts = async (req, res) => {
     const filter = {};
     if (status !== "all") filter.status = status;
 
-    if (region)  filter["location.region"]  = new RegExp(region,  "i");
-    if (city)    filter["location.city"]    = new RegExp(city,    "i");
-    if (country) filter["location.country"] = new RegExp(country, "i");
+    if (region)  filter["location.region"]  = new RegExp(escapeRegex(region),  "i");
+    if (city)    filter["location.city"]    = new RegExp(escapeRegex(city),    "i");
+    if (country) filter["location.country"] = new RegExp(escapeRegex(country), "i");
 
-    if (category) filter.categories = { $in: [new RegExp(category, "i")] };
+    if (category) filter.categories = { $in: [new RegExp(escapeRegex(category), "i")] };
 
     if (targetProvider) {
       filter.targetProviders = { $in: [targetProvider, "all"] };
     }
 
+    // Visibility filtering: providers only see public posts or posts targeted at them
+    const providerRoles = ["agency", "agency_member", "team", "team_member", "freelancer"];
+    if (req.user && providerRoles.includes(req.userRole)) {
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { visibility: { $ne: "private" } },
+          { "targetProvider.providerId": req.user._id },
+        ],
+      });
+    } else {
+      // Unauthenticated or client — only show non-private posts
+      filter.visibility = { $ne: "private" };
+    }
+
     if (marketingType)    filter.marketingType    = marketingType;
     if (collaborationType) filter.collaborationType = collaborationType;
 
+    if (dateFrom || dateTo) {
+      filter.deadline = {};
+      if (dateFrom) filter.deadline.$gte = new Date(dateFrom);
+      if (dateTo)   filter.deadline.$lte = new Date(dateTo);
+    }
+
     if (search) {
       filter.$or = [
-        { title: new RegExp(search, "i") },
-        { description: new RegExp(search, "i") },
+        { title:       new RegExp(escapeRegex(search), "i") },
+        { description: new RegExp(escapeRegex(search), "i") },
       ];
     }
 

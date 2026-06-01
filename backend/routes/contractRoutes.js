@@ -20,6 +20,8 @@ router.post("/:id/generate-pdf",          c.generateAndSendPdf);   // fill form 
 router.patch("/:id/send",                 c.sendContract);         // draft → sent (no PDF)
 router.patch("/:id/receipt",              c.uploadReceipt);        // sent → acknowledged
 router.patch("/:id/bon-de-commande",      c.sendBonDeCommande);    // acknowledged → signed
+router.patch("/:id/confirm-start",        c.confirmAndStart);      // acknowledged → signed + project active
+router.patch("/:id/skip",                 c.skipContract);         // draft/sent → skipped + project active
 router.patch("/:id/resiliation",          c.resiliate);            // any → resiliation
 
 module.exports = router;

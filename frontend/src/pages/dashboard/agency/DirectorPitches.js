@@ -432,7 +432,7 @@ const DirectorPitches = ({ user }) => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.025 }}
                       style={{ borderLeft: `3px solid ${showInternal ? imeta.color : meta.color}` }}>
-                      <td>
+                      <td data-label="Post">
                         <div className="td-title">{pitch.post?.title || "Post supprimé"}</div>
                         {pitch.post?.deadline && (
                           <div className="td-sub">Échéance : {fmt(pitch.post.deadline)}</div>
@@ -450,13 +450,13 @@ const DirectorPitches = ({ user }) => {
                           />
                         )}
                       </td>
-                      <td className="td-muted">{clientName}</td>
-                      <td>
+                      <td data-label="Client" className="td-muted">{clientName}</td>
+                      <td data-label="Prix proposé">
                         {pitch.proposedPrice?.amount
                           ? `${pitch.proposedPrice.amount.toLocaleString()} ${pitch.proposedPrice.currency || "DZD"}`
                           : <span className="td-muted">—</span>}
                       </td>
-                      <td>
+                      <td data-label="Statut">
                         {showInternal ? (
                           <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: "0.72rem",
                             fontWeight: 700, background: imeta.bg, color: imeta.color }}>
@@ -469,8 +469,8 @@ const DirectorPitches = ({ user }) => {
                           </span>
                         )}
                       </td>
-                      <td className="td-muted">{fmt(pitch.createdAt)}</td>
-                      <td onClick={e => e.stopPropagation()}>
+                      <td data-label="Date d'envoi" className="td-muted">{fmt(pitch.createdAt)}</td>
+                      <td data-label="" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => setSelectedPitch(pitch)}
                           style={{ padding: "3px 9px", borderRadius: 6, border: "1px solid #ddd",

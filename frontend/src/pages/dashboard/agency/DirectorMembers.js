@@ -333,13 +333,14 @@ const FreelancerSection = ({ user }) => {
   const [freelancers,    setFreelancers]    = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [showAttach,     setShowAttach]     = useState(false);
-  const [email,          setEmail]          = useState("");
+  const [nameSearch,     setNameSearch]     = useState("");
+  const [searchResults,  setSearchResults]  = useState([]);
   const [role,           setRole]           = useState("collaborateur");
   const [searching,      setSearching]      = useState(false);
   const [found,          setFound]          = useState(null);
-  const [notFound,       setNotFound]       = useState(false);
   const [attaching,      setAttaching]      = useState(false);
   const [detaching,      setDetaching]      = useState(null);
+  const [confirmDetach,  setConfirmDetach]  = useState(null);
   const [msg,            setMsg]            = useState("");
   const [conventionFor,  setConventionFor]  = useState(null);
 
@@ -353,20 +354,25 @@ const FreelancerSection = ({ user }) => {
 
   useEffect(() => { loadFreelancers(); }, []);
 
-  const handleSearch = async () => {
-    if (!email.trim()) return;
-    setSearching(true);
-    setFound(null);
-    setNotFound(false);
-    try {
-      // Use the general freelancer search — look in the already-loaded list first,
-      // else the backend getFreelancers only returns attached ones. We just let the
-      // attach endpoint validate the freelancerId from a manually typed ID or email.
-      // For simplicity: search among already-attached list by email.
-      const match = freelancers.find(f => f.email === email.trim().toLowerCase());
-      if (match) { setFound(match); } else { setNotFound(true); }
-    } catch {}
-    finally { setSearching(false); }
+  // Debounced name search
+  useEffect(() => {
+    const q = nameSearch.trim();
+    if (!q) { setSearchResults([]); return; }
+    const t = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const d = await agencyMemberService.searchFreelancers(q);
+        setSearchResults(d.freelancers || []);
+      } catch {}
+      finally { setSearching(false); }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [nameSearch]);
+
+  const selectFreelancer = (f) => {
+    setFound(f);
+    setNameSearch(`${f.firstName} ${f.lastName}`);
+    setSearchResults([]);
   };
 
   const handleAttach = async () => {
@@ -378,7 +384,7 @@ const FreelancerSection = ({ user }) => {
       });
       setMsg("Freelancer attaché");
       setShowAttach(false);
-      setEmail(""); setFound(null);
+      setNameSearch(""); setFound(null); setSearchResults([]);
       loadFreelancers();
     } catch (err) {
       setMsg(err.response?.data?.message || "Erreur");
@@ -389,6 +395,7 @@ const FreelancerSection = ({ user }) => {
 
   const handleDetach = async (freelancerId) => {
     setDetaching(freelancerId);
+    setConfirmDetach(null);
     try {
       await agencyMemberService.detachFreelancer(user._id, freelancerId);
       setMsg("Collaboration terminée");
@@ -463,32 +470,56 @@ const FreelancerSection = ({ user }) => {
             exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
             <div className="card" style={{ padding: 16, marginBottom: 12 }}>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
-                <div style={{ flex: 1, minWidth: 200 }}>
-                  <label className="dash-form-label">Email du freelancer</label>
-                  <input className="dash-form-input" value={email} placeholder="email@exemple.com"
-                    onChange={e => { setEmail(e.target.value); setFound(null); setNotFound(false); }} />
+                <div style={{ flex: 1, minWidth: 200, position: "relative" }}>
+                  <label className="dash-form-label">Nom du freelancer</label>
+                  <input className="dash-form-input" value={nameSearch}
+                    placeholder="Rechercher par nom..."
+                    onChange={e => { setNameSearch(e.target.value); setFound(null); }} />
+                  {searching && (
+                    <span style={{ position: "absolute", right: 10, top: "60%",
+                      fontSize: "0.72rem", color: "var(--d-muted)" }}>...</span>
+                  )}
+                  {searchResults.length > 0 && (
+                    <div style={{ position: "absolute", top: "100%", left: 0, right: 0,
+                      zIndex: 200, background: "#fff", border: "1px solid #f0dede",
+                      borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.10)",
+                      overflow: "hidden", marginTop: 2 }}>
+                      {searchResults.map(f => (
+                        <button key={f._id} onClick={() => selectFreelancer(f)}
+                          style={{ display: "block", width: "100%", textAlign: "left",
+                            padding: "9px 14px", background: "none", border: "none",
+                            borderBottom: "1px solid #fdf0f0", cursor: "pointer",
+                            fontFamily: "inherit", fontSize: "0.82rem",
+                            fontWeight: 600, color: "var(--d-ink)" }}>
+                          {f.firstName} {f.lastName}
+                          {f.skills?.length > 0 && (
+                            <span style={{ fontSize: "0.7rem", color: "var(--d-muted)",
+                              fontWeight: 400, marginLeft: 8 }}>
+                              {f.skills.slice(0, 2).join(", ")}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div style={{ minWidth: 150 }}>
                   <label className="dash-form-label">Rôle</label>
                   <input className="dash-form-input" value={role}
                     onChange={e => setRole(e.target.value)} placeholder="collaborateur" />
                 </div>
-                <button className="section-cta-btn" style={{ fontSize: "0.8rem", padding: "8px 14px" }}
-                  onClick={handleSearch} disabled={searching}>
-                  {searching ? "..." : "Rechercher"}
-                </button>
               </div>
-              {notFound && (
-                <p style={{ fontSize: "0.78rem", color: "#ef4444", marginTop: 8 }}>
-                  Aucun freelancer trouvé avec cet email dans vos collaborations.
-                </p>
-              )}
               {found && (
                 <div style={{ marginTop: 10, padding: "10px 14px", borderRadius: 8,
-                  background: "#f0fdf4", border: "1px solid #6ee7b7",
+                  background: "#fff8f8", border: "1px solid #f0dede",
                   display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.82rem", color: "#065f46", fontWeight: 600 }}>
-                    {found.firstName} {found.lastName} — {found.email}
+                  <span style={{ fontSize: "0.82rem", color: "var(--d-ink)", fontWeight: 600 }}>
+                    {found.firstName} {found.lastName}
+                    {found.skills?.length > 0 && (
+                      <span style={{ fontWeight: 400, color: "var(--d-muted)", marginLeft: 8 }}>
+                        {found.skills.slice(0, 3).join(", ")}
+                      </span>
+                    )}
                   </span>
                   <button className="section-cta-btn" style={{ fontSize: "0.78rem", padding: "6px 12px" }}
                     onClick={handleAttach} disabled={attaching}>
@@ -526,10 +557,10 @@ const FreelancerSection = ({ user }) => {
             <tbody>
               {active.map(f => (
                 <tr key={f._id}>
-                  <td>
+                  <td data-label="Freelancer">
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 30, height: 30, borderRadius: "50%",
-                        background: "linear-gradient(135deg,#0ea5e9,#0284c7)",
+                        background: "linear-gradient(135deg,#c0152a,#7c1020)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: "0.7rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>
                         {f.firstName?.[0]}{f.lastName?.[0]}
@@ -537,19 +568,19 @@ const FreelancerSection = ({ user }) => {
                       <span className="td-title">{f.firstName} {f.lastName}</span>
                     </div>
                   </td>
-                  <td className="td-muted">{f.email}</td>
-                  <td>
+                  <td data-label="Email" className="td-muted">{f.email}</td>
+                  <td data-label="Rôle">
                     <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
-                      fontWeight: 600, background: "#f0f9ff", color: "#0284c7" }}>
+                      fontWeight: 600, background: "#fff0f0", color: "#c0152a" }}>
                       {f.collaboration?.role || "—"}
                     </span>
                   </td>
-                  <td className="td-muted">
+                  <td data-label="Depuis" className="td-muted">
                     {f.collaboration?.startDate
                       ? new Date(f.collaboration.startDate).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" })
                       : "—"}
                   </td>
-                  <td>
+                  <td data-label="">
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                       <button
                         onClick={() => setConventionFor(f)}
@@ -559,15 +590,38 @@ const FreelancerSection = ({ user }) => {
                           fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                         Convention
                       </button>
-                      <button
-                        disabled={detaching === f._id}
-                        onClick={() => handleDetach(f._id)}
-                        style={{ padding: "4px 10px", borderRadius: 6, border: "none",
-                          background: "#fee2e2", color: "#991b1b", fontSize: "0.72rem",
-                          fontWeight: 600, cursor: detaching === f._id ? "not-allowed" : "pointer",
-                          fontFamily: "inherit", opacity: detaching === f._id ? 0.5 : 1 }}>
-                        {detaching === f._id ? "..." : "Terminer"}
-                      </button>
+                      {confirmDetach === f._id ? (
+                        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                          <span style={{ fontSize: "0.72rem", color: "#991b1b", fontWeight: 600 }}>
+                            Confirmer ?
+                          </span>
+                          <button onClick={() => handleDetach(f._id)}
+                            disabled={detaching === f._id}
+                            style={{ padding: "3px 9px", borderRadius: 6, border: "none",
+                              background: "#dc2626", color: "#fff", fontSize: "0.68rem",
+                              fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                              opacity: detaching === f._id ? 0.5 : 1 }}>
+                            {detaching === f._id ? "..." : "Oui"}
+                          </button>
+                          <button onClick={() => setConfirmDetach(null)}
+                            style={{ padding: "3px 8px", borderRadius: 6,
+                              border: "1.5px solid #f0dede", background: "none",
+                              fontSize: "0.68rem", color: "#9a6060",
+                              cursor: "pointer", fontFamily: "inherit" }}>
+                            Non
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          disabled={detaching === f._id}
+                          onClick={() => setConfirmDetach(f._id)}
+                          style={{ padding: "4px 10px", borderRadius: 6, border: "none",
+                            background: "#fee2e2", color: "#991b1b", fontSize: "0.72rem",
+                            fontWeight: 600, cursor: detaching === f._id ? "not-allowed" : "pointer",
+                            fontFamily: "inherit", opacity: detaching === f._id ? 0.5 : 1 }}>
+                          Terminer
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -839,20 +893,20 @@ const DirectorMembers = ({ user }) => {
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: showRestore ? 0.75 : 1, y: 0 }}
       style={{ borderLeft: `3px solid ${STATUS_META[m.accountStatus || "active"]?.border || "#d1d5db"}` }}>
-      <td>
+      <td data-label="Membre">
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Avatar member={m} />
           <div className="td-title">{m.firstName} {m.lastName}</div>
         </div>
       </td>
-      <td>
+      <td data-label="Rôle">
         <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
           fontWeight: 600, background: "#f3f0ff", color: "#7c3aed" }}>
           {JOB_LABEL[m.jobTitle] || m.jobTitle}
         </span>
       </td>
-      <td className="td-muted">{m.email}</td>
-      <td>
+      <td data-label="Email" className="td-muted">{m.email}</td>
+      <td data-label="Mot de passe">
         <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
           fontWeight: 600,
           background: m.mustChangePassword ? "#fef3c7" : "#f3f4f6",
@@ -860,10 +914,10 @@ const DirectorMembers = ({ user }) => {
           {m.mustChangePassword ? "Temporaire" : "Changé"}
         </span>
       </td>
-      <td>
+      <td data-label="Statut">
         <StatusBadge status={m.accountStatus || "active"} />
       </td>
-      <td>
+      <td data-label="">
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <button
             onClick={() => setHistoryMember(m)}

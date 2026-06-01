@@ -62,7 +62,8 @@ const ROLE_COLORS = {
 
 const ACTION_TYPES = [
   "user_registered","user_disabled","user_enabled",
-  "post_created","post_closed","pitch_sent","pitch_accepted",
+  "post_created","post_closed","post_removed","post_reactivated",
+  "pitch_sent","pitch_accepted",
   "project_created","project_completed","contract_signed",
   "ad_created","member_created","account_restored",
 ];
@@ -72,6 +73,8 @@ const ACTION_META = {
   user_enabled:      { icon: "✅", color: C.green },
   post_created:      { icon: "📝", color: C.purple },
   post_closed:       { icon: "🔒", color: C.inkMuted },
+  post_removed:      { icon: "🗑️", color: C.red },
+  post_reactivated:  { icon: "🔓", color: C.green },
   pitch_sent:        { icon: "📨", color: C.yellow },
   pitch_accepted:    { icon: "🤝", color: C.green },
   project_created:   { icon: "📁", color: C.blue },
@@ -495,14 +498,28 @@ const StatsPanel = () => {
   return (
     <div>
       <SectionTitle title="Statistiques plateforme" sub="Métriques globales en temps réel" />
-      <Section title="Utilisateurs" items={[
-        { label: "Total",       value: stats.users.total,      color: C.ink,    sub: `+${stats.activity?.newClientsThisMonth || 0} ce mois` },
-        { label: "Clients",     value: stats.users.client,     color: C.blue },
-        { label: "Agences",     value: stats.users.agency,     color: C.purple },
-        { label: "Équipes",     value: stats.users.team,       color: C.green },
-        { label: "Freelancers", value: stats.users.freelancer, color: C.orange },
+
+      {/* KPI highlight row */}
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 28 }}>
+        <StatCard icon={<IconUsers size={15} />}    label="Utilisateurs total" value={stats.users?.total}
+          color={C.purple} sub={`+${stats.activity?.newClientsThisMonth || 0} ce mois`} />
+        <StatCard icon={<IconFlag size={15} />}     label="Posts total"        value={stats.posts?.total}
+          color={C.green}  sub={`+${stats.activity?.postsThisMonth || 0} ce mois`} />
+        <StatCard icon={<IconSend size={15} />}     label="Offres total"       value={stats.pitches?.total}
+          color={C.yellow} sub={`${stats.pitches?.accepted || 0} acceptées`} />
+        <StatCard icon={<IconBriefcase size={15} />} label="Projets total"     value={stats.projects?.total}
+          color={C.blue}   sub={`${stats.projects?.active || 0} actifs`} />
+      </div>
+
+      <Section title="Répartition des utilisateurs" items={[
+        { label: "Clients",          value: stats.users.client,       color: C.blue },
+        { label: "Agences",          value: stats.users.agency,       color: C.purple },
+        { label: "Membres agence",   value: stats.users.agencyMember, color: "#6d28d9" },
+        { label: "Équipes",          value: stats.users.team,         color: C.green },
+        { label: "Membres équipe",   value: stats.users.teamMember,   color: "#047857" },
+        { label: "Freelancers",      value: stats.users.freelancer,   color: C.orange },
       ]} />
-      <Section title="Posts" items={[
+      <Section title="Posts par statut" items={[
         { label: "Total",    value: stats.posts.total,      color: C.ink,     sub: `+${stats.activity?.postsThisMonth || 0} ce mois` },
         { label: "Ouverts",  value: stats.posts.open,       color: C.green },
         { label: "En cours", value: stats.posts.inProgress, color: C.yellow },
@@ -537,16 +554,18 @@ const PostStatusBadge = ({ status }) => {
 };
 
 const PostsPanel = () => {
-  const [posts,    setPosts]    = useState([]);
-  const [total,    setTotal]    = useState(0);
-  const [pages,    setPages]    = useState(1);
-  const [page,     setPage]     = useState(1);
-  const [status,   setStatus]   = useState("all");
-  const [search,   setSearch]   = useState("");
-  const [loading,  setLoading]  = useState(true);
-  const [removing, setRemoving] = useState(null);
-  const [modal,    setModal]    = useState(null);
-  const [reason,   setReason]   = useState("");
+  const [posts,           setPosts]           = useState([]);
+  const [total,           setTotal]           = useState(0);
+  const [pages,           setPages]           = useState(1);
+  const [page,            setPage]            = useState(1);
+  const [status,          setStatus]          = useState("all");
+  const [search,          setSearch]          = useState("");
+  const [loading,         setLoading]         = useState(true);
+  const [removing,        setRemoving]        = useState(null);
+  const [modal,           setModal]           = useState(null);
+  const [reason,          setReason]          = useState("");
+  const [reactivateModal, setReactivateModal] = useState(null);
+  const [reactivating,    setReactivating]    = useState(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -566,6 +585,19 @@ const PostsPanel = () => {
       setModal(null); setReason("");
     } catch {}
     setRemoving(null);
+  };
+
+  const handleReactivate = async () => {
+    if (!reactivateModal) return;
+    setReactivating(reactivateModal._id);
+    try {
+      await adminService.reactivatePost(reactivateModal._id);
+      setPosts(prev => prev.map(p =>
+        p._id === reactivateModal._id ? { ...p, status: "open", adminNote: "" } : p
+      ));
+      setReactivateModal(null);
+    } catch {}
+    setReactivating(null);
   };
 
   return (
@@ -636,14 +668,24 @@ const PostsPanel = () => {
                         fontWeight: 700, color: C.ink }}>{p.pitchCount || 0}</td>
                       <td style={{ padding: "12px 18px", fontSize: "0.78rem", color: C.inkMuted }}>{fmt(p.createdAt)}</td>
                       <td style={{ padding: "12px 18px" }}>
-                        {p.status !== "closed" && (
-                          <button onClick={() => { setModal(p); setReason(""); }}
-                            style={{ padding: "5px 12px", borderRadius: 7, fontSize: "0.72rem",
-                              fontWeight: 700, cursor: "pointer", border: "none",
-                              background: "#fee2e2", color: "#b91c1c", fontFamily: "inherit" }}>
-                            Retirer
-                          </button>
-                        )}
+                        <div style={{ display: "flex", gap: 6 }}>
+                          {p.status !== "closed" && (
+                            <button onClick={() => { setModal(p); setReason(""); }}
+                              style={{ padding: "5px 12px", borderRadius: 7, fontSize: "0.72rem",
+                                fontWeight: 700, cursor: "pointer", border: "none",
+                                background: "#fee2e2", color: "#b91c1c", fontFamily: "inherit" }}>
+                              Retirer
+                            </button>
+                          )}
+                          {p.status === "closed" && (
+                            <button onClick={() => setReactivateModal(p)}
+                              style={{ padding: "5px 12px", borderRadius: 7, fontSize: "0.72rem",
+                                fontWeight: 700, cursor: "pointer", border: "none",
+                                background: "#d1fae5", color: "#065f46", fontFamily: "inherit" }}>
+                              Réactiver
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </motion.tr>
                   );
@@ -683,6 +725,46 @@ const PostsPanel = () => {
                   {removing === modal._id ? "Retrait..." : "Confirmer le retrait"}
                 </button>
                 <button onClick={() => setModal(null)} style={btnGhost}>Annuler</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {reactivateModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
+              display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
+            onClick={e => e.target === e.currentTarget && setReactivateModal(null)}>
+            <motion.div initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }}
+              style={{ background: C.card, borderRadius: 16, padding: "28px 32px",
+                width: "100%", maxWidth: 420, boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+              <div style={{ fontWeight: 800, fontSize: "1.05rem", color: C.ink, marginBottom: 6 }}>
+                Réactiver ce post
+              </div>
+              <div style={{ fontSize: "0.85rem", color: C.inkMuted, marginBottom: 6 }}>
+                "{reactivateModal.title}"
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18,
+                background: "#d1fae5", borderRadius: 8, padding: "10px 14px" }}>
+                <span style={{ fontSize: "0.82rem", color: "#065f46", fontWeight: 600 }}>
+                  Statut actuel :
+                </span>
+                <PostStatusBadge status={reactivateModal.status} />
+                <span style={{ fontSize: "0.82rem", color: "#065f46" }}>→</span>
+                <PostStatusBadge status="open" />
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={handleReactivate} disabled={reactivating === reactivateModal._id}
+                  style={{ padding: "9px 18px", borderRadius: 9, border: "none",
+                    background: C.green, color: "#fff", fontWeight: 700, cursor: "pointer",
+                    fontFamily: "inherit", fontSize: "0.84rem", flex: 1,
+                    opacity: reactivating === reactivateModal._id ? 0.6 : 1 }}>
+                  {reactivating === reactivateModal._id ? "Réactivation..." : "Confirmer la réactivation"}
+                </button>
+                <button onClick={() => setReactivateModal(null)} style={btnGhost}>Annuler</button>
               </div>
             </motion.div>
           </motion.div>
@@ -954,6 +1036,8 @@ const AdsPanel = () => {
 };
 
 // ── ACTIVITY LOG PANEL ────────────────────────────────────────────────────────
+const ADMIN_LOG_TYPES = ["post_removed", "post_reactivated"];
+
 const ActivityLogPanel = () => {
   const [logs,    setLogs]    = useState([]);
   const [loading, setLoading] = useState(true);
@@ -964,7 +1048,7 @@ const ActivityLogPanel = () => {
 
   const load = useCallback((p = 1, f = filter) => {
     setLoading(true);
-    const params = { page: p, limit: LIMIT };
+    const params = { page: p, limit: LIMIT, adminOnly: "true" };
     if (f) params.actionType = f;
     adService.getActivityLog(params)
       .then(d => { setLogs(d.logs || []); setTotal(d.total || 0); setPage(p); })
@@ -975,13 +1059,13 @@ const ActivityLogPanel = () => {
 
   return (
     <div>
-      <SectionTitle title="Journal d'activité"
-        sub={`${total} événement${total !== 1 ? "s" : ""} enregistré${total !== 1 ? "s" : ""}`}
+      <SectionTitle title="Journal d'administration"
+        sub={`${total} action${total !== 1 ? "s" : ""} admin enregistrée${total !== 1 ? "s" : ""}`}
         action={
           <select value={filter} onChange={e => setFilter(e.target.value)}
             style={{ ...inputStyle, width: "auto", fontSize: "0.8rem" }}>
-            <option value="">Tous les types</option>
-            {ACTION_TYPES.map(a => <option key={a} value={a}>{a}</option>)}
+            <option value="">Toutes les actions admin</option>
+            {ADMIN_LOG_TYPES.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
         } />
 

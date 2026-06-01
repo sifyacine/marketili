@@ -96,7 +96,7 @@ const FreelancerOverview = ({ user, collaborations, activeContext, onSwitchConte
             onClick={() => navigate("/dashboard/freelancer/pitches")} />
         )}
         <StatCard icon={<IconUsers size={16} />} label="Collaborations"
-          value={collaborations.length} color="#d97706"
+          value={collaborations.length} color="#c0152a"
           onClick={() => navigate("/dashboard/freelancer/collaborations")} />
         <StatCard icon={<IconBriefcase size={16} />} label="Total projets"
           value={projects.length} color="#059669" />

@@ -8,7 +8,8 @@ const { protect } = require("../middleware/auth");
 // ── Specific routes first (before /:projectId) ──
 router.get("/agency/:agencyId/members",            protect, c.getAgencyMembers);
 router.get("/agency/:agencyId/flagged-posts",      protect, c.getFlaggedPosts);
-router.patch("/agency/:agencyId/flagged-posts/:postId/pitched", protect, c.markFlaggedAsPitched);
+router.patch("/agency/:agencyId/flagged-posts/:postId/pitched",             protect, c.markFlaggedAsPitched);
+router.patch("/agency/:agencyId/flagged-posts/:postId/send-to-strategist",  protect, c.sendToStrategist);
 router.post("/flag-post",                          protect, c.flagPost);
 router.get("/member/:memberId/tasks",              protect, c.getMemberTasks);
 router.get("/member/:memberId/projects",           protect, c.getMemberProjects);
@@ -27,5 +28,8 @@ router.post("/:projectId/tasks",                             protect, c.createTa
 router.patch("/:projectId/tasks/:taskId",                    protect, c.updateTask);
 router.post("/:projectId/tasks/:taskId/comments",            protect, c.addTaskComment);
 router.post("/:projectId/deliverables",                      protect, c.addDeliverable);
+router.get("/:projectId/deliverables",                       protect, c.getDeliverables);
+router.patch("/:projectId/deliverables/:deliverableId",      protect, c.updateDeliverable);
+router.post("/:projectId/notes",                             protect, c.addNote);
 
 module.exports = router;

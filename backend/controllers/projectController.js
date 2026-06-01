@@ -3,6 +3,7 @@ const Agency       = require("../models/Agency");
 const AgencyMember = require("../models/AgencyMember");
 const TeamMember   = require("../models/TeamMember");
 const Notification = require("../models/Notification");
+const logActivity  = require("../utils/logActivity");
 
 // ── Helper ──
 const calculateProgress = (project) => {
@@ -28,6 +29,15 @@ exports.createProject = async (req, res) => {
       ...(providerType === "Freelancer" && { providerFreelancer: providerId }),
     });
 
+    logActivity({
+      actorId: req.user?._id || clientId, actorRole: req.user?.role || "client",
+      actorName: req.user?.firstName
+        ? `${req.user.firstName} ${req.user.lastName}`
+        : (req.user?.companyName || "Client"),
+      actionType: "project_created", targetId: project._id, targetType: "Project",
+      description: `Projet créé : ${title}`,
+    });
+
     res.status(201).json(project);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -50,7 +60,14 @@ exports.getAgencyProjects = async (req, res) => {
       .populate("post",   "title categories budget")
       .sort({ deadline: 1 });
 
-    res.json({ success: true, projects });
+    const projectsWithMeta = projects.map(p => {
+      const obj = p.toObject();
+      obj.taskProgress     = calculateProgress(p);
+      obj.deliverableCount = p.deliverables.length;
+      return obj;
+    });
+
+    res.json({ success: true, projects: projectsWithMeta });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -66,7 +83,18 @@ exports.getProject = async (req, res) => {
       .populate("post",   "title categories budget description");
 
     if (!project) return res.status(404).json({ message: "Project not found" });
-    res.json({ success: true, project });
+
+    const projectObj = project.toObject();
+    projectObj.taskProgress      = calculateProgress(project);
+    projectObj.deliverableCount  = project.deliverables.length;
+
+    // Clients see progress and deliverables only — not internal task list
+    if (req.user?.role === "client") {
+      const { tasks, ...rest } = projectObj;
+      return res.json({ success: true, project: rest });
+    }
+
+    res.json({ success: true, project: projectObj });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -102,6 +130,8 @@ exports.assignMember = async (req, res) => {
 // CREATE TASK  POST /api/projects/:projectId/tasks
 // ─────────────────────────────────────────────
 exports.createTask = async (req, res) => {
+  if (req.user?.role === "client")
+    return res.status(403).json({ message: "Accès refusé" });
   try {
     const { projectId } = req.params;
     const { title, description, assignedTo, dueDate, priority } = req.body;
@@ -113,6 +143,24 @@ exports.createTask = async (req, res) => {
     project.progress = calculateProgress(project);
     await project.save();
 
+    // Notify each assigned member
+    if (Array.isArray(assignedTo) && assignedTo.length > 0) {
+      assignedTo.forEach(a => {
+        const isTeam     = a.memberType === "TeamMember";
+        const mRole      = isTeam ? "team_member"  : "agency_member";
+        const mModel     = isTeam ? "TeamMember"   : "AgencyMember";
+        const mPath      = isTeam ? "team"          : "agency";
+        Notification.notify({
+          recipient: a.memberId, recipientRole: mRole, recipientModel: mModel,
+          type: "task_assigned", category: "tasks",
+          title: `Tâche assignée : ${title}`,
+          body: `Vous avez été assigné à la tâche "${title}" dans le projet "${project.title}".`,
+          link: `/dashboard/${mPath}/tasks`,
+          metadata: { projectId: project._id },
+        });
+      });
+    }
+
     res.json({ success: true, project });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -123,6 +171,8 @@ exports.createTask = async (req, res) => {
 // UPDATE TASK  PATCH /api/projects/:projectId/tasks/:taskId
 // ─────────────────────────────────────────────
 exports.updateTask = async (req, res) => {
+  if (req.user?.role === "client")
+    return res.status(403).json({ message: "Accès refusé" });
   try {
     const { projectId, taskId } = req.params;
     const updates = req.body; // status, priority, dueDate, assignedTo, etc.
@@ -137,7 +187,9 @@ exports.updateTask = async (req, res) => {
 
     // Track handover when assignedTo changes
     if (updates.assignedTo !== undefined) {
+      const oldIds = task.assignedTo.map(a => String(a.memberId));
       const newIds = (updates.assignedTo || []).map(a => String(a.memberId));
+
       const removed = task.assignedTo.filter(a => !newIds.includes(String(a.memberId)));
       removed.forEach(a => {
         const alreadyLogged = (task.previousAssignees || []).some(
@@ -151,6 +203,23 @@ exports.updateTask = async (req, res) => {
             removedAt:  new Date(),
           });
         }
+      });
+
+      // Notify newly added assignees
+      const added = (updates.assignedTo || []).filter(a => !oldIds.includes(String(a.memberId)));
+      added.forEach(a => {
+        const isTeam  = a.memberType === "TeamMember";
+        const mRole   = isTeam ? "team_member"  : "agency_member";
+        const mModel  = isTeam ? "TeamMember"   : "AgencyMember";
+        const mPath   = isTeam ? "team"          : "agency";
+        Notification.notify({
+          recipient: a.memberId, recipientRole: mRole, recipientModel: mModel,
+          type: "task_assigned", category: "tasks",
+          title: `Tâche assignée : ${task.title}`,
+          body: `Vous avez été assigné à la tâche "${task.title}" dans le projet "${project.title}".`,
+          link: `/dashboard/${mPath}/tasks`,
+          metadata: { projectId: project._id },
+        });
       });
     }
 
@@ -192,6 +261,8 @@ exports.updateTask = async (req, res) => {
 // GET PROJECT TASKS  GET /api/projects/:projectId/tasks
 // ─────────────────────────────────────────────
 exports.getProjectTasks = async (req, res) => {
+  if (req.user?.role === "client")
+    return res.status(403).json({ message: "Accès refusé" });
   try {
     const project = await Project.findById(req.params.projectId).select("tasks");
     if (!project) return res.status(404).json({ message: "Project not found" });
@@ -282,6 +353,8 @@ exports.flagPost = async (req, res) => {
 // GET FLAGGED POSTS  GET /api/projects/agency/:agencyId/flagged-posts
 // ─────────────────────────────────────────────
 exports.getFlaggedPosts = async (req, res) => {
+  if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial")
+    return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
   try {
     const { agencyId } = req.params;
     const agency = await Agency.findById(agencyId)
@@ -297,9 +370,66 @@ exports.getFlaggedPosts = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
+// GET DELIVERABLES  GET /api/projects/:projectId/deliverables
+// ─────────────────────────────────────────────
+exports.getDeliverables = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.projectId)
+      .select("deliverables title");
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    res.json({ success: true, deliverables: project.deliverables });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// UPDATE DELIVERABLE  PATCH /api/projects/:projectId/deliverables/:deliverableId
+// ─────────────────────────────────────────────
+exports.updateDeliverable = async (req, res) => {
+  try {
+    const { projectId, deliverableId } = req.params;
+    const { isComplete, description, fileUrl, fileName } = req.body;
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    const deliverable = project.deliverables.id(deliverableId);
+    if (!deliverable) return res.status(404).json({ message: "Deliverable not found" });
+
+    const wasIncomplete = !deliverable.isComplete;
+
+    if (isComplete  !== undefined) deliverable.isComplete  = isComplete;
+    if (description !== undefined) deliverable.description = description;
+    if (fileUrl     !== undefined) deliverable.fileUrl     = fileUrl;
+    if (fileName    !== undefined) deliverable.fileName    = fileName;
+
+    await project.save();
+
+    if (wasIncomplete && isComplete && project.providerAgency) {
+      Notification.notify({
+        recipient: project.providerAgency, recipientRole: "agency", recipientModel: "Agency",
+        type: "project_milestone", category: "projects",
+        title: "Livrable complété",
+        body: `Le livrable "${deliverable.fileName}" a été marqué complété dans "${project.title}".`,
+        link: "/dashboard/agency/projects",
+        metadata: { projectId: project._id },
+      });
+    }
+
+    res.json({ success: true, deliverable, deliverables: project.deliverables });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
 // MARK FLAGGED POST AS PITCHED  PATCH /api/projects/agency/:agencyId/flagged-posts/:postId/pitched
 // ─────────────────────────────────────────────
 exports.markFlaggedAsPitched = async (req, res) => {
+  if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial") {
+    return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
+  }
   try {
     const { agencyId, postId } = req.params;
     const agency = await Agency.findById(agencyId);
@@ -312,6 +442,38 @@ exports.markFlaggedAsPitched = async (req, res) => {
     await agency.save();
 
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// SEND FLAGGED POST TO STRATEGIST  PATCH /api/projects/agency/:agencyId/flagged-posts/:postId/send-to-strategist
+// ─────────────────────────────────────────────
+exports.sendToStrategist = async (req, res) => {
+  if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial") {
+    return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
+  }
+  try {
+    const { agencyId, postId } = req.params;
+    const { strategistId, strategistName } = req.body;
+
+    if (!strategistId) {
+      return res.status(400).json({ message: "strategistId requis" });
+    }
+
+    const agency = await Agency.findById(agencyId);
+    if (!agency) return res.status(404).json({ message: "Agency not found" });
+
+    const flag = agency.flaggedPosts.find(f => f.post.toString() === postId);
+    if (!flag) return res.status(404).json({ message: "Flagged post not found" });
+
+    flag.assignedStrategist     = strategistId;
+    flag.assignedStrategistName = strategistName || "";
+    flag.assignedAt             = new Date();
+    await agency.save();
+
+    res.json({ success: true, flaggedPost: flag });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -375,6 +537,7 @@ exports.updateProject = async (req, res) => {
     if (deadline    !== undefined) project.deadline    = deadline;
     if (agreedPrice !== undefined) project.agreedPrice = agreedPrice;
 
+    const wasCompleted = projectStatus === "completed" && project.projectStatus !== "completed";
     if (projectStatus && projectStatus !== project.projectStatus) {
       project.projectStatus = projectStatus;
       if (projectStatus === "completed") project.completedAt = new Date();
@@ -387,6 +550,17 @@ exports.updateProject = async (req, res) => {
     }
 
     await project.save();
+
+    if (wasCompleted) {
+      logActivity({
+        actorId: req.user?._id || requesterId, actorRole: req.user?.role || "unknown",
+        actorName: req.user?.agencyName || req.user?.teamName
+          || (req.user?.firstName ? `${req.user.firstName} ${req.user.lastName}` : "Utilisateur"),
+        actionType: "project_completed", targetId: project._id, targetType: "Project",
+        description: `Projet terminé : ${project.title}`,
+      });
+    }
+
     res.json({ success: true, project });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -423,6 +597,42 @@ exports.addDeliverable = async (req, res) => {
 
     await project.save();
     res.json({ success: true, project });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// ADD NOTE  POST /api/projects/:projectId/notes
+// Client-to-provider communication, distinct from internal task comments
+// ─────────────────────────────────────────────
+exports.addNote = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { text } = req.body;
+
+    if (!text?.trim()) {
+      return res.status(400).json({ message: "Le texte de la note est requis" });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    const user = req.user;
+    const authorName =
+      user.companyName ||
+      (user.firstName ? `${user.firstName} ${user.lastName}` : null) ||
+      user.agencyName || user.teamName || "Utilisateur";
+
+    project.notes.push({
+      authorId:   user._id,
+      authorName,
+      authorRole: req.userRole,
+      text:       text.trim(),
+    });
+
+    await project.save();
+    res.json({ success: true, notes: project.notes });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -497,10 +707,12 @@ exports.getClientProjects = async (req, res) => {
       .populate("providerTeam",       "teamName")
       .populate("providerFreelancer", "firstName lastName")
       .populate("post",               "title categories")
-      .sort({ deadline: 1 }) // closest deadline first
+      .sort({ deadline: 1 })
       .lean();
 
-    res.json({ success: true, projects });
+    // Strip internal task list from client-facing responses
+    const safeProjects = projects.map(({ tasks, ...rest }) => rest);
+    res.json({ success: true, projects: safeProjects });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

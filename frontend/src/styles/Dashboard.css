@@ -374,11 +374,20 @@ body {
   flex-shrink: 0;
 }
 
+.dash-topbar-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
 .dash-topbar-title {
   font-size: 1rem;
   font-weight: 700;
   color: var(--d-ink);
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dash-topbar-right {
@@ -796,7 +805,8 @@ body {
   margin-bottom: 5px;
 }
 
-.empty-state-desc {
+.empty-state-desc,
+.empty-state-sub {
   font-size: 0.82rem;
   line-height: 1.55;
   max-width: 300px;
@@ -1184,17 +1194,208 @@ body {
 .pagination-btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
 /* ═══════════════════════════════════════════════════════════════════
-   RESPONSIVE
+   HAMBURGER BUTTON (hidden on desktop, visible on tablet/mobile)
    ═══════════════════════════════════════════════════════════════════ */
-@media (max-width: 1100px) {
+.dash-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4.5px;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: 1px solid var(--d-border);
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  margin-right: 10px;
+  transition: background 0.13s, border-color 0.13s;
+}
+.dash-hamburger:hover {
+  background: var(--d-bg);
+  border-color: var(--d-accent);
+}
+.dash-hamburger span {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: var(--d-muted);
+  border-radius: 2px;
+  transition: background 0.13s;
+}
+.dash-hamburger:hover span { background: var(--d-accent); }
+
+/* Overlay backdrop (injected by DashboardLayout when mobile drawer is open) */
+.dash-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(2px);
+  z-index: 149;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — SMALL DESKTOP  (≤ 1280px)
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 1280px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 768px) {
-  .dash-layout { flex-direction: column; }
-  .dash-sidebar { width: 100% !important; height: auto; flex-direction: row; overflow-x: auto; }
-  .dash-nav { display: flex; flex-direction: row; padding: 6px; }
-  .dash-content { padding: 16px; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET / SMALL LAPTOP  (≤ 1023px)
+   Sidebar becomes an off-canvas drawer; hamburger reveals it.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 1023px) {
+  /* Show hamburger, hide the desktop collapse toggle */
+  .dash-hamburger        { display: flex; }
+  .dash-sidebar-toggle   { display: none; }
+  .dash-sidebar-overlay  { display: block; pointer-events: none; opacity: 0; transition: opacity 0.25s; }
+  /* When overlay is in DOM (React renders it conditionally), make it clickable */
+  .dash-sidebar-overlay  { pointer-events: auto; opacity: 1; }
+
+  /* Sidebar: fixed off-screen by default */
+  .dash-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh !important;
+    width: var(--d-sidebar-w) !important;
+    transform: translateX(-100%);
+    transition: transform 0.26s cubic-bezier(.4,0,.2,1);
+    z-index: 150;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Sidebar open state */
+  .dash-sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 40px rgba(0,0,0,0.35);
+  }
+
+  /* Content always takes full width */
+  .dash-main { width: 100%; }
+
+  /* Remove desktop collapse indentation — all nav items show labels */
+  .dash-layout.sidebar-collapsed .dash-nav-item  { justify-content: flex-start; padding: 9px 10px; }
+  .dash-layout.sidebar-collapsed .dash-role-tag  { justify-content: flex-start; padding: 7px 10px; }
+  .dash-layout.sidebar-collapsed .dash-user-chip { justify-content: flex-start; padding: 8px 8px; }
+  .dash-layout.sidebar-collapsed .dash-logout-btn { justify-content: flex-start; padding: 8px 10px; }
+  .dash-layout.sidebar-collapsed .dash-sidebar-logo { flex-direction: row; justify-content: space-between; padding: 18px 16px 14px; }
+  .dash-layout.sidebar-collapsed .dash-nav-section  { display: block; }
+
+  .dash-content { padding: 20px; }
+  .dash-topbar  { padding: 0 20px; }
+  .stats-row    { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE  (≤ 767px)
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .dash-content { padding: 14px; }
+  .dash-topbar  { padding: 0 14px; }
+  .dash-topbar-title { font-size: 0.9rem; }
+
+  .stats-row    { grid-template-columns: 1fr 1fr; }
   .dash-form-row { grid-template-columns: 1fr; }
+
+  /* Section headers: allow wrapping when title + CTA don't fit side-by-side */
+  .section-header { flex-wrap: wrap; gap: 10px; }
+  .section-head   { flex-wrap: wrap; gap: 8px; }
+
+  /* Pagination: stack count text above buttons on narrow screens */
+  .pagination { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .pagination-btns { align-self: flex-end; }
+
+  /* Notification dropdown: full-width on mobile */
+  .dash-notif-dropdown {
+    width: calc(100vw - 28px);
+    right: -14px;
+  }
+
+  /* Cards */
+  .card-header { padding: 14px 16px 0; }
+  .card-body   { padding: 14px 16px; }
+
+  /* Modal full-screen on mobile */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-box {
+    border-radius: 18px 18px 0 0;
+    max-height: 92vh;
+    max-width: 100%;
+  }
+
+  /* Data grid: hide lower-priority columns */
+  .data-grid .td-hide-mobile { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — SMALL MOBILE  (≤ 479px)
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 479px) {
+  .dash-content { padding: 10px; }
+  .dash-topbar  { padding: 0 12px; }
+
+  .stats-row    { grid-template-columns: 1fr; }
+
+  .dash-sidebar { width: 100vw !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TABLE → CARD TRANSFORM  (≤ 639px)
+   Tables with .data-grid collapse into stacked cards.
+   Each <td> must carry a data-label attribute.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 639px) {
+  .data-grid thead { display: none; }
+
+  .data-grid tbody tr {
+    display: block;
+    background: var(--d-surface);
+    border: 1px solid var(--d-border-soft);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    /* preserve the left colour bar set via inline borderLeft */
+    border-left-width: 3px;
+    border-left-style: solid;
+  }
+
+  .data-grid tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--d-border-soft);
+    font-size: 0.82rem;
+    min-height: 28px;
+  }
+
+  .data-grid tbody td:last-child { border-bottom: none; }
+
+  /* Label column (left side) */
+  .data-grid tbody td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--d-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 2px;
+    min-width: 90px;
+  }
+
+  /* Action cells: no label, right-aligned */
+  .data-grid tbody td[data-label=""] {
+    justify-content: flex-end;
+    padding-top: 8px;
+  }
+  .data-grid tbody td[data-label=""]::before { display: none; }
 }

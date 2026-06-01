@@ -22,12 +22,15 @@ import WorkerCalendar      from "./agency/WorkerCalendar";
 import TeamMemberOverview  from "./team/TeamMemberOverview";
 import TeamMemberProjects  from "./team/TeamMemberProjects";
 
-import PersonalNotes from "./shared/PersonalNotes";
-import TeamProfile   from "./team/TeamProfile";
+import PersonalNotes      from "./shared/PersonalNotes";
+import TeamProfile        from "./team/TeamProfile";
+import ProviderContracts  from "../../components/contracts/ProviderContracts";
+import HistoryPage        from "./shared/HistoryPage";
 import "../../styles/Dashboard.css";
+import MessagesPage from "./shared/MessagesPage";
 import {
   IconHome, IconUsers, IconCompass, IconSend,
-  IconBriefcase, IconBell, IconUser, IconCheckSquare, IconCalendar, IconNote,
+  IconBriefcase, IconFileText, IconBell, IconUser, IconCheckSquare, IconCalendar, IconNote, IconClock, IconMail,
 } from "../../components/ui/Icons";
 
 // ── Browse posts (team lead) ──────────────────────────────────────────────────
@@ -109,8 +112,11 @@ const TeamDashboard = () => {
     { label: "Explorer",       icon: <IconCompass   size={16} />, path: "/dashboard/team/browse"       },
     { label: "Mes offres",     icon: <IconSend      size={16} />, path: "/dashboard/team/pitches"      },
     { label: "Projets",        icon: <IconBriefcase size={16} />, path: "/dashboard/team/projects"     },
-    { label: "Membres",        icon: <IconUsers     size={16} />, path: "/dashboard/team/members"       },
-    { label: "Notes",          icon: <IconNote      size={16} />, path: "/dashboard/team/notes"         },
+    { label: "Contrats",       icon: <IconFileText  size={16} />, path: "/dashboard/team/contracts"    },
+    { label: "Historique",     icon: <IconClock     size={16} />, path: "/dashboard/team/history"      },
+    { label: "Membres",        icon: <IconUsers     size={16} />, path: "/dashboard/team/members"      },
+    { label: "Notes",          icon: <IconNote      size={16} />, path: "/dashboard/team/notes"        },
+    { label: "Messages",       icon: <IconMail      size={16} />, path: "/dashboard/team/messages"     },
     { label: "Notifications",  icon: <IconBell      size={16} />, path: "/dashboard/team/notifications",
       badge: unreadCount },
     { label: "Mon profil",     icon: <IconUser      size={16} />, path: "/dashboard/team/profile"      },
@@ -122,6 +128,7 @@ const TeamDashboard = () => {
     { label: "Mes projets",    icon: <IconBriefcase    size={16} />, path: "/dashboard/team/projects"      },
     { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/team/calendar"      },
     { label: "Notes",          icon: <IconNote         size={16} />, path: "/dashboard/team/notes"         },
+    { label: "Messages",       icon: <IconMail         size={16} />, path: "/dashboard/team/messages"      },
     { label: "Notifications",  icon: <IconBell         size={16} />, path: "/dashboard/team/notifications",
       badge: unreadCount },
     { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/team/profile"       },
@@ -145,8 +152,11 @@ const TeamDashboard = () => {
             <Route path="browse"        element={<BrowsePosts onPitch={setPitchTarget} />} />
             <Route path="pitches"       element={<TeamLeadPitches user={user} />} />
             <Route path="projects"      element={<TeamLeadProjects user={user} />} />
+            <Route path="contracts"     element={<ProviderContracts user={user} partyType="Team" />} />
+            <Route path="history"       element={<HistoryPage />} />
             <Route path="members"       element={<TeamLeadMembers />} />
             <Route path="notes"         element={<PersonalNotes />} />
+            <Route path="messages"      element={<MessagesPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile"       element={<TeamProfile />} />
           </>}
@@ -158,6 +168,7 @@ const TeamDashboard = () => {
             <Route path="projects"    element={<TeamMemberProjects  user={user} />} />
             <Route path="calendar"    element={<WorkerCalendar      user={user} />} />
             <Route path="notes"         element={<PersonalNotes />} />
+            <Route path="messages"      element={<MessagesPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile"       element={<TeamProfile />} />
           </>}

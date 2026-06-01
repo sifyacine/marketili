@@ -13,9 +13,7 @@ const teamSchema = new mongoose.Schema(
     leadLastName:  { type: String, required: true, trim: true },
 
     address: {
-      city: String,
       region: String,
-      country: String,
     },
 
     email: {

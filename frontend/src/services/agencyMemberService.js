@@ -27,6 +27,9 @@ const agencyMemberService = {
 
   getMemberHistory: (id) =>
     api.get(`/agency-members/${id}/history`).then(r => r.data),
+
+  searchFreelancers: (name) =>
+    api.get("/agency-members/search-freelancers", { params: { name } }).then(r => r.data),
 };
 
 export default agencyMemberService;

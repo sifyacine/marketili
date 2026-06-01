@@ -11,18 +11,22 @@ import { useMyPosts }    from "../../hooks/usePosts";
 import useAuth           from "../../hooks/useAuth";
 import projectService    from "../../services/projectService";
 import contractService   from "../../services/contractService";
+import uploadService     from "../../services/uploadService";
+import FileViewerModal   from "../../components/ui/FileViewerModal";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 import NotificationsPage from "./NotificationsPage";
 import notificationService from "../../services/notificationService";
 import ClientCalendar  from "./client/ClientCalendar";
 import ClientProfile   from "./client/ClientProfile";
 import PersonalNotes   from "./shared/PersonalNotes";
+import HistoryPage     from "./shared/HistoryPage";
 import {
   IconHome, IconClipboard, IconCompass, IconInbox,
   IconBriefcase, IconFileText, IconZap, IconCheckSquare,
-  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote,
+  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail,
 } from "../../components/ui/Icons";
-import ChatWindow from "../../components/chat/ChatWindow";
+import ChatWindow   from "../../components/chat/ChatWindow";
+import MessagesPage from "./shared/MessagesPage";
 import "../../styles/Dashboard.css";
 
 const ClientDashboard = () => {
@@ -51,6 +55,8 @@ const ClientDashboard = () => {
     { label: "Contrats",        icon: <IconFileText   size={16} />, path: "/dashboard/client/contracts"      },
     { label: "Calendrier",      icon: <IconCalendar   size={16} />, path: "/dashboard/client/calendar"        },
     { label: "Notes",           icon: <IconNote       size={16} />, path: "/dashboard/client/notes"           },
+    { label: "Historique",      icon: <IconClock      size={16} />, path: "/dashboard/client/history"          },
+    { label: "Messages",         icon: <IconMail       size={16} />, path: "/dashboard/client/messages"      },
     { label: "Notifications",   icon: <IconBell       size={16} />, path: "/dashboard/client/notifications",
       badge: unreadCount },
     { label: "Mon profil",      icon: <IconUser       size={16} />, path: "/dashboard/client/profile"   },
@@ -72,6 +78,8 @@ const ClientDashboard = () => {
           <Route path="contracts"     element={<ClientContracts   user={user} />} />
           <Route path="calendar"      element={<ClientCalendar  user={user} />} />
           <Route path="notes"         element={<PersonalNotes />} />
+          <Route path="history"       element={<HistoryPage />} />
+          <Route path="messages"      element={<MessagesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="profile"       element={<ClientProfile />} />
           <Route path="*"             element={<Navigate to="/dashboard/client" replace />} />
@@ -352,7 +360,7 @@ const ClientProjects = ({ user }) => {
                 {/* Footer */}
                 <div style={{ display: "flex", justifyContent: "space-between",
                   fontSize: "0.72rem", color: "#9a6060" }}>
-                  <span>{p.progress || 0}% · {p.tasks?.length || 0} tâche{p.tasks?.length !== 1 ? "s" : ""}</span>
+                  <span>{p.progress || 0}% avancement</span>
                   {dlLabel
                     ? <span style={{ color: dlColor, fontWeight: 600 }}>{dlLabel}</span>
                     : <span>Échéance : {p.deadline
@@ -371,20 +379,29 @@ const ClientProjects = ({ user }) => {
 
 // ── Client project detail — read-only view ────────────────────────────────────
 const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
-  const [activeTab, setActiveTab] = useState("detail");
-  const [project, setProject] = useState(initial);
+  const [activeTab,   setActiveTab]   = useState("detail");
+  const [project,     setProject]     = useState(initial);
+  const [notes,       setNotes]       = useState(initial.notes || []);
+  const [noteText,    setNoteText]    = useState("");
+  const [noteLoading, setNoteLoading] = useState(false);
+  const [noteError,   setNoteError]   = useState("");
 
   useEffect(() => { onRefresh && onRefresh(); }, []);
 
-  const TASK_STATUS = {
-    todo:        { label: "À faire",     color: "#6b7280" },
-    in_progress: { label: "En cours",    color: "#f59e0b" },
-    in_review:   { label: "En révision", color: "#0891b2" },
-    done:        { label: "Terminé",     color: "#10b981" },
-  };
-
-  const PRIORITY_COLOR = {
-    low: "#10b981", medium: "#f59e0b", high: "#f97316", urgent: "#ef4444",
+  const submitNote = async (e) => {
+    e.preventDefault();
+    if (!noteText.trim()) return;
+    setNoteLoading(true);
+    setNoteError("");
+    try {
+      const data = await projectService.addNote(project._id, { text: noteText.trim() });
+      setNotes(data.notes || []);
+      setNoteText("");
+    } catch (err) {
+      setNoteError(err.response?.data?.message || "Erreur lors de l'envoi");
+    } finally {
+      setNoteLoading(false);
+    }
   };
 
   return (
@@ -417,6 +434,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
+          { id: "notes",      label: `Notes${notes.length ? ` (${notes.length})` : ""}` },
           { id: "messagerie", label: "Messagerie" },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -434,6 +452,91 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
       </div>
 
       {activeTab === "messagerie" && <ChatWindow projectId={project._id} />}
+
+      {/* ── Notes tab ── */}
+      {activeTab === "notes" && (
+        <div>
+          {/* Leave a note form */}
+          <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
+              textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+              Laisser une note
+            </div>
+            <form onSubmit={submitNote}>
+              <textarea
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                placeholder="Écrivez un message à votre prestataire (feedback, demande, remarque)..."
+                rows={4}
+                style={{
+                  width: "100%", borderRadius: 9, border: "1.5px solid #f0dede",
+                  padding: "10px 14px", fontSize: "0.85rem", fontFamily: "inherit",
+                  resize: "vertical", boxSizing: "border-box", outline: "none",
+                  transition: "border-color 0.15s",
+                }}
+                onFocus={e => e.target.style.borderColor = "#c0152a"}
+                onBlur={e => e.target.style.borderColor = "#f0dede"}
+              />
+              {noteError && (
+                <div style={{ color: "#c0152a", fontSize: "0.78rem", marginTop: 6 }}>
+                  {noteError}
+                </div>
+              )}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                <button type="submit" disabled={noteLoading || !noteText.trim()}
+                  style={{
+                    padding: "9px 22px", borderRadius: 9, border: "none",
+                    background: noteText.trim() ? "#c0152a" : "#f0dede",
+                    color: noteText.trim() ? "#fff" : "#9a6060",
+                    fontWeight: 700, fontSize: "0.85rem", cursor: noteText.trim() ? "pointer" : "not-allowed",
+                    fontFamily: "inherit", transition: "all 0.15s",
+                  }}>
+                  {noteLoading ? "Envoi…" : "Envoyer la note"}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Notes list */}
+          {notes.length === 0 ? (
+            <div className="card">
+              <div className="empty-state" style={{ padding: "40px 24px" }}>
+                <div className="empty-state-icon"><IconNote size={20} /></div>
+                <div className="empty-state-title">Aucune note pour l'instant</div>
+                <div className="empty-state-desc">
+                  Laissez une note pour communiquer avec votre prestataire.
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="card">
+              {[...notes].reverse().map((n, i) => (
+                <div key={n._id || i} style={{
+                  padding: "14px 22px",
+                  borderBottom: i < notes.length - 1 ? "1px solid #faeaea" : "none",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "flex-start", marginBottom: 6 }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#4a2a2a" }}>
+                      {n.authorName}
+                      <span style={{ fontWeight: 400, color: "#9a6060", marginLeft: 6,
+                        fontSize: "0.72rem" }}>
+                        {n.authorRole === "client" ? "Client" : n.authorRole}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: "0.7rem", color: "#9a6060", whiteSpace: "nowrap" }}>
+                      {n.createdAt ? new Date(n.createdAt).toLocaleDateString("fr-DZ") : ""}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "#1a0a0a", lineHeight: 1.5 }}>
+                    {n.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {activeTab === "detail" && <>
 
@@ -505,55 +608,6 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
         </div>
       )}
 
-      {/* Tasks — read-only for client */}
-      <div className="card">
-        <div style={{ padding: "16px 22px", borderBottom: "1px solid #faeaea" }}>
-          <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1a0a0a" }}>
-            Tâches ({project.tasks?.length || 0})
-          </div>
-          <div style={{ fontSize: "0.78rem", color: "#9a6060", marginTop: 2 }}>
-            Suivi de l'avancement du prestataire
-          </div>
-        </div>
-
-        {!project.tasks?.length ? (
-          <div className="empty-state" style={{ padding: "32px 24px" }}>
-            <div className="empty-state-icon"><IconCheckSquare size={20} /></div>
-            <div className="empty-state-title">Aucune tâche définie</div>
-          </div>
-        ) : project.tasks.map((task, i) => (
-          <div key={task._id || i}
-            style={{ display: "flex", alignItems: "center", gap: 12,
-              padding: "12px 22px",
-              borderBottom: i < project.tasks.length - 1 ? "1px solid #faeaea" : "none" }}>
-            {/* Status dot */}
-            <div style={{ width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
-              background: TASK_STATUS[task.status]?.color || "#6b7280" }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: "0.87rem", color: "#1a0a0a" }}>
-                {task.title}
-              </div>
-              <div style={{ display: "flex", gap: 8, marginTop: 3, flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.72rem", fontWeight: 600,
-                  color: TASK_STATUS[task.status]?.color || "#6b7280" }}>
-                  {TASK_STATUS[task.status]?.label || task.status}
-                </span>
-                {task.priority && (
-                  <span style={{ fontSize: "0.72rem",
-                    color: PRIORITY_COLOR[task.priority] || "#9a6060" }}>
-                    ● {task.priority}
-                  </span>
-                )}
-                {task.dueDate && (
-                  <span style={{ fontSize: "0.72rem", color: "#9a6060" }}>
-                    {new Date(task.dueDate).toLocaleDateString("fr-DZ")}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
       </> /* end detail tab */}
     </div>
   );
@@ -752,6 +806,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
   const [showResiliate, setShowResiliate] = useState(false);
   const [resilReason,   setResilReason]   = useState("");
   const [resiliating,   setResiliating]   = useState(false);
+  const [viewer,        setViewer]        = useState(null);
 
   const meta = CONTRACT_STATUS_META[contract.status] || CONTRACT_STATUS_META.draft;
 
@@ -803,6 +858,9 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      {viewer && (
+        <FileViewerModal url={viewer.url} filename={viewer.filename} onClose={() => setViewer(null)} />
+      )}
       {/* Back */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack}
@@ -874,15 +932,28 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
             textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
             Contrat PDF
           </div>
-          <a href={contract.contractPdf.url} target="_blank" rel="noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
-              background: "#fff", color: "#1a0a0a", textDecoration: "none" }}>
-            <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
+            background: "#fff", gap: 12 }}>
+            <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "#1a0a0a",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
               {contract.contractPdf.filename || "Contrat.pdf"}
             </span>
-            <span style={{ fontSize: "0.75rem", color: "#9a6060" }}>Télécharger</span>
-          </a>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button onClick={() => setViewer({ url: contract.contractPdf.url, filename: contract.contractPdf.filename || "Contrat.pdf" })}
+                style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+                  cursor: "pointer", fontFamily: "inherit" }}>
+                Visualiser
+              </button>
+              <a href={`${uploadService.resolveUrl(contract.contractPdf.url)}?download=1`}
+                style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #f0dede", background: "none", color: "#9a6060",
+                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                ↓
+              </a>
+            </div>
+          </div>
         </div>
       )}
 
@@ -893,15 +964,28 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
             textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
             Bon de commande
           </div>
-          <a href={contract.bonDeCommande.url} target="_blank" rel="noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
-              background: "#fff", color: "#1a0a0a", textDecoration: "none" }}>
-            <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
+            background: "#fff", gap: 12 }}>
+            <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "#1a0a0a",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
               {contract.bonDeCommande.filename || "Bon de commande"}
             </span>
-            <span style={{ fontSize: "0.75rem", color: "#9a6060" }}>Télécharger</span>
-          </a>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button onClick={() => setViewer({ url: contract.bonDeCommande.url, filename: contract.bonDeCommande.filename || "BonDeCommande.pdf" })}
+                style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+                  cursor: "pointer", fontFamily: "inherit" }}>
+                Visualiser
+              </button>
+              <a href={`${uploadService.resolveUrl(contract.bonDeCommande.url)}?download=1`}
+                style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #f0dede", background: "none", color: "#9a6060",
+                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                ↓
+              </a>
+            </div>
+          </div>
         </div>
       )}
 

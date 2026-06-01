@@ -19,6 +19,9 @@ const adminService = {
   removePost: (id, reason) =>
     api.patch(`/admin/posts/${id}/remove`, { reason }).then(r => r.data),
 
+  reactivatePost: (id) =>
+    api.patch(`/admin/posts/${id}/reactivate`).then(r => r.data),
+
   getAllOptions: () =>
     api.get("/admin/options").then(r => r.data),
 

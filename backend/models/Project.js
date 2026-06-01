@@ -121,7 +121,7 @@ const projectSchema = new mongoose.Schema(
  },
     projectStatus: {
       type: String,
-      enum: ["pending", "active", "in_review", "completed", "cancelled"],
+      enum: ["pending", "pending_contract", "active", "in_review", "completed", "cancelled"],
       default: "pending",
     },
 
@@ -152,6 +152,7 @@ const projectSchema = new mongoose.Schema(
         description: String,
         submittedBy: mongoose.Schema.Types.ObjectId,
         submittedAt: { type: Date, default: Date.now },
+        isComplete:  { type: Boolean, default: false },
       },
     ],
 
@@ -175,6 +176,17 @@ const projectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Conversation",
     },
+
+    // ── Client notes (client-to-provider communication, distinct from task comments) ──
+    notes: [
+      {
+        authorId:   { type: mongoose.Schema.Types.ObjectId },
+        authorName: String,
+        authorRole: String,
+        text:       { type: String, trim: true },
+        createdAt:  { type: Date, default: Date.now },
+      },
+    ],
 
     // ── Status history for audit trail ──
     statusHistory: [

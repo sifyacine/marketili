@@ -59,10 +59,11 @@ const register = async (req, res) => {
     }
 
     const token = generateToken(user._id, role);
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
+      secure: isProd,
+      sameSite: isProd ? "None" : "Lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -120,11 +121,13 @@ const login = async (req, res) => {
     }
 
     if (!user) {
+      console.warn(`[AUTH_FAIL] ${new Date().toISOString()} ip=${req.ip} email=${String(email).slice(0, 3)}***`);
       return res.status(400).json({ success: false, message: "Email ou mot de passe incorrect" });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      console.warn(`[AUTH_FAIL] ${new Date().toISOString()} ip=${req.ip} email=${String(email).slice(0, 3)}***`);
       return res.status(400).json({ success: false, message: "Email ou mot de passe incorrect" });
     }
 
@@ -133,10 +136,11 @@ const login = async (req, res) => {
     }
 
     const token = generateToken(user._id, role);
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
+      secure: isProd,
+      sameSite: isProd ? "None" : "Lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -159,10 +163,11 @@ const getMe = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
+    const isProd = process.env.NODE_ENV === "production";
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
+      secure: isProd,
+      sameSite: isProd ? "None" : "Lax",
     });
     return res.status(200).json({ success: true, message: "Déconnexion réussie" });
   } catch (error) {

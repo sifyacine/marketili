@@ -28,9 +28,7 @@ const freelancerSchema = new mongoose.Schema(
     bio: { type: String, trim: true, maxlength: 1000 },
 
     location: {
-      city: String,
       region: String,
-      country: String,
     },
 
     carteAutoEntrepreneur: { type: String, trim: true },

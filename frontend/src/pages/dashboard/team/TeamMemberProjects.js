@@ -44,7 +44,7 @@ const ProjectDetail = ({ project: p, userId, onBack }) => {
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
-          { id: "messagerie", label: "Messagerie"        },
+          { id: "messagerie", label: "Messagerie" },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             style={{

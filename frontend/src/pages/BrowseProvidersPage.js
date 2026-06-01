@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import profileService from "../services/profileService";
+import uploadService  from "../services/uploadService";
 import useAuth from "../hooks/useAuth";
 import CollaborationRequestModal from "../components/collaborations/CollaborationRequestModal";
 import { IconSearch } from "../components/ui/Icons";
@@ -38,9 +39,7 @@ const ProviderCard = ({ provider, index, onCollab, isFreelancer }) => {
   const avatarSrc   = provider.logo || provider.avatar || null;
   const initials    = name.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase()).join("");
   const specialties = provider.specialties || provider.skills || provider.categories || [];
-  const location    = provider.address?.city || provider.location?.city || null;
-  const region      = provider.address?.region || provider.location?.region || null;
-  const locationStr = [location, region].filter(Boolean).join(", ");
+  const locationStr = provider.address?.region || provider.location?.region || "";
   const membersCount = Array.isArray(provider.members) ? provider.members.length : null;
 
   return (
@@ -60,7 +59,7 @@ const ProviderCard = ({ provider, index, onCollab, isFreelancer }) => {
       {/* Header */}
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
         {avatarSrc ? (
-          <img src={avatarSrc} alt={name}
+          <img src={uploadService.resolveUrl(avatarSrc)} alt={name}
             style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
         ) : (
           <div style={{ width: 44, height: 44, borderRadius: "50%", flexShrink: 0,

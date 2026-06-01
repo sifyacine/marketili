@@ -1,7 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import postService from "../../services/postService";
 import uploadService from "../../services/uploadService";
+import api from "../../services/api";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 
 const CATEGORIES = [
@@ -58,6 +59,8 @@ const INITIAL = {
   compensationType: "monetary",
   benefits: "",
   requiredSkills: [],
+  visibility: "public",
+  targetProvider: { providerType: "", providerId: "", providerName: "" },
 };
 
 const STEPS = [
@@ -67,14 +70,18 @@ const STEPS = [
 ];
 
 const CreatePostModal = ({ clientId, onClose, onCreated }) => {
-  const [form,       setForm]       = useState(INITIAL);
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState("");
-  const [step,       setStep]       = useState(1);
-  const [mediaFiles, setMediaFiles] = useState([]);
-  const [dragOver,   setDragOver]   = useState(false);
-  const [skillInput, setSkillInput] = useState("");
-  const fileInputRef = useRef();
+  const [form,              setForm]              = useState(INITIAL);
+  const [loading,           setLoading]           = useState(false);
+  const [error,             setError]             = useState("");
+  const [step,              setStep]              = useState(1);
+  const [mediaFiles,        setMediaFiles]        = useState([]);
+  const [dragOver,          setDragOver]          = useState(false);
+  const [skillInput,        setSkillInput]        = useState("");
+  const [providerSearch,    setProviderSearch]    = useState("");
+  const [providerResults,   setProviderResults]   = useState([]);
+  const [providerSearching, setProviderSearching] = useState(false);
+  const fileInputRef    = useRef();
+  const searchTimerRef  = useRef();
 
   const set       = (f, v)    => setForm(p => ({ ...p, [f]: v }));
   const setNested = (p, f, v) => setForm(prev => ({ ...prev, [p]: { ...prev[p], [f]: v } }));
@@ -105,6 +112,31 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
 
   const handleSkillKeyDown = (e) => {
     if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addSkill(); }
+  };
+
+  const searchProviders = useCallback((q) => {
+    clearTimeout(searchTimerRef.current);
+    if (!q.trim()) { setProviderResults([]); return; }
+    searchTimerRef.current = setTimeout(async () => {
+      setProviderSearching(true);
+      try {
+        const res = await api.get("/profile/providers", { params: { search: q, limit: 6 } });
+        setProviderResults(res.data.providers || []);
+      } catch { setProviderResults([]); }
+      finally { setProviderSearching(false); }
+    }, 300);
+  }, []);
+
+  useEffect(() => { searchProviders(providerSearch); }, [providerSearch, searchProviders]);
+
+  const selectProvider = (p) => {
+    const providerType = p._role === "agency" ? "Agency" : p._role === "team" ? "Team" : "Freelancer";
+    const name = p.agencyName || p.teamName || `${p.firstName} ${p.lastName}`;
+    setNested("targetProvider", "providerType", providerType);
+    setNested("targetProvider", "providerId", p._id);
+    setNested("targetProvider", "providerName", name);
+    setProviderSearch(name);
+    setProviderResults([]);
   };
 
   const addFiles = (files) => {
@@ -152,6 +184,9 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (form.visibility === "private" && !form.targetProvider.providerId) {
+      return setError("Veuillez sélectionner un prestataire pour un post privé");
+    }
     setLoading(true);
     try {
       const uploadedMedia = await uploadAllMedia();
@@ -163,12 +198,22 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
             currency: form.budget.currency,
           };
 
-      const data = await postService.create({
+      const payload = {
         ...form,
         clientId,
         media: uploadedMedia,
         budget: budgetData,
-      });
+        visibility: form.visibility,
+      };
+      if (form.visibility === "private" && form.targetProvider.providerId) {
+        payload.targetProvider = {
+          providerType: form.targetProvider.providerType,
+          providerId:   form.targetProvider.providerId,
+        };
+      } else {
+        delete payload.targetProvider;
+      }
+      const data = await postService.create(payload);
       onCreated(data.post);
     } catch (err) {
       setError(err.response?.data?.message || "Erreur lors de la création");
@@ -503,7 +548,85 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   )}
 
-                  {/* Cibler des prestataires */}
+                  {/* Visibilité du post */}
+                  <div className="dash-form-group">
+                    <label className="dash-form-label">Visibilité</label>
+                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                      {[
+                        { value: "public",  label: "Public",  desc: "Visible par tous les prestataires" },
+                        { value: "private", label: "Privé",   desc: "Envoyé à un prestataire spécifique" },
+                      ].map(v => (
+                        <button key={v.value} type="button"
+                          onClick={() => { set("visibility", v.value); if (v.value === "public") { setNested("targetProvider","providerId",""); setNested("targetProvider","providerName",""); setProviderSearch(""); } }}
+                          style={{
+                            flex: 1, padding: "10px 10px", borderRadius: 9, textAlign: "left",
+                            border: "1.5px solid", cursor: "pointer", fontFamily: "inherit",
+                            transition: "all 0.15s",
+                            borderColor: form.visibility === v.value ? "#c0152a" : "#f0dede",
+                            background:  form.visibility === v.value ? "#fff0f0" : "white",
+                          }}>
+                          <div style={{ fontSize: "0.82rem", fontWeight: 700,
+                            color: form.visibility === v.value ? "#c0152a" : "#4a2a2a" }}>
+                            {v.label}
+                          </div>
+                          <div style={{ fontSize: "0.72rem", color: "#9a6060", marginTop: 2 }}>
+                            {v.desc}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Provider selector — only when "private" */}
+                  {form.visibility === "private" && (
+                    <div className="dash-form-group">
+                      <label className="dash-form-label">Prestataire ciblé *</label>
+                      <div style={{ position: "relative" }}>
+                        <input className="dash-form-input"
+                          placeholder="Rechercher par nom (agence, équipe, freelance)..."
+                          value={providerSearch}
+                          onChange={e => { setProviderSearch(e.target.value); if (!e.target.value) { setNested("targetProvider","providerId",""); setNested("targetProvider","providerName",""); } }}
+                        />
+                        {providerSearching && (
+                          <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                            fontSize: "0.72rem", color: "#9a6060" }}>…</span>
+                        )}
+                        {providerResults.length > 0 && (
+                          <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100,
+                            background: "#fff", border: "1.5px solid #f0dede", borderRadius: 9,
+                            boxShadow: "0 4px 16px rgba(0,0,0,0.1)", marginTop: 4, overflow: "hidden" }}>
+                            {providerResults.map(p => {
+                              const name = p.agencyName || p.teamName || `${p.firstName || ""} ${p.lastName || ""}`.trim();
+                              const type = p._role === "agency" ? "Agence" : p._role === "team" ? "Équipe" : "Freelance";
+                              return (
+                                <button key={p._id} type="button" onClick={() => selectProvider(p)}
+                                  style={{ width: "100%", padding: "10px 14px", background: "white",
+                                    border: "none", textAlign: "left", cursor: "pointer",
+                                    borderBottom: "1px solid #faeaea", fontFamily: "inherit" }}
+                                  onMouseEnter={e => e.currentTarget.style.background = "#fff8f8"}
+                                  onMouseLeave={e => e.currentTarget.style.background = "white"}>
+                                  <div style={{ fontSize: "0.83rem", fontWeight: 600, color: "#1a0a0a" }}>
+                                    {name}
+                                  </div>
+                                  <div style={{ fontSize: "0.7rem", color: "#9a6060" }}>{type}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                      {form.targetProvider.providerId ? (
+                        <span style={{ fontSize: "0.73rem", color: "#10b981", marginTop: 4, display: "block" }}>
+                          ✓ {form.targetProvider.providerName} ({form.targetProvider.providerType}) sélectionné
+                        </span>
+                      ) : (
+                        <span className="dash-form-hint">Tapez le nom pour rechercher un prestataire</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Cibler des prestataires (type filter) — only when public */}
+                  {form.visibility === "public" && (
                   <div className="dash-form-group">
                     <label className="dash-form-label">Cibler des prestataires</label>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
@@ -525,6 +648,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                     <span className="dash-form-hint">Laissez "Tous" pour une visibilité maximale</span>
                   </div>
+                  )}
 
                   {error && <div className="dash-form-error">{error}</div>}
 

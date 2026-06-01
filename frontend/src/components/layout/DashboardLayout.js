@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "../../hooks/useAuth";
 import notificationService from "../../services/notificationService";
 import AdBanner from "../ads/AdBanner";
 import chatService from "../../services/chatService";
+import { getSocket } from "../../services/socketService";
 import {
   IconBell, IconLogOut, IconChevronLeft, IconChevronRight,
   IconTarget, IconBuilding, IconUsers, IconZap, IconUser,
@@ -58,8 +59,10 @@ const relativeTime = (date) => {
 
 const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) => {
   const navigate   = useNavigate();
+  const location   = useLocation();
   const { logout } = useAuth();
   const [collapsed,        setCollapsed]        = useState(false);
+  const [mobileOpen,       setMobileOpen]       = useState(false);
   const [showNotifs,       setShowNotifs]       = useState(false);
   const [notifs,           setNotifs]           = useState([]);
   const [unreadCount,      setUnreadCount]      = useState(0);
@@ -99,6 +102,28 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
     return () => { clearInterval(interval); window.removeEventListener("focus", onFocus); };
   }, []);
 
+  // Real-time: join user room and listen for pushed notifications and chat messages
+  useEffect(() => {
+    if (!user?._id) return;
+    const socket = getSocket();
+    socket.emit("join_user_room", user._id);
+
+    const handleNewNotif = ({ notification }) => {
+      setNotifs(prev => [notification, ...prev.slice(0, 9)]);
+      setUnreadCount(c => c + 1);
+    };
+    const handleChatUnread = () => {
+      setChatUnreadCount(c => c + 1);
+    };
+
+    socket.on("new_notification", handleNewNotif);
+    socket.on("new_message",      handleChatUnread);
+    return () => {
+      socket.off("new_notification", handleNewNotif);
+      socket.off("new_message",      handleChatUnread);
+    };
+  }, [user?._id]);
+
   useEffect(() => {
     const handler = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target))
@@ -132,20 +157,58 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
+  // On mobile, always show labels regardless of collapsed state
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  const showLabels = !collapsed || isMobile;
+
+  const activeTitle = (() => {
+    const sorted = [...navItems].sort((a, b) => b.path.length - a.path.length);
+    const match  = sorted.find(item => location.pathname === item.path || location.pathname.startsWith(item.path + "/"));
+    return match?.label || topbarTitle;
+  })();
+
+  useEffect(() => {
+    document.title = `${activeTitle} — Marketili`;
+  }, [activeTitle]);
+
+  // Close mobile drawer on route change
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  // Prevent body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
   return (
     <div className={`dash-layout ${collapsed ? "sidebar-collapsed" : "sidebar-open"}`}>
 
+      {/* ── Mobile overlay backdrop ── */}
+      {mobileOpen && (
+        <div className="dash-sidebar-overlay" onClick={() => setMobileOpen(false)} />
+      )}
+
       {/* ── SIDEBAR ── */}
-      <aside className="dash-sidebar">
+      <aside className={`dash-sidebar${mobileOpen ? " mobile-open" : ""}`}>
 
         {/* Logo */}
         <div className="dash-sidebar-logo">
-          {!collapsed && (
-            <span className="dash-logo-text">Market<span>ili</span></span>
-          )}
-          {collapsed && (
-            <span className="dash-logo-text"><span>M</span></span>
-          )}
+          <img
+            src="/marketelli_logo_1.png"
+            alt="Marketili"
+            style={{
+              height: showLabels ? 34 : 28,
+              maxWidth: showLabels ? 130 : 28,
+              objectFit: "contain",
+              objectPosition: "left center",
+              transition: "all 0.2s",
+            }}
+          />
           <button className="dash-sidebar-toggle" onClick={() => setCollapsed(o => !o)}
             title={collapsed ? "Agrandir" : "Réduire"}>
             {collapsed
@@ -160,7 +223,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           <span className="dash-role-tag-icon" style={{ color: meta.color }}>
             <RoleIcon size={13} />
           </span>
-          {!collapsed && <span>{meta.label}</span>}
+          {showLabels && <span>{meta.label}</span>}
         </div>
 
         {/* Nav */}
@@ -169,13 +232,12 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
             <NavLink key={item.path} to={item.path}
               end={item.path.split("/").length === 3}
               className={({ isActive }) => `dash-nav-item${isActive ? " active" : ""}`}
-              title={collapsed ? item.label : ""}>
+              title={!showLabels ? item.label : ""}>
               <span className="dash-nav-icon">
-                {/* item.icon is a React element (JSX) — render as-is */}
                 {item.icon}
               </span>
-              {!collapsed && <span className="dash-nav-label">{item.label}</span>}
-              {!collapsed && item.badge > 0 && (
+              {showLabels && <span className="dash-nav-label">{item.label}</span>}
+              {showLabels && item.badge > 0 && (
                 <span className="dash-nav-badge">{item.badge}</span>
               )}
             </NavLink>
@@ -186,7 +248,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
         <div className="dash-sidebar-footer">
           <div className="dash-user-chip">
             <div className="dash-user-avatar">{initials}</div>
-            {!collapsed && (
+            {showLabels && (
               <div className="dash-user-info">
                 <div className="dash-user-name">{displayName}</div>
                 <div className="dash-user-role">{meta.label}</div>
@@ -195,7 +257,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           </div>
           <button className="dash-logout-btn" onClick={handleLogout} title="Se déconnecter">
             <span className="dash-logout-icon"><IconLogOut size={15} /></span>
-            {!collapsed && <span>Déconnexion</span>}
+            {showLabels && <span>Déconnexion</span>}
           </button>
         </div>
       </aside>
@@ -204,7 +266,11 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
       <div className="dash-main">
         <header className="dash-topbar">
           <div className="dash-topbar-left">
-            <h1 className="dash-topbar-title">{topbarTitle}</h1>
+            <button className="dash-hamburger" onClick={() => setMobileOpen(o => !o)}
+              aria-label="Menu" aria-expanded={mobileOpen}>
+              <span /><span /><span />
+            </button>
+            <h1 className="dash-topbar-title">{activeTitle}</h1>
           </div>
           <div className="dash-topbar-right">
 
@@ -213,7 +279,11 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
             {chatUnreadCount > 0 && (
               <div style={{ position: "relative" }}>
                 <button className="dash-topbar-icon-btn" title="Messagerie"
-                  style={{ fontSize: "1rem" }}>
+                  style={{ fontSize: "1rem" }}
+                  onClick={() => {
+                    const msgItem = navItems.find(n => n.path.includes("/messages"));
+                    if (msgItem) navigate(msgItem.path);
+                  }}>
                   ✉
                   <span style={{
                     position: "absolute", top: 4, right: 4,
@@ -331,7 +401,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
         <main className="dash-content">
           {role !== "admin" && <AdBanner />}
           <AnimatePresence mode="wait">
-            <motion.div key={topbarTitle}
+            <motion.div key={location.pathname}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.22 }}>

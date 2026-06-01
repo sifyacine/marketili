@@ -3,6 +3,14 @@ const Post         = require("../models/Post");
 const Notification = require("../models/Notification");
 const AgencyMember = require("../models/AgencyMember");
 const logActivity  = require("../utils/logActivity");
+const { getIo }    = require("../config/socket");
+
+const emitPitchUpdate = (userIds) => {
+  const io = getIo();
+  if (!io) return;
+  const ids = Array.isArray(userIds) ? userIds : [userIds];
+  ids.forEach(id => { if (id) io.to(`user:${id}`).emit("pitch_update"); });
+};
 
 const ok = (res, data, code = 200) =>
   res.status(code).json({ success: true, ...data });
@@ -52,6 +60,8 @@ const buildAttachment = (file) => {
 
 // POST /api/pitches
 const sendPitch = async (req, res) => {
+  if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial")
+    return fail(res, "Accès refusé — rôle commercial", 403);
   try {
     const {
       postId,
@@ -169,6 +179,8 @@ const sendPitch = async (req, res) => {
         link: `/dashboard/client/pitches`,
         metadata: { postId: post._id, pitchId: pitch._id },
       });
+      // notify() already emits new_notification; also emit pitch_update so the list refetches
+      emitPitchUpdate(post.client);
     }
 
     if (isConvention && receiverId) {
@@ -278,7 +290,7 @@ const getMyPitches = async (req, res) => {
 
 const acceptPitch = async (req, res) => {
   try {
-    const { clientId } = req.body;
+    const { clientId, withContract = false } = req.body;
 
     // ── Find and validate the pitch ──
     const pitch = await Pitch.findById(req.params.id)
@@ -310,25 +322,27 @@ const acceptPitch = async (req, res) => {
       }
     );
 
-    // ── Auto-create the project ──
-    // Determine provider field based on senderType
-    const Project = require("../models/Project");
+    // ── Determine provider ──
+    const Project      = require("../models/Project");
+    const Contract     = require("../models/Contract");
+    const Conversation = require("../models/Conversation");
+
     const providerField =
-      pitch.senderType === "Agency"     ? "providerAgency"     :
-      pitch.senderType === "Team"       ? "providerTeam"       :
-                                          "providerFreelancer";
+      pitch.senderType === "Agency"  ? "providerAgency"     :
+      pitch.senderType === "Team"    ? "providerTeam"       :
+                                       "providerFreelancer";
 
     const providerId =
-      pitch.senderType === "Agency"     ? pitch.senderAgency     :
-      pitch.senderType === "Team"       ? pitch.senderTeam       :
-                                          pitch.senderFreelancer;
+      pitch.senderType === "Agency"  ? pitch.senderAgency     :
+      pitch.senderType === "Team"    ? pitch.senderTeam       :
+                                       pitch.senderFreelancer;
 
-    // Use post title as project title, fall back to pitch description
-    const postDoc = pitch.post?.title ? pitch.post : await Post.findById(pitch.post);
+    const postDoc      = pitch.post?.title ? pitch.post : await Post.findById(pitch.post);
     const projectTitle = postDoc?.title || "Nouveau projet";
+    const deadline     = postDoc?.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    // Deadline: use post deadline if available, else 30 days from now
-    const deadline = postDoc?.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    // ── Create project (status depends on whether contract is requested) ──
+    const projectStatus = withContract ? "pending_contract" : "active";
 
     const project = await Project.create({
       post:         postDoc?._id || pitch.post,
@@ -340,42 +354,85 @@ const acceptPitch = async (req, res) => {
       description:  pitch.description || "",
       deadline,
       startDate:    new Date(),
-      projectStatus: "active",
+      projectStatus,
       agreedPrice:  pitch.proposedPrice || {},
       statusHistory: [{
-        status:    "active",
+        status:    projectStatus,
         changedAt: new Date(),
-        note:      "Projet créé automatiquement suite à l'acceptation d'une offre",
+        note:      withContract
+          ? "Projet créé — en attente de signature du contrat"
+          : "Projet créé automatiquement suite à l'acceptation d'une offre",
       }],
     });
 
-    // Auto-create the conversation for this project
-    const Conversation = require("../models/Conversation");
+    // ── Auto-create the conversation ──
     const participants = [
-      { participantType: "Client", participantId: pitch.client },
-      { participantType: pitch.senderType, participantId: providerId },
+      { participantType: "Client",           participantId: pitch.client },
+      { participantType: pitch.senderType,   participantId: providerId  },
     ];
-    const conversation = await Conversation.create({
-      project: project._id,
-      participants,
-    });
+    const conversation = await Conversation.create({ project: project._id, participants });
     await Project.findByIdAndUpdate(project._id, { conversationId: conversation._id });
 
-    // Notify the pitch sender
-    const senderRecipient = pitch.senderType === "Agency"     ? pitch.senderAgency :
-                            pitch.senderType === "Team"       ? pitch.senderTeam   :
-                                                               pitch.senderFreelancer;
-    const senderModel     = pitch.senderType === "Agency"     ? "Agency"     :
-                            pitch.senderType === "Team"       ? "Team"       : "Freelancer";
-    const senderRole      = pitch.senderType === "Agency"     ? "agency"     :
-                            pitch.senderType === "Team"       ? "team"       : "freelancer";
+    // ── If contract flow: auto-create a draft contract + notify provider ──
+    let contract = null;
+    if (withContract) {
+      const partyAType = pitch.senderType; // Agency | Team | Freelancer
+      const partyBType = "Client";
+
+      contract = await Contract.create({
+        project:        project._id,
+        pitch:          pitch._id,
+        contractType:   pitch.contractType || "service_agreement",
+        partyAType,
+        partyAId:       providerId,
+        partyAName:     "",
+        partyBType,
+        partyBId:       pitch.client,
+        partyBName:     "",
+        title:          `Contrat — ${projectTitle}`,
+        initiatedBy:    pitch.client,
+        initiatedByRole: "client",
+        status:         "draft",
+        statusHistory: [{
+          status:    "draft",
+          changedAt: new Date(),
+          changedBy: pitch.client,
+          note:      "Contrat créé automatiquement suite à l'acceptation d'une offre",
+        }],
+      });
+    }
+
+    // ── Notify the pitch sender ──
+    const senderRecipient = providerId;
+    const senderModel     = pitch.senderType === "Agency"  ? "Agency"     :
+                            pitch.senderType === "Team"    ? "Team"       : "Freelancer";
+    const senderRole      = pitch.senderType === "Agency"  ? "agency"     :
+                            pitch.senderType === "Team"    ? "team"       : "freelancer";
+    const dashRoot        = pitch.senderType === "Agency"  ? "agency"     :
+                            pitch.senderType === "Team"    ? "team"       : "freelancer";
 
     Notification.notify({
       recipient: senderRecipient, recipientRole: senderRole, recipientModel: senderModel,
       type: "pitch_accepted", category: "pitches",
       title: "Votre offre a été acceptée",
-      body: `Votre offre sur "${postDoc?.title || "un post"}" a été acceptée. Un projet a été créé.`,
-      link: `/dashboard/agency/projects`,
+      body: withContract
+        ? `Votre offre sur "${postDoc?.title || "un post"}" a été acceptée. Veuillez remplir le contrat pour démarrer le projet.`
+        : `Votre offre sur "${postDoc?.title || "un post"}" a été acceptée. Un projet a été créé.`,
+      link: withContract
+        ? `/dashboard/${dashRoot}/contracts`
+        : `/dashboard/${dashRoot}/projects`,
+      metadata: { pitchId: pitch._id, projectId: project._id, contractId: contract?._id },
+    });
+
+    // Notify client that their project has been created
+    Notification.notify({
+      recipient: pitch.client, recipientRole: "client", recipientModel: "Client",
+      type: "project_created", category: "projects",
+      title: "Projet créé",
+      body: withContract
+        ? `Votre projet "${projectTitle}" a été créé et attend la signature du contrat.`
+        : `Votre projet "${projectTitle}" est maintenant actif.`,
+      link: "/dashboard/client/projects",
       metadata: { pitchId: pitch._id, projectId: project._id },
     });
 
@@ -383,17 +440,24 @@ const acceptPitch = async (req, res) => {
       actorId: req.user._id, actorRole: "client", actorName: String(req.user._id),
       actionType: "pitch_accepted", targetId: pitch._id, targetType: "Pitch",
       description: `Offre acceptée — projet créé : "${project?.title || pitch._id}"`,
-      metadata: { projectId: project?._id },
+      metadata: { projectId: project?._id, withContract },
     });
     logActivity({
       actorId: project?._id, actorRole: "system", actorName: "Système",
       actionType: "project_created", targetId: project?._id, targetType: "Project",
       description: `Projet créé automatiquement : "${project?.title || ""}"`,
     });
+
+    // Refresh pitch lists for both the provider and the client
+    emitPitchUpdate([providerId, pitch.client]);
+
     return ok(res, {
       pitch,
       project,
-      message: "Offre acceptée — projet créé automatiquement",
+      contract: contract || undefined,
+      message: withContract
+        ? "Offre acceptée — le prestataire doit remplir le contrat pour démarrer le projet"
+        : "Offre acceptée — projet créé automatiquement",
     });
   } catch (err) {
     console.error("acceptPitch:", err);
@@ -428,6 +492,9 @@ const withdrawPitch = async (req, res) => {
     pitch.respondedAt = new Date();
     await pitch.save();
 
+    // Notify the client so their pitch list refreshes
+    if (pitch.client) emitPitchUpdate(pitch.client);
+
     return ok(res, { pitch, message: "Offre retirée" });
   } catch (err) {
     console.error("withdrawPitch:", err);
@@ -459,14 +526,19 @@ const rejectPitch = async (req, res) => {
     const rejSenderRole      = pitch.senderType === "Agency"     ? "agency"     :
                                pitch.senderType === "Team"       ? "team"       : "freelancer";
 
+    const rejDashRoot = pitch.senderType === "Team" ? "team"
+                      : pitch.senderType === "Freelancer" ? "freelancer" : "agency";
+
     Notification.notify({
       recipient: rejSenderRecipient, recipientRole: rejSenderRole, recipientModel: rejSenderModel,
       type: "pitch_rejected", category: "pitches",
       title: "Votre offre n'a pas été retenue",
       body: reason ? `Raison : ${reason}` : "Votre offre a été rejetée.",
-      link: `/dashboard/agency/pitches`,
+      link: `/dashboard/${rejDashRoot}/pitches`,
       metadata: { pitchId: pitch._id },
     });
+
+    emitPitchUpdate(rejSenderRecipient);
 
     return ok(res, { pitch, message: "Offre rejetée" });
   } catch (err) {
@@ -587,6 +659,15 @@ const updateInternalStatus = async (req, res) => {
           });
         });
       }
+    }
+
+    // Notify all agency members and the agency entity so their pitch lists refresh
+    if (pitch.senderAgency) {
+      emitPitchUpdate(pitch.senderAgency);
+      const allMembers = await AgencyMember.find({
+        agency: pitch.senderAgency, accountStatus: "active",
+      }).select("_id").lean();
+      emitPitchUpdate(allMembers.map(m => m._id));
     }
 
     return ok(res, { pitch, message: "Statut interne mis à jour" });

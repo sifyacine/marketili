@@ -169,6 +169,19 @@ const postSchema = new mongoose.Schema(
     // ── Visibility ──
     isPublic: { type: Boolean, default: true },
 
+    // "public" = visible to all providers; "private" = only targeted provider sees it
+    visibility: {
+      type: String,
+      enum: ["public", "private"],
+      default: "public",
+    },
+
+    // Single targeted provider when visibility === "private"
+    targetProvider: {
+      providerType: { type: String, enum: ["Agency", "Team", "Freelancer"] },
+      providerId:   { type: mongoose.Schema.Types.ObjectId },
+    },
+
     // ── Provider-initiated post (provider sends proposal to a specific client) ──
     initiatedBy: {
       initiatorType: { type: String, enum: ["Agency", "Team", "Freelancer"] },

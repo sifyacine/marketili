@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import profileService from "../services/profileService";
-import postService    from "../services/postService";
+import profileService  from "../services/profileService";
+import postService     from "../services/postService";
+import chatService     from "../services/chatService";
+import uploadService   from "../services/uploadService";
 import useAuth from "../hooks/useAuth";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -74,7 +76,7 @@ const Avatar = ({ src, name, size = 96, color = "#7c3aed" }) => {
     boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
   };
   return src ? (
-    <img src={src} alt={name} style={{ ...style, objectFit: "cover" }} />
+    <img src={uploadService.resolveUrl(src)} alt={name} style={{ ...style, objectFit: "cover" }} />
   ) : (
     <div style={{ ...style, background: `linear-gradient(${color}, ${color}cc)`,
       display: "flex", alignItems: "center", justifyContent: "center",
@@ -129,7 +131,7 @@ const PortfolioGrid = ({ items }) => {
             style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #f0f0f0",
               background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
             {item.imageUrl ? (
-              <img src={item.imageUrl} alt={item.title}
+              <img src={uploadService.resolveUrl(item.imageUrl)} alt={item.title}
                 style={{ width: "100%", height: 130, objectFit: "cover" }} />
             ) : (
               <div style={{ height: 100, background: "linear-gradient(135deg,#f3f0ff,#e0e7ff)",
@@ -354,6 +356,31 @@ const ProfilePage = () => {
   const [propSaving,   setPropSaving]   = useState(false);
   const [propDone,     setPropDone]     = useState(false);
 
+  const [sendingMsg, setSendingMsg] = useState(false);
+
+  const ROLE_TO_DASHBOARD = {
+    client: "/dashboard/client/messages",
+    agency: "/dashboard/agency/messages",
+    agency_member: "/dashboard/agency/messages",
+    team: "/dashboard/team/messages",
+    team_member: "/dashboard/team/messages",
+    freelancer: "/dashboard/freelancer/messages",
+  };
+
+  const handleSendMessage = async () => {
+    if (!user || sendingMsg) return;
+    setSendingMsg(true);
+    try {
+      const data = await chatService.startDirectConversation(id, role);
+      const dashPath = ROLE_TO_DASHBOARD[user.role] || "/dashboard/client/messages";
+      navigate(dashPath, { state: { openConvId: data.conversation._id } });
+    } catch {
+      // silently fail — user can navigate to messages manually
+    } finally {
+      setSendingMsg(false);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     profileService.getProfile(role, id)
@@ -411,10 +438,7 @@ const ProfilePage = () => {
   const avatarSrc   = profile.logo || profile.avatar || null;
   const bio         = profile.bio || "";
   const specialties = profile.specialties || profile.skills || profile.categories || [];
-  const locationStr = [
-    profile.address?.city || profile.location?.city,
-    profile.address?.country || profile.location?.country,
-  ].filter(Boolean).join(", ");
+  const locationStr = profile.address?.region || profile.location?.region || "";
   const isOwner       = user && user._id === id && user.role === role;
   const isProvider    = ["agency", "team", "freelancer"].includes(user?.role);
   const isClientRole  = role === "client";
@@ -580,6 +604,26 @@ const ProfilePage = () => {
                     <span style={{ textTransform: "capitalize" }}>{platform}</span>
                   </a>
                 ))}
+            </div>
+          )}
+
+          {/* Send message action — shown to any logged-in user viewing another's profile */}
+          {!isOwner && user && (
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #f0f0f0" }}>
+              <button
+                onClick={handleSendMessage}
+                disabled={sendingMsg}
+                style={{
+                  padding: "9px 20px", borderRadius: 9, border: "none",
+                  background: sendingMsg ? "#ddd" : meta.color,
+                  color: "#fff", fontFamily: "inherit",
+                  fontSize: "0.82rem", fontWeight: 700,
+                  cursor: sendingMsg ? "not-allowed" : "pointer",
+                  transition: "background 0.15s",
+                  display: "flex", alignItems: "center", gap: 7,
+                }}>
+                ✉ {sendingMsg ? "Ouverture…" : "Envoyer un message"}
+              </button>
             </div>
           )}
         </Card>

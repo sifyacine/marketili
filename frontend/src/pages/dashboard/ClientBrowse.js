@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { usePosts } from "../../hooks/usePosts";
+import uploadService from "../../services/uploadService";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 import { IconSearch, IconCompass, IconFilter, IconMapPin } from "../../components/ui/Icons";
 
@@ -299,6 +300,36 @@ const BrowseCard = ({ post, index, onClick }) => {
           WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
           {post.description}
         </div>
+
+        {/* Media attachments */}
+        {post.media?.length > 0 && (
+          <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+            {post.media.slice(0, 3).map((m, i) => (
+              m.mimeType?.startsWith("image/") ? (
+                <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
+                  style={{ display: "block", flexShrink: 0 }}>
+                  <img src={uploadService.resolveUrl(m.url)} alt={m.filename}
+                    style={{ width: 64, height: 48, objectFit: "cover",
+                      borderRadius: 6, border: "1px solid #f0dede" }} />
+                </a>
+              ) : (
+                <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
+                  style={{ display: "flex", alignItems: "center", gap: 4,
+                    padding: "4px 8px", borderRadius: 6, background: "#f5f3f8",
+                    border: "1px solid #eceaf2", fontSize: "0.68rem",
+                    color: "#6b617e", textDecoration: "none", flexShrink: 0 }}>
+                  🎬 {m.filename?.split("-").slice(1).join("-") || m.filename}
+                </a>
+              )
+            ))}
+            {post.media.length > 3 && (
+              <div style={{ display: "flex", alignItems: "center",
+                fontSize: "0.68rem", color: "var(--d-muted)" }}>
+                +{post.media.length - 3}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Tags */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>

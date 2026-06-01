@@ -245,6 +245,32 @@ exports.restoreMember = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
+// SEARCH FREELANCERS  GET /api/agency-members/search-freelancers?name=...
+// Case-insensitive partial match on firstName / lastName
+// ─────────────────────────────────────────────
+exports.searchFreelancers = async (req, res) => {
+  try {
+    const { name = "" } = req.query;
+    const q = name.trim();
+    if (!q) return res.json({ success: true, freelancers: [] });
+
+    const parts = q.split(/\s+/).filter(Boolean);
+    const regex = new RegExp(parts.join("|"), "i");
+
+    const freelancers = await Freelancer.find({
+      $or: [{ firstName: regex }, { lastName: regex }],
+    })
+      .select("firstName lastName avatar skills categories")
+      .limit(10)
+      .lean();
+
+    res.json({ success: true, freelancers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
 // GET MEMBER HISTORY  GET /api/agency-members/:id/history
 // Returns projects + tasks the member worked on
 // ─────────────────────────────────────────────

@@ -72,11 +72,19 @@ exports.getProfile = async (req, res) => {
 // Protected — req.user identifies who
 // ─────────────────────────────────────────────────────────────
 const ALLOWED_FIELDS = {
-  agency:     ["bio", "logo", "specialties", "portfolioItems", "website", "phone", "address"],
-  freelancer: ["bio", "avatar", "skills", "categories", "socialLinks", "followersCount"],
-  client:     ["bio", "avatar", "phone", "industry", "fieldOfWork", "location", "achievements"],
-  team:       ["bio", "avatar", "specialties", "portfolioItems", "website"],
-  agency_member: ["bio", "avatar", "skills", "phone"],
+  agency:        ["agencyName", "bio", "logo", "specialties", "portfolioItems", "website", "phone", "address", "region"],
+  freelancer:    ["firstName", "lastName", "bio", "avatar", "skills", "categories", "socialLinks", "followersCount", "region"],
+  client:        ["companyName", "firstName", "lastName", "bio", "avatar", "phone", "industry", "fieldOfWork", "location", "achievements", "region"],
+  team:          ["teamName", "bio", "avatar", "specialties", "portfolioItems", "website", "region"],
+  agency_member: ["firstName", "lastName", "bio", "avatar", "skills", "phone"],
+};
+
+// Roles that store region under address.region vs location.region
+const REGION_PATH = {
+  agency:     "address.region",
+  team:       "address.region",
+  freelancer: "location.region",
+  client:     "location.region",
 };
 
 exports.updateProfile = async (req, res) => {
@@ -88,6 +96,12 @@ exports.updateProfile = async (req, res) => {
     const allowed = ALLOWED_FIELDS[role] || [];
     const updates = {};
     allowed.forEach(f => {
+      if (f === "region") {
+        if (req.body.region !== undefined && REGION_PATH[role]) {
+          updates[REGION_PATH[role]] = req.body.region;
+        }
+        return;
+      }
       if (req.body[f] !== undefined) updates[f] = req.body[f];
     });
 
@@ -112,6 +126,8 @@ exports.updateProfile = async (req, res) => {
 // BROWSE PROVIDERS  GET /api/providers
 // type=agency|team|freelancer|all, specialty, region, search, page, limit
 // ─────────────────────────────────────────────────────────────
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 exports.browseProviders = async (req, res) => {
   try {
     const { type = "all", specialty, region, search, page = 1, limit = 12 } = req.query;
@@ -122,13 +138,14 @@ exports.browseProviders = async (req, res) => {
       const f = { isActive: true };
       if (specialty) f.specialties = specialty;
       if (region) {
+        const safeRegion = escapeRegex(String(region));
         f.$or = [
-          { "address.region": { $regex: region, $options: "i" } },
-          { "location.region": { $regex: region, $options: "i" } },
+          { "address.region": { $regex: safeRegion, $options: "i" } },
+          { "location.region": { $regex: safeRegion, $options: "i" } },
         ];
       }
       if (search) {
-        const re = { $regex: search, $options: "i" };
+        const re = { $regex: escapeRegex(String(search)), $options: "i" };
         f.$or = [
           ...extraFields.map(field => ({ [field]: re })),
           { bio: re },

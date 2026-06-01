@@ -48,8 +48,8 @@ const pitchService = {
   getForClient: (clientId, params = {}) =>
     api.get(`/pitches/client/${clientId}`, { params }).then((r) => r.data),
 
-  accept: (id, clientId) =>
-    api.patch(`/pitches/${id}/accept`, { clientId }).then((r) => r.data),
+  accept: (id, clientId, withContract = false) =>
+    api.patch(`/pitches/${id}/accept`, { clientId, withContract }).then((r) => r.data),
 
   reject: (id, clientId, reason = "") =>
     api.patch(`/pitches/${id}/reject`, { clientId, reason }).then((r) => r.data),

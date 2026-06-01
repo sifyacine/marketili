@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import useAuth from "../../hooks/useAuth";
@@ -20,6 +20,8 @@ const Login = () => {
   const location  = useLocation();
   const { login } = useAuth();
   const from      = location.state?.from?.pathname;
+
+  useEffect(() => { document.title = "Connexion — Marketili"; }, []);
 
   const [form,    setForm]    = useState({ email: "", password: "" });
   const [showPw,  setShowPw]  = useState(false);
@@ -67,7 +69,10 @@ const Login = () => {
         <div className="auth-left-decor">M</div>
 
         <div className="auth-left-content">
-          <Link to="/" className="auth-logo">Market<span>ili</span></Link>
+          <Link to="/" className="auth-logo">
+            <img src="/marketelli_logo_1.png" alt="Marketili"
+              style={{ height: 44, objectFit: "contain", display: "block" }} />
+          </Link>
           <h2 className="auth-left-title">
             Bienvenue sur<br /><em>Marketili.</em>
           </h2>

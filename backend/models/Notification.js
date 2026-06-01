@@ -68,6 +68,7 @@ const notificationSchema = new mongoose.Schema(
         "contract_signed",      // bon de commande sent, contract finalized
 
         // Deadline / task events
+        "task_assigned",        // a task was assigned to a member
         "task_overdue",         // a task has passed its due date
         "deadline_approaching", // project/task deadline within 3 days
 
@@ -119,11 +120,13 @@ const notificationSchema = new mongoose.Schema(
 
     // ── Flexible metadata for any linked resources ──
     metadata: {
-      postId:    { type: mongoose.Schema.Types.ObjectId, ref: "Post"    },
-      pitchId:   { type: mongoose.Schema.Types.ObjectId, ref: "Pitch"   },
-      projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
-      senderId:  mongoose.Schema.Types.ObjectId,
-      senderName: String,
+      postId:      { type: mongoose.Schema.Types.ObjectId, ref: "Post"     },
+      pitchId:     { type: mongoose.Schema.Types.ObjectId, ref: "Pitch"    },
+      projectId:   { type: mongoose.Schema.Types.ObjectId, ref: "Project"  },
+      contractId:  { type: mongoose.Schema.Types.ObjectId, ref: "Contract" },
+      requestId:   mongoose.Schema.Types.ObjectId,
+      senderId:    mongoose.Schema.Types.ObjectId,
+      senderName:  String,
     },
   },
   { timestamps: true }
@@ -139,7 +142,14 @@ notificationSchema.index({ recipient: 1, recipientRole: 1 });
 // Usage: await Notification.notify({ recipient, recipientRole, recipientModel, type, title, body, link, metadata })
 notificationSchema.statics.notify = async function(data) {
   try {
-    return await this.create(data);
+    const notification = await this.create(data);
+    // Push real-time to the recipient's user room
+    const { getIo } = require("../config/socket");
+    const io = getIo();
+    if (io && notification.recipient) {
+      io.to(`user:${notification.recipient}`).emit("new_notification", { notification });
+    }
+    return notification;
   } catch (err) {
     // Notifications should never crash the main flow
     console.error("Failed to create notification:", err.message);

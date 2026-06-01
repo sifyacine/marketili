@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconUsers, IconBriefcase, IconCheckSquare, IconSend } from "../../../components/ui/Icons";
 import collaborationRequestService from "../../../services/collaborationRequestService";
+import uploadService from "../../../services/uploadService";
 
 const ROLE_LABEL = {
   strategist:       "Stratège",
@@ -74,7 +75,7 @@ const AgencyCard = ({ collab, active, onClick }) => {
       }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
         {agency.logo
-          ? <img src={agency.logo} alt={agency.agencyName}
+          ? <img src={uploadService.resolveUrl(agency.logo)} alt={agency.agencyName}
               style={{ width: 44, height: 44, borderRadius: 12, objectFit: "cover" }} />
           : <div style={{
               width: 44, height: 44, borderRadius: 12,

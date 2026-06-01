@@ -30,8 +30,9 @@ const messageSchema = new mongoose.Schema(
       mimeType: String,
       size:     Number,
     },
-    isRead: { type: Boolean, default: false },
-    readAt: Date,
+    isRead:    { type: Boolean, default: false },
+    readAt:    Date,
+    isDeleted: { type: Boolean, default: false },
     metadata: {
       contractId: mongoose.Schema.Types.ObjectId,
     },

@@ -11,11 +11,12 @@ const {
   sendPostToProvider,
   deletePost,
 } = require("../controllers/Postcontroller");
+const { optionalAuth } = require("../middleware/auth");
 
 // ── Public / open routes (no auth yet — Phase 7 will add protect middleware) ──
 
-// Browse all posts (everyone can see open posts)
-router.get("/",           getPosts);
+// Browse all posts — optionalAuth so visibility can be filtered for logged-in providers
+router.get("/",           optionalAuth, getPosts);
 
 // Client's own posts
 router.get("/my",         getMyPosts);

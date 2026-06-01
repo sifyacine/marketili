@@ -16,10 +16,13 @@ import FreelancerProjects    from "./freelancer/FreelancerProjects";
 import FreelancerCalendar    from "./freelancer/FreelancerCalendar";
 import FreelancerProfile     from "./freelancer/FreelancerProfile";
 import PersonalNotes         from "./shared/PersonalNotes";
+import ProviderContracts     from "../../components/contracts/ProviderContracts";
+import HistoryPage           from "./shared/HistoryPage";
 import "../../styles/Dashboard.css";
+import MessagesPage from "./shared/MessagesPage";
 import {
   IconHome, IconUsers, IconCompass, IconSend,
-  IconBriefcase, IconBell, IconUser, IconCalendar, IconNote,
+  IconBriefcase, IconFileText, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail,
 } from "../../components/ui/Icons";
 
 const ContextBar = ({ collaborations, activeContext, onSwitch }) => {
@@ -100,16 +103,19 @@ const FreelancerDashboard = () => {
   };
 
   const NAV = [
-    { label: "Accueil",          icon: <IconHome     size={16} />, path: "/dashboard/freelancer"                },
-    { label: "Collaborations",   icon: <IconUsers    size={16} />, path: "/dashboard/freelancer/collaborations" },
-    { label: "Explorer",         icon: <IconCompass  size={16} />, path: "/dashboard/freelancer/browse"         },
-    { label: "Mes offres",       icon: <IconSend     size={16} />, path: "/dashboard/freelancer/pitches"        },
-    { label: "Mes projets",      icon: <IconBriefcase size={16} />, path: "/dashboard/freelancer/projects"      },
-    { label: "Calendrier",       icon: <IconCalendar size={16} />, path: "/dashboard/freelancer/calendar"      },
-    { label: "Notes",            icon: <IconNote     size={16} />, path: "/dashboard/freelancer/notes"         },
-    { label: "Notifications",    icon: <IconBell     size={16} />, path: "/dashboard/freelancer/notifications",
+    { label: "Accueil",          icon: <IconHome      size={16} />, path: "/dashboard/freelancer"                },
+    { label: "Collaborations",   icon: <IconUsers     size={16} />, path: "/dashboard/freelancer/collaborations" },
+    { label: "Explorer",         icon: <IconCompass   size={16} />, path: "/dashboard/freelancer/browse"         },
+    { label: "Mes offres",       icon: <IconSend      size={16} />, path: "/dashboard/freelancer/pitches"        },
+    { label: "Mes projets",      icon: <IconBriefcase size={16} />, path: "/dashboard/freelancer/projects"       },
+    { label: "Contrats",         icon: <IconFileText  size={16} />, path: "/dashboard/freelancer/contracts"      },
+    { label: "Calendrier",       icon: <IconCalendar  size={16} />, path: "/dashboard/freelancer/calendar"       },
+    { label: "Historique",       icon: <IconClock     size={16} />, path: "/dashboard/freelancer/history"        },
+    { label: "Notes",            icon: <IconNote      size={16} />, path: "/dashboard/freelancer/notes"          },
+    { label: "Messages",          icon: <IconMail      size={16} />, path: "/dashboard/freelancer/messages"        },
+    { label: "Notifications",    icon: <IconBell      size={16} />, path: "/dashboard/freelancer/notifications",
       badge: unreadCount },
-    { label: "Mon profil",       icon: <IconUser     size={16} />, path: "/dashboard/freelancer/profile"       },
+    { label: "Mon profil",       icon: <IconUser      size={16} />, path: "/dashboard/freelancer/profile"        },
   ];
 
   const topbarTitle = activeContext
@@ -165,8 +171,11 @@ const FreelancerDashboard = () => {
             <FreelancerProjects user={user} activeContext={activeContext} />
           } />
 
+          <Route path="contracts"     element={<ProviderContracts user={user} partyType="Freelancer" />} />
+          <Route path="history"       element={<HistoryPage />} />
           <Route path="calendar"      element={<FreelancerCalendar user={user} />} />
           <Route path="notes"         element={<PersonalNotes />} />
+          <Route path="messages"      element={<MessagesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="profile"       element={<FreelancerProfile />} />
 

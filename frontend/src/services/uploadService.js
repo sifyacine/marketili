@@ -3,28 +3,39 @@
 import api from "./api";
 
 const uploadService = {
-  // Upload a file — returns { fileId, filename, url, mimeType, size }
+  // Upload a file — returns { fileId, filename, url }
   upload: async (file, onProgress) => {
     const formData = new FormData();
     formData.append("file", file);
-
+    // Do NOT set Content-Type — axios auto-detects FormData and adds the boundary
     const response = await api.post("/upload", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
       onUploadProgress: (e) => {
-        if (onProgress) {
-          const percent = Math.round((e.loaded * 100) / e.total);
-          onProgress(percent);
+        if (onProgress && e.total) {
+          onProgress(Math.round((e.loaded * 100) / e.total));
         }
       },
     });
     return response.data;
   },
 
-  // Get the full URL to view a file
-  getUrl: (fileId) => `http://localhost:5000/api/upload/${fileId}`,
+  // Full URL for a stored file — uses the same base URL as the API
+  getUrl: (fileId) => {
+    const base = (process.env.REACT_APP_API_URL || "http://localhost:5000/api").replace(/\/api$/, "");
+    return `${base}/api/upload/${fileId}`;
+  },
 
-  // Get the download URL for a file
-  getDownloadUrl: (fileId) => `http://localhost:5000/api/upload/${fileId}/download`,
+  getDownloadUrl: (fileId) => {
+    const base = (process.env.REACT_APP_API_URL || "http://localhost:5000/api").replace(/\/api$/, "");
+    return `${base}/api/upload/${fileId}`;
+  },
+
+  // Convert a relative /api/upload/... path stored in the DB to an absolute URL
+  resolveUrl: (relOrAbsUrl) => {
+    if (!relOrAbsUrl) return relOrAbsUrl;
+    if (relOrAbsUrl.startsWith("http")) return relOrAbsUrl;
+    const base = (process.env.REACT_APP_API_URL || "http://localhost:5000/api").replace(/\/api$/, "");
+    return base + relOrAbsUrl;
+  },
 
   // Check if a mimeType is a video
   isVideo: (mimeType) => mimeType?.startsWith("video/"),

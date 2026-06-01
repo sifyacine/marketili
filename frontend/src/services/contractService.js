@@ -30,6 +30,9 @@ const contractService = {
   uploadReceipt:  (id, data)               => api.patch(`/contracts/${id}/receipt`,          data).then(r => r.data),
   sendBDC:        (id, data)               => api.patch(`/contracts/${id}/bon-de-commande`,  data).then(r => r.data),
   resiliate:      (id, initiatedBy, reason)=> api.patch(`/contracts/${id}/resiliation`,      { initiatedBy, reason }).then(r => r.data),
+  confirmAndStart:(id, confirmedBy)        => api.patch(`/contracts/${id}/confirm-start`,   { confirmedBy }).then(r => r.data),
+  skipContract:   (id, skippedBy)          => api.patch(`/contracts/${id}/skip`,            { skippedBy   }).then(r => r.data),
 };
+
 
 export default contractService;

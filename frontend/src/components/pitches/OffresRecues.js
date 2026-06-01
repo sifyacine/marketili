@@ -163,7 +163,7 @@ const PitchDetail = ({ post, clientId, onBack }) => {
             { label: "Deadline", value: post.deadline ? new Date(post.deadline).toLocaleDateString("fr-DZ") : "" },
             {
               label: "Localisation",
-              value: [post.location?.city, post.location?.region, post.location?.country].filter(Boolean).join(", "),
+              value: post.location?.region || "",
             },
             { label: "Catégories", value: Array.isArray(post.categories) ? post.categories.join(", ") : "" },
             { label: "Ciblage", value: Array.isArray(post.targetProviders) ? post.targetProviders.join(", ") : "" },

@@ -19,6 +19,9 @@ const projectService = {
   markFlaggedAsPitched: (agencyId, postId) =>
     api.patch(`/projects/agency/${agencyId}/flagged-posts/${postId}/pitched`).then(r => r.data),
 
+  sendToStrategist: (agencyId, postId, data) =>
+    api.patch(`/projects/agency/${agencyId}/flagged-posts/${postId}/send-to-strategist`, data).then(r => r.data),
+
   // ── Commercial ──
   flagPost: (agencyId, postId, memberId, memberName, note = "") =>
     api.post(`/projects/flag-post`, { agencyId, postId, memberId, memberName, note }).then(r => r.data),
@@ -32,6 +35,15 @@ const projectService = {
 
   addDeliverable: (projectId, data) =>
     api.post(`/projects/${projectId}/deliverables`, data).then(r => r.data),
+
+  addNote: (projectId, data) =>
+    api.post(`/projects/${projectId}/notes`, data).then(r => r.data),
+
+  getDeliverables: (projectId) =>
+    api.get(`/projects/${projectId}/deliverables`).then(r => r.data),
+
+  updateDeliverable: (projectId, deliverableId, data) =>
+    api.patch(`/projects/${projectId}/deliverables/${deliverableId}`, data).then(r => r.data),
 
   // ── Tasks ──
   createTask: (projectId, data) =>
