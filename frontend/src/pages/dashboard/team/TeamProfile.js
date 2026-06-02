@@ -7,7 +7,7 @@ import {
   AvatarCircle, AvatarEditBtn, InfoGrid, StatBar, TagList, TagInput,
   ErrorBanner, SuccessBanner, EditActions, PostFeed, fmt,
 } from "../../../components/profile/ProfileKit";
-import { IconMapPin, IconMail, IconPhone, IconCalendar, IconGlobe, IconAward } from "../../../components/ui/Icons";
+import { IconMapPin, IconMail, IconPhone, IconCalendar, IconGlobe, IconAward, IconUsers } from "../../../components/ui/Icons";
 
 const ACCENT    = "#0891b2";
 const ACCENT_BG = "#ecfeff";
