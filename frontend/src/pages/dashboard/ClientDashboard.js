@@ -27,6 +27,7 @@ import {
 } from "../../components/ui/Icons";
 import ChatWindow   from "../../components/chat/ChatWindow";
 import MessagesPage from "./shared/MessagesPage";
+import ProjectHistory from "../../components/projects/ProjectHistory";
 import "../../styles/Dashboard.css";
 
 const ClientDashboard = () => {
@@ -434,6 +435,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
+          { id: "historique", label: "Historique" },
           { id: "notes",      label: `Notes${notes.length ? ` (${notes.length})` : ""}` },
           { id: "messagerie", label: "Messagerie" },
         ].map(tab => (
@@ -452,6 +454,8 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
       </div>
 
       {activeTab === "messagerie" && <ChatWindow projectId={project._id} />}
+
+      {activeTab === "historique" && <ProjectHistory projectId={project._id} />}
 
       {/* ── Notes tab ── */}
       {activeTab === "notes" && (

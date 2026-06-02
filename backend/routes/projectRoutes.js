@@ -20,6 +20,7 @@ router.get("/team/:teamId",                        protect, c.getTeamProjects);
 // ── Generic routes after ──
 router.get("/agency/:agencyId",                              protect, c.getAgencyProjects);
 router.post("/",                                             protect, c.createProject);
+router.get("/:projectId/history",                            protect, c.getProjectHistory);
 router.get("/:projectId",                                    protect, c.getProject);
 router.patch("/:projectId",                                  protect, c.updateProject);
 router.post("/:projectId/assign",                            protect, c.assignMember);

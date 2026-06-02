@@ -2,8 +2,10 @@ const Project      = require("../models/Project");
 const Agency       = require("../models/Agency");
 const AgencyMember = require("../models/AgencyMember");
 const TeamMember   = require("../models/TeamMember");
+const Contract     = require("../models/Contract");
 const Notification = require("../models/Notification");
 const logActivity  = require("../utils/logActivity");
+const buildProjectHistory = require("../utils/buildProjectHistory");
 
 // ── Helper ──
 const calculateProgress = (project) => {
@@ -11,6 +13,30 @@ const calculateProgress = (project) => {
   if (total === 0) return 0;
   const done = project.tasks.filter(t => t.status === "done").length;
   return Math.round((done / total) * 100);
+};
+
+// ── Authorization helper ──
+// True when `user` (with role `role`) is a party to `project` — i.e. the
+// client, the owning provider, or an assigned/parent member. Admins always pass.
+const idEq = (a, b) => !!a && !!b && a.toString() === b.toString();
+
+const isProjectParty = (project, user, role) => {
+  if (!user) return false;
+  if (role === "admin") return true;
+  const uid = user._id;
+  switch (role) {
+    case "client":     return idEq(project.client, uid);
+    case "agency":     return idEq(project.providerAgency, uid);
+    case "team":       return idEq(project.providerTeam, uid);
+    case "freelancer": return idEq(project.providerFreelancer, uid);
+    case "agency_member":
+      return idEq(user.agency, project.providerAgency) ||
+        (project.assignedMembers || []).some(m => idEq(m.memberId, uid));
+    case "team_member":
+      return idEq(user.team, project.providerTeam) ||
+        (project.assignedMembers || []).some(m => idEq(m.memberId, uid));
+    default:           return false;
+  }
 };
 
 // ─────────────────────────────────────────────
@@ -97,6 +123,40 @@ exports.getProject = async (req, res) => {
     res.json({ success: true, project: projectObj });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// GET PROJECT HISTORY  GET /api/projects/:projectId/history
+// Unified, chronological timeline of everything that happened on a project:
+// status changes, deliverables, decisions, team changes, and contract
+// milestones — derived from existing data. Accessible to both parties
+// (client + provider) and the project's members.
+// ─────────────────────────────────────────────
+exports.getProjectHistory = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.projectId);
+    if (!project) return res.status(404).json({ success: false, message: "Projet introuvable" });
+
+    if (!isProjectParty(project, req.user, req.userRole)) {
+      return res.status(403).json({ success: false, message: "Accès refusé à ce projet" });
+    }
+
+    const contract = await Contract.findOne({ project: project._id }).lean();
+    let events = buildProjectHistory(project.toObject(), contract);
+
+    // Clients get the client-facing story (status, deliverables, contract, notes)
+    // but not the provider's internal workflow — consistent with getProject,
+    // which hides the internal task list from clients.
+    if (req.userRole === "client") {
+      const HIDDEN_FROM_CLIENT = new Set(["task", "decision", "member"]);
+      events = events.filter(e => !HIDDEN_FROM_CLIENT.has(e.category));
+    }
+
+    return res.json({ success: true, events, total: events.length });
+  } catch (err) {
+    console.error("getProjectHistory:", err);
+    return res.status(500).json({ success: false, message: "Erreur serveur" });
   }
 };
 
