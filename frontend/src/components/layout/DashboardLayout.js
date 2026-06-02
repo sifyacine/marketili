@@ -5,6 +5,7 @@ import useAuth from "../../hooks/useAuth";
 import notificationService from "../../services/notificationService";
 import AdBanner from "../ads/AdBanner";
 import chatService from "../../services/chatService";
+import uploadService from "../../services/uploadService";
 import { getSocket } from "../../services/socketService";
 import {
   IconBell, IconLogOut, IconChevronLeft, IconChevronRight,
@@ -79,6 +80,9 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
 
   const initials = displayName.split(" ").slice(0, 2)
     .map(w => w[0]?.toUpperCase()).join("");
+
+  // Profile picture: agencies store it as `logo`, every other role as `avatar`
+  const avatarSrc = user?.logo || user?.avatar;
 
   useEffect(() => {
     const load = async () => {
@@ -248,7 +252,17 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
         {/* Footer: user + logout */}
         <div className="dash-sidebar-footer">
           <div className="dash-user-chip">
-            <div className="dash-user-avatar">{initials}</div>
+            <div className="dash-user-avatar" style={{ position: "relative", overflow: "hidden" }}>
+              {initials}
+              {avatarSrc && (
+                <img
+                  src={uploadService.resolveUrl(avatarSrc)}
+                  alt={displayName}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+              )}
+            </div>
             {showLabels && (
               <div className="dash-user-info">
                 <div className="dash-user-name">{displayName}</div>
