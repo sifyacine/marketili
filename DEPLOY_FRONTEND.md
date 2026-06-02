@@ -8,21 +8,28 @@
 
 - A [Netlify](https://netlify.com) account (free tier is fine)
 - The backend already deployed and its URL known (e.g. `https://api.marketili.com`)
-- Git repository pushed to GitHub / GitLab / Bitbucket
+- Git repository pushed to GitHub: `https://github.com/sifyacine/marketili.git` ✓ (Already pushed to main branch)
+
+**Repository Status:** Code is now available on GitHub at [sifyacine/marketili](https://github.com/sifyacine/marketili)
 
 ---
 
-## Step 1 — Push the repository
+## Step 1 — Repository Setup
 
-The Netlify build root is the `frontend/` folder. Make sure your repo has this layout:
+**✓ Repository already pushed to GitHub:** `https://github.com/sifyacine/marketili.git`
+
+The Netlify build root is the `frontend/` folder. The repo structure is:
 
 ```
-try1/
+marketili/
 ├── frontend/          ← Netlify builds from here
 │   ├── netlify.toml
 │   ├── package.json
 │   └── src/
-└── backend/
+├── backend/
+├── DEPLOY_FRONTEND.md (this file)
+├── DEPLOY_BACKEND.md
+└── DEPLOY.md
 ```
 
 ---

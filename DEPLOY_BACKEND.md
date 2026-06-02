@@ -14,7 +14,9 @@ MongoDB is always hosted on **MongoDB Atlas** (free M0 cluster is fine for stagi
 
 - A [DigitalOcean](https://digitalocean.com) account
 - A [MongoDB Atlas](https://cloud.mongodb.com) cluster (free M0 or paid)
-- The backend repo pushed to GitHub
+- The backend repo pushed to GitHub: `https://github.com/sifyacine/marketili.git` ✓ (Already on main branch)
+
+**Repository Status:** Backend code is now available on GitHub at [sifyacine/marketili](https://github.com/sifyacine/marketili)
 
 ---
 
