@@ -1,0 +1,144 @@
+/* frontend/src/styles/PitchForm.css */
+
+.pitch-form-modal {
+  max-width: 680px;
+}
+
+.pitch-form-post-title {
+  font-size: 0.78rem;
+  color: #9a6060;
+  margin-top: 2px;
+}
+
+.pitch-form-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pitch-form-progress {
+  display: flex;
+  gap: 5px;
+}
+
+.pitch-form-progress-bar {
+  height: 5px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.pitch-form-progress-bar.completed {
+  width: 18px;
+  background: #c0152a;
+}
+
+.pitch-form-progress-bar.active {
+  width: 22px;
+  background: #e0253f;
+}
+
+.pitch-form-progress-bar.inactive {
+  width: 22px;
+  background: #f0dede;
+}
+
+.pitch-form-step-label {
+  padding: 4px 24px 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c0152a;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pitch-form-textarea-sm {
+  min-height: 70px;
+}
+
+.pitch-form-textarea-md {
+  min-height: 80px;
+}
+
+.pitch-form-textarea-lg {
+  min-height: 160px;
+}
+
+.pitch-form-textarea-xl {
+  min-height: 110px;
+}
+
+.pitch-form-nav-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.pitch-form-back-btn {
+  flex: 1;
+  padding: 12px;
+  border: 1.5px solid #f0dede;
+  border-radius: 9px;
+  background: white;
+  color: #9a6060;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.pitch-form-back-btn:hover {
+  background: #fdf8f8;
+  border-color: #e0bebe;
+}
+
+.pitch-form-next-btn {
+  flex: 2;
+  padding: 12px;
+  border: none;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #c0152a 0%, #9b1c2e 100%);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 2px 12px rgba(192, 21, 42, 0.2);
+  transition: all 0.2s;
+}
+
+.pitch-form-next-btn:hover {
+  box-shadow: 0 4px 20px rgba(192, 21, 42, 0.3);
+  transform: translateY(-1px);
+}
+
+.pitch-form-submit-btn {
+  flex: 2;
+  padding: 12px;
+  border: none;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #c0152a 0%, #9b1c2e 100%);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 2px 12px rgba(192, 21, 42, 0.2);
+  transition: all 0.2s;
+}
+
+.pitch-form-submit-btn:hover {
+  box-shadow: 0 4px 20px rgba(192, 21, 42, 0.3);
+  transform: translateY(-1px);
+}
+
+.pitch-form-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pitch-form-file-name {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #9a6060;
+}

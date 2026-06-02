@@ -1,0 +1,1186 @@
+// frontend/src/pages/dashboard/ClientDashboard.jsx
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import DashboardLayout   from "../../components/layout/DashboardLayout";
+import CreatePostModal   from "../../components/posts/CreatePostModal";
+import PostsDataGrid     from "../../components/posts/PostsDataGrid";
+import ClientBrowse      from "./ClientBrowse";
+import ClientPitches     from "./ClientPitches";
+import { useMyPosts }    from "../../hooks/usePosts";
+import useAuth           from "../../hooks/useAuth";
+import projectService    from "../../services/projectService";
+import contractService   from "../../services/contractService";
+import uploadService     from "../../services/uploadService";
+import FileViewerModal   from "../../components/ui/FileViewerModal";
+import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
+import NotificationsPage from "./NotificationsPage";
+import notificationService from "../../services/notificationService";
+import ClientCalendar  from "./client/ClientCalendar";
+import ClientProfile   from "./client/ClientProfile";
+import PersonalNotes   from "./shared/PersonalNotes";
+import HistoryPage     from "./shared/HistoryPage";
+import {
+  IconHome, IconClipboard, IconCompass, IconInbox,
+  IconBriefcase, IconFileText, IconZap, IconCheckSquare,
+  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail,
+} from "../../components/ui/Icons";
+import ChatWindow   from "../../components/chat/ChatWindow";
+import MessagesPage from "./shared/MessagesPage";
+import ProjectHistory from "../../components/projects/ProjectHistory";
+import "../../styles/Dashboard.css";
+
+const ClientDashboard = () => {
+  const { user } = useAuth();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [postCreated,     setPostCreated]     = useState(0);
+  const [unreadCount,     setUnreadCount]     = useState(0);
+
+  useEffect(() => {
+    notificationService.getUnreadCount()
+      .then(c => setUnreadCount(c || 0))
+      .catch(() => {});
+    notificationService.checkDeadlines();
+    const iv = setInterval(() =>
+      notificationService.getUnreadCount().then(c => setUnreadCount(c || 0)).catch(() => {}),
+    30000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const NAV = [
+    { label: "Vue d'ensemble",  icon: <IconHome       size={16} />, path: "/dashboard/client"                },
+    { label: "Mes posts",       icon: <IconClipboard  size={16} />, path: "/dashboard/client/posts"          },
+    { label: "Explorer",        icon: <IconCompass    size={16} />, path: "/dashboard/client/browse"         },
+    { label: "Offres reçues",   icon: <IconInbox      size={16} />, path: "/dashboard/client/pitches"        },
+    { label: "Projets",         icon: <IconBriefcase  size={16} />, path: "/dashboard/client/projects"       },
+    { label: "Contrats",        icon: <IconFileText   size={16} />, path: "/dashboard/client/contracts"      },
+    { label: "Calendrier",      icon: <IconCalendar   size={16} />, path: "/dashboard/client/calendar"        },
+    { label: "Notes",           icon: <IconNote       size={16} />, path: "/dashboard/client/notes"           },
+    { label: "Historique",      icon: <IconClock      size={16} />, path: "/dashboard/client/history"          },
+    { label: "Messages",         icon: <IconMail       size={16} />, path: "/dashboard/client/messages"      },
+    { label: "Notifications",   icon: <IconBell       size={16} />, path: "/dashboard/client/notifications",
+      badge: unreadCount },
+    { label: "Mon profil",      icon: <IconUser       size={16} />, path: "/dashboard/client/profile"   },
+  ];
+
+  return (
+    <>
+      <DashboardLayout role="client" user={user} navItems={NAV} topbarTitle="Tableau de bord">
+        <Routes>
+          <Route index element={
+            <ClientOverview user={user} onCreatePost={() => setShowCreateModal(true)} postCreated={postCreated} />
+          } />
+          <Route path="posts" element={
+            <ClientPosts user={user} onCreatePost={() => setShowCreateModal(true)} refetchKey={postCreated} />
+          } />
+          <Route path="browse"        element={<ClientBrowse />} />
+          <Route path="pitches"       element={<ClientPitches     user={user} />} />
+          <Route path="projects"      element={<ClientProjects    user={user} />} />
+          <Route path="contracts"     element={<ClientContracts   user={user} />} />
+          <Route path="calendar"      element={<ClientCalendar  user={user} />} />
+          <Route path="notes"         element={<PersonalNotes />} />
+          <Route path="history"       element={<HistoryPage />} />
+          <Route path="messages"      element={<MessagesPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="profile"       element={<ClientProfile />} />
+          <Route path="*"             element={<Navigate to="/dashboard/client" replace />} />
+        </Routes>
+      </DashboardLayout>
+
+      <AnimatePresence>
+        {showCreateModal && (
+          <CreatePostModal
+            clientId={user._id}
+            onClose={() => setShowCreateModal(false)}
+            onCreated={() => { setShowCreateModal(false); setPostCreated(n => n + 1); }}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CLIENT OVERVIEW
+// ══════════════════════════════════════════════════════════════════════════════
+const ClientOverview = ({ user, onCreatePost }) => {
+  const navigate = useNavigate();
+  const { posts, loading } = useMyPosts(user._id);
+
+  const stats = {
+    total:        posts.length,
+    open:         posts.filter(p => ["open","reactivated"].includes(p.status)).length,
+    inProgress:   posts.filter(p => p.status === "in_progress").length,
+    totalPitches: posts.reduce((sum, p) => sum + (p.pitchCount || 0), 0),
+  };
+
+  const recent = [...posts]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
+  return (
+    <div>
+      <div className="stats-row">
+        <StatCard icon={<IconClipboard   size={16} />} label="Total posts"   value={stats.total}        sub="publiés"       color="#c0152a" onClick={() => navigate("/dashboard/client/posts")} />
+        <StatCard icon={<IconCheckSquare size={16} />} label="Actifs"        value={stats.open}         sub="en attente"    color="#10b981" onClick={() => navigate("/dashboard/client/posts")} />
+        <StatCard icon={<IconZap         size={16} />} label="En cours"      value={stats.inProgress}   sub="collaboration" color="#f59e0b" onClick={() => navigate("/dashboard/client/projects")} />
+        <StatCard icon={<IconTrendingUp  size={16} />} label="Offres reçues" value={stats.totalPitches} sub="au total"      color="#6366f1" onClick={() => navigate("/dashboard/client/pitches")} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, marginBottom: 24 }}>
+        <div className="card">
+          <div className="card-header">
+            <div className="section-head" style={{ marginBottom: 0 }}>
+              <div>
+                <div className="section-head-title">Posts récents</div>
+                <div className="section-head-sub">Vos 5 derniers posts publiés</div>
+              </div>
+              <button onClick={() => navigate("/dashboard/client/posts")}
+                style={{ background: "none", border: "none", cursor: "pointer",
+                  fontSize: "0.75rem", color: "var(--d-muted)", fontFamily: "inherit" }}>
+                Voir tout →
+              </button>
+            </div>
+          </div>
+          <div className="card-body" style={{ padding: "12px 0 0" }}>
+            {loading ? (
+              <div className="spinner-wrap"><div className="spinner" /></div>
+            ) : recent.length === 0 ? (
+              <div className="empty-state" style={{ padding: "32px 24px" }}>
+                <div className="empty-state-icon"><IconClipboard size={20} /></div>
+                <div className="empty-state-title">Aucun post publié</div>
+                <div className="empty-state-desc">Créez votre premier post pour recevoir des offres.</div>
+                <button className="empty-state-btn" onClick={onCreatePost}>+ Créer un post</button>
+              </div>
+            ) : (
+              recent.map((p, i) => <PostRow key={p._id} post={p} index={i} onClick={() => navigate("/dashboard/client/posts")} />)
+            )}
+          </div>
+        </div>
+
+        <div className="card" style={{ display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", textAlign:"center", padding:32 }}>
+          <div style={{ width:48, height:48, borderRadius:12, background:"#fff0f0", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14, color:"#c0152a" }}>
+            <IconPlus size={22} />
+          </div>
+          <div style={{ fontWeight:700, color:"#1a0a0a", marginBottom:8 }}>Nouveau post</div>
+          <div style={{ fontSize:"0.82rem", color:"#9a6060", lineHeight:1.5, marginBottom:20 }}>
+            Publiez un brief et recevez des offres de nos prestataires.
+          </div>
+          <button className="section-cta-btn" onClick={onCreatePost} style={{ width:"100%", justifyContent:"center" }}>
+            + Créer un post
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CLIENT POSTS
+// ══════════════════════════════════════════════════════════════════════════════
+const ClientPosts = ({ user, onCreatePost, refetchKey }) => {
+  const { posts, loading, refetch } = useMyPosts(user._id);
+  useEffect(() => { refetch(); }, [refetchKey]);
+
+  return (
+    <div>
+      <div className="section-header">
+        <div className="section-header-left">
+          <h2>Mes posts</h2>
+          <p>Gérez vos briefs publiés</p>
+        </div>
+        <button className="section-cta-btn" onClick={onCreatePost}>+ Nouveau post</button>
+      </div>
+      <PostsDataGrid
+        posts={posts} loading={loading} onRefetch={refetch}
+        clientId={user._id} showActions={true}
+      />
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CLIENT PROJECTS — REAL IMPLEMENTATION
+// ══════════════════════════════════════════════════════════════════════════════
+const STATUS_COLOR = {
+  pending:   "#f59e0b",
+  active:    "#7c3aed",
+  in_review: "#0891b2",
+  completed: "#10b981",
+  cancelled: "#6b7280",
+};
+const STATUS_LABEL = {
+  pending:   "En attente",
+  active:    "Actif",
+  in_review: "En révision",
+  completed: "Terminé",
+  cancelled: "Annulé",
+};
+
+const ClientProjects = ({ user }) => {
+  const [projects, setProjects] = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [filter,   setFilter]   = useState("all");
+  const [selected, setSelected] = useState(null);
+
+  useEffect(() => {
+    projectService.getClientProjects(user._id)
+      .then(d => setProjects(d.projects || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [user._id]);
+
+  const base = filter === "all"
+    ? projects
+    : projects.filter(p => p.projectStatus === filter);
+
+  // Completed/cancelled float to end, rest sorted by closest deadline
+  const filtered = [...base].sort((a, b) => {
+    const aDone = ["completed", "cancelled"].includes(a.projectStatus);
+    const bDone = ["completed", "cancelled"].includes(b.projectStatus);
+    if (aDone !== bDone) return aDone ? 1 : -1;
+    return new Date(a.deadline) - new Date(b.deadline);
+  });
+
+  const STATUS_OPTS = [
+    { value: "all",       label: "Tous"        },
+    { value: "active",    label: "Actifs"      },
+    { value: "in_review", label: "En révision" },
+    { value: "completed", label: "Terminés"    },
+    { value: "cancelled", label: "Annulés"     },
+  ];
+
+  // Helper: get provider display name from project
+  const providerName = (p) => {
+    if (p.providerAgency)     return p.providerAgency.agencyName;
+    if (p.providerTeam)       return p.providerTeam.teamName;
+    if (p.providerFreelancer) return `${p.providerFreelancer.firstName} ${p.providerFreelancer.lastName}`;
+    return "Prestataire";
+  };
+
+  if (selected) {
+    return (
+      <ClientProjectDetail
+        project={selected}
+        onBack={() => setSelected(null)}
+        onRefresh={() =>
+          projectService.getProject(selected._id)
+            .then(d => setSelected(d.project))
+            .catch(() => {})
+        }
+      />
+    );
+  }
+
+  return (
+    <div>
+      <div className="section-header">
+        <div className="section-header-left">
+          <h2>Mes projets</h2>
+          <p>{filtered.length} projet{filtered.length !== 1 ? "s" : ""} avec vos prestataires</p>
+        </div>
+      </div>
+
+      {/* Status filter pills */}
+      <div className="filters-bar" style={{ marginBottom: 18 }}>
+        {STATUS_OPTS.map(o => (
+          <button key={o.value}
+            className={`filter-btn${filter === o.value ? " active" : ""}`}
+            onClick={() => setFilter(o.value)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="spinner-wrap"><div className="spinner" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="card">
+          <div className="empty-state" style={{ padding: "64px 24px" }}>
+            <div className="empty-state-icon"><IconBriefcase size={20} /></div>
+            <div className="empty-state-title">Aucun projet</div>
+            <div className="empty-state-desc">
+              Acceptez une offre pour démarrer un projet avec un prestataire.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(320px,1fr))", gap: 16 }}>
+          {filtered.map((p, i) => {
+            const isDone  = ["completed", "cancelled"].includes(p.projectStatus);
+            const dlColor = isDone ? "#9e9e9e" : getDeadlineColor(p.deadline);
+            const dlLabel = isDone ? null : getDeadlineLabel(p.deadline);
+            return (
+            <motion.div key={p._id} className="card"
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
+              style={{ cursor: "pointer", borderLeft: `3px solid ${dlColor}`,
+                opacity: isDone ? 0.62 : 1, position: "relative", overflow: "hidden" }}
+              onClick={() => setSelected(p)}>
+              {isDone && (
+                <div style={{ position: "absolute", top: 10, right: -22, transform: "rotate(25deg)",
+                  background: p.projectStatus === "completed" ? "#10b981" : "#6b7280",
+                  color: "#fff", fontSize: "0.52rem", fontWeight: 800, letterSpacing: "0.07em",
+                  padding: "2px 30px", zIndex: 2, userSelect: "none" }}>
+                  {p.projectStatus === "completed" ? "TERMINÉ" : "ANNULÉ"}
+                </div>
+              )}
+              <div style={{ padding: "20px 22px" }}>
+                {/* Header row */}
+                <div style={{ display: "flex", justifyContent: "space-between",
+                  alignItems: "flex-start", marginBottom: 8 }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.95rem",
+                    color: "#1a0a0a", flex: 1 }}>
+                    {p.title}
+                  </div>
+                  <span style={{
+                    padding: "3px 10px", borderRadius: 20, fontSize: "0.7rem",
+                    fontWeight: 700, marginLeft: 8, whiteSpace: "nowrap",
+                    background: (STATUS_COLOR[p.projectStatus] || "#6b7280") + "22",
+                    color: STATUS_COLOR[p.projectStatus] || "#6b7280",
+                  }}>
+                    {STATUS_LABEL[p.projectStatus] || p.projectStatus}
+                  </span>
+                </div>
+
+                {/* Provider */}
+                <div style={{ fontSize: "0.78rem", color: "#9a6060", marginBottom: 12 }}>
+                  Prestataire : <span style={{ color: "#4a2a2a", fontWeight: 600 }}>
+                    {providerName(p)}
+                  </span>
+                </div>
+
+                {/* Progress */}
+                <div style={{ background: "#f0dede", borderRadius: 99,
+                  height: 6, overflow: "hidden", marginBottom: 6 }}>
+                  <div style={{ width: `${p.progress || 0}%`, height: "100%",
+                    background: "#c0152a", borderRadius: 99, transition: "width 0.4s" }} />
+                </div>
+
+                {/* Footer */}
+                <div style={{ display: "flex", justifyContent: "space-between",
+                  fontSize: "0.72rem", color: "#9a6060" }}>
+                  <span>{p.progress || 0}% avancement</span>
+                  {dlLabel
+                    ? <span style={{ color: dlColor, fontWeight: 600 }}>{dlLabel}</span>
+                    : <span>Échéance : {p.deadline
+                        ? new Date(p.deadline).toLocaleDateString("fr-DZ") : "—"}</span>
+                  }
+                </div>
+              </div>
+            </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Client project detail — read-only view ────────────────────────────────────
+const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
+  const [activeTab,   setActiveTab]   = useState("detail");
+  const [project,     setProject]     = useState(initial);
+  const [notes,       setNotes]       = useState(initial.notes || []);
+  const [noteText,    setNoteText]    = useState("");
+  const [noteLoading, setNoteLoading] = useState(false);
+  const [noteError,   setNoteError]   = useState("");
+
+  useEffect(() => { onRefresh && onRefresh(); }, []);
+
+  const submitNote = async (e) => {
+    e.preventDefault();
+    if (!noteText.trim()) return;
+    setNoteLoading(true);
+    setNoteError("");
+    try {
+      const data = await projectService.addNote(project._id, { text: noteText.trim() });
+      setNotes(data.notes || []);
+      setNoteText("");
+    } catch (err) {
+      setNoteError(err.response?.data?.message || "Erreur lors de l'envoi");
+    } finally {
+      setNoteLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      {/* Back button */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <button onClick={onBack}
+          style={{ background: "none", border: "1.5px solid #f0dede", borderRadius: 8,
+            padding: "6px 14px", cursor: "pointer", fontSize: "0.82rem",
+            color: "#9a6060", fontFamily: "inherit", fontWeight: 600 }}>
+          ← Retour
+        </button>
+        <div>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#1a0a0a" }}>
+            {project.title}
+          </h2>
+          <p style={{ fontSize: "0.78rem", color: "#9a6060", marginTop: 1 }}>
+            <span style={{
+              padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem", fontWeight: 700,
+              background: (STATUS_COLOR[project.projectStatus] || "#6b7280") + "22",
+              color: STATUS_COLOR[project.projectStatus] || "#6b7280",
+            }}>
+              {STATUS_LABEL[project.projectStatus]}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      {/* ── Tab bar ── */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
+        {[
+          { id: "detail",     label: "Détail du projet" },
+          { id: "historique", label: "Historique" },
+          { id: "notes",      label: `Notes${notes.length ? ` (${notes.length})` : ""}` },
+          { id: "messagerie", label: "Messagerie" },
+        ].map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: "8px 20px", borderRadius: 8, fontFamily: "inherit",
+              fontWeight: 700, fontSize: "0.82rem", cursor: "pointer",
+              border: activeTab === tab.id ? "2px solid #c0152a" : "1.5px solid #f0dede",
+              background: activeTab === tab.id ? "#c0152a" : "transparent",
+              color: activeTab === tab.id ? "#fff" : "#9a6060",
+              transition: "all 0.15s",
+            }}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "messagerie" && <ChatWindow projectId={project._id} />}
+
+      {activeTab === "historique" && <ProjectHistory projectId={project._id} />}
+
+      {/* ── Notes tab ── */}
+      {activeTab === "notes" && (
+        <div>
+          {/* Leave a note form */}
+          <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
+              textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+              Laisser une note
+            </div>
+            <form onSubmit={submitNote}>
+              <textarea
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                placeholder="Écrivez un message à votre prestataire (feedback, demande, remarque)..."
+                rows={4}
+                style={{
+                  width: "100%", borderRadius: 9, border: "1.5px solid #f0dede",
+                  padding: "10px 14px", fontSize: "0.85rem", fontFamily: "inherit",
+                  resize: "vertical", boxSizing: "border-box", outline: "none",
+                  transition: "border-color 0.15s",
+                }}
+                onFocus={e => e.target.style.borderColor = "#c0152a"}
+                onBlur={e => e.target.style.borderColor = "#f0dede"}
+              />
+              {noteError && (
+                <div style={{ color: "#c0152a", fontSize: "0.78rem", marginTop: 6 }}>
+                  {noteError}
+                </div>
+              )}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                <button type="submit" disabled={noteLoading || !noteText.trim()}
+                  style={{
+                    padding: "9px 22px", borderRadius: 9, border: "none",
+                    background: noteText.trim() ? "#c0152a" : "#f0dede",
+                    color: noteText.trim() ? "#fff" : "#9a6060",
+                    fontWeight: 700, fontSize: "0.85rem", cursor: noteText.trim() ? "pointer" : "not-allowed",
+                    fontFamily: "inherit", transition: "all 0.15s",
+                  }}>
+                  {noteLoading ? "Envoi…" : "Envoyer la note"}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Notes list */}
+          {notes.length === 0 ? (
+            <div className="card">
+              <div className="empty-state" style={{ padding: "40px 24px" }}>
+                <div className="empty-state-icon"><IconNote size={20} /></div>
+                <div className="empty-state-title">Aucune note pour l'instant</div>
+                <div className="empty-state-desc">
+                  Laissez une note pour communiquer avec votre prestataire.
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="card">
+              {[...notes].reverse().map((n, i) => (
+                <div key={n._id || i} style={{
+                  padding: "14px 22px",
+                  borderBottom: i < notes.length - 1 ? "1px solid #faeaea" : "none",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "flex-start", marginBottom: 6 }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#4a2a2a" }}>
+                      {n.authorName}
+                      <span style={{ fontWeight: 400, color: "#9a6060", marginLeft: 6,
+                        fontSize: "0.72rem" }}>
+                        {n.authorRole === "client" ? "Client" : n.authorRole}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: "0.7rem", color: "#9a6060", whiteSpace: "nowrap" }}>
+                      {n.createdAt ? new Date(n.createdAt).toLocaleDateString("fr-DZ") : ""}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "#1a0a0a", lineHeight: 1.5 }}>
+                    {n.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "detail" && <>
+
+      {/* Progress card */}
+      <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
+          textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+          Avancement
+        </div>
+        <div style={{ background: "#f0dede", borderRadius: 99,
+          height: 8, overflow: "hidden", marginBottom: 8 }}>
+          <div style={{ width: `${project.progress || 0}%`, height: "100%",
+            background: "#c0152a", borderRadius: 99, transition: "width 0.4s" }} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between",
+          fontSize: "0.78rem", color: "#9a6060" }}>
+          <span>{project.progress || 0}% complété</span>
+          <span>Échéance : {project.deadline
+            ? new Date(project.deadline).toLocaleDateString("fr-DZ") : "—"}</span>
+        </div>
+
+        {/* Financial summary */}
+        {project.agreedPrice?.amount && (
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid #faeaea",
+            display: "flex", justifyContent: "space-between",
+            fontSize: "0.82rem", color: "#4a2a2a" }}>
+            <span>Montant convenu</span>
+            <span style={{ fontWeight: 700, color: "#c0152a" }}>
+              {project.agreedPrice.amount.toLocaleString()} {project.agreedPrice.currency || "DZD"}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Deliverables — read-only for client */}
+      {!!project.deliverables?.length && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div style={{ padding: "16px 22px", borderBottom: "1px solid #faeaea" }}>
+            <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1a0a0a" }}>
+              Livrables ({project.deliverables.length})
+            </div>
+            <div style={{ fontSize: "0.78rem", color: "#9a6060", marginTop: 2 }}>
+              Fichiers soumis par le prestataire
+            </div>
+          </div>
+          {project.deliverables.map((d, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12,
+              padding: "11px 22px",
+              borderBottom: i < project.deliverables.length - 1 ? "1px solid #faeaea" : "none" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <a href={d.fileUrl} target="_blank" rel="noreferrer"
+                  style={{ fontWeight: 600, fontSize: "0.85rem", color: "#c0152a",
+                    textDecoration: "none" }}>
+                  {d.fileName}
+                </a>
+                {d.description && (
+                  <div style={{ fontSize: "0.73rem", color: "#9a6060", marginTop: 2 }}>
+                    {d.description}
+                  </div>
+                )}
+              </div>
+              {d.submittedAt && (
+                <span style={{ fontSize: "0.7rem", color: "#9a6060", whiteSpace: "nowrap" }}>
+                  {new Date(d.submittedAt).toLocaleDateString("fr-DZ")}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      </> /* end detail tab */}
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CLIENT CONTRACTS
+// ══════════════════════════════════════════════════════════════════════════════
+const CONTRACT_STATUS_META = {
+  draft:        { label: "Brouillon",         color: "#6b7280", bg: "#f9fafb" },
+  sent:         { label: "Envoyé",            color: "#f59e0b", bg: "#fffbeb" },
+  acknowledged: { label: "Reçu confirmé",     color: "#0891b2", bg: "#f0f9ff" },
+  signed:       { label: "Finalisé",          color: "#10b981", bg: "#f0fdf4" },
+  resiliation:  { label: "Résilié",           color: "#ef4444", bg: "#fef2f2" },
+};
+
+const CONTRACT_STEPS = [
+  { key: "draft",        label: "Brouillon"     },
+  { key: "sent",         label: "Reçu"          },
+  { key: "acknowledged", label: "Reçu confirmé" },
+  { key: "signed",       label: "Finalisé"      },
+];
+
+const ClientContractStepper = ({ status }) => {
+  if (status === "resiliation") {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 8,
+        padding: "8px 14px", borderRadius: 8, background: "#fef2f2",
+        border: "1px solid #fecaca", marginBottom: 16 }}>
+        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444" }} />
+        <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#dc2626" }}>
+          Contrat résilié
+        </span>
+      </div>
+    );
+  }
+  const currentIdx = CONTRACT_STEPS.findIndex(s => s.key === status);
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 0, marginBottom: 18 }}>
+      {CONTRACT_STEPS.map((step, i) => {
+        const done   = i < currentIdx;
+        const active = i === currentIdx;
+        const dotColor = done ? "#10b981" : active ? "#c0152a" : "#d1d5db";
+        const textColor = done ? "#10b981" : active ? "#c0152a" : "#9ca3af";
+        return (
+          <React.Fragment key={step.key}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{ width: 20, height: 20, borderRadius: "50%",
+                border: `2.5px solid ${dotColor}`,
+                background: (done || active) ? dotColor : "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {done && (
+                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                    <path d="M1.5 4.5l2 2L7.5 2.5" stroke="#fff" strokeWidth="1.8"
+                      strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+                {active && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff" }} />}
+              </div>
+              <span style={{ fontSize: "0.6rem", fontWeight: active ? 700 : 500,
+                color: textColor, whiteSpace: "nowrap" }}>
+                {step.label}
+              </span>
+            </div>
+            {i < CONTRACT_STEPS.length - 1 && (
+              <div style={{ flex: 1, height: 2.5, background: done ? "#10b981" : "#e5e7eb",
+                marginTop: 9, minWidth: 16, borderRadius: 2 }} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
+const ClientContracts = ({ user }) => {
+  const [contracts, setContracts] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [filter,    setFilter]    = useState("all");
+  const [selected,  setSelected]  = useState(null);
+
+  useEffect(() => {
+    contractService.getAll(user._id, "Client")
+      .then(d => setContracts(d.contracts || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [user._id]);
+
+  const filtered = filter === "all"
+    ? contracts
+    : contracts.filter(c => c.status === filter);
+
+  const STATUS_OPTS = [
+    { value: "all",          label: "Tous"           },
+    { value: "sent",         label: "À confirmer"    },
+    { value: "acknowledged", label: "Reçu confirmé"  },
+    { value: "signed",       label: "Finalisés"      },
+    { value: "resiliation",  label: "Résiliés"       },
+  ];
+
+  if (selected) {
+    return (
+      <ClientContractDetail
+        contract={selected}
+        user={user}
+        onBack={() => setSelected(null)}
+        onRefresh={() =>
+          contractService.getById(selected._id)
+            .then(d => setSelected(d.contract))
+            .catch(() => {})
+        }
+      />
+    );
+  }
+
+  return (
+    <div>
+      <div className="section-header">
+        <div className="section-header-left">
+          <h2>Contrats</h2>
+          <p>{filtered.length} contrat{filtered.length !== 1 ? "s" : ""}</p>
+        </div>
+      </div>
+
+      <div className="filters-bar" style={{ marginBottom: 18 }}>
+        {STATUS_OPTS.map(o => (
+          <button key={o.value}
+            className={`filter-btn${filter === o.value ? " active" : ""}`}
+            onClick={() => setFilter(o.value)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="spinner-wrap"><div className="spinner" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="card">
+          <div className="empty-state" style={{ padding: "64px 24px" }}>
+            <div className="empty-state-icon"><IconFileText size={20} /></div>
+            <div className="empty-state-title">Aucun contrat</div>
+            <div className="empty-state-desc">
+              Les contrats apparaissent ici après qu'une agence initie le processus.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {filtered.map((c, i) => {
+            const meta = CONTRACT_STATUS_META[c.status] || CONTRACT_STATUS_META.draft;
+            return (
+              <motion.div key={c._id} className="card"
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+                style={{ cursor: "pointer", borderLeft: `4px solid ${meta.color}`,
+                  opacity: c.status === "resiliation" ? 0.7 : 1 }}
+                onClick={() => setSelected(c)}>
+                <div style={{ padding: "16px 22px" }}>
+                  <div style={{ display: "flex", alignItems: "center",
+                    justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.95rem",
+                        color: "#1a0a0a", marginBottom: 4 }}>
+                        {c.title || c.project?.title || "Contrat"}
+                      </div>
+                      <div style={{ fontSize: "0.78rem", color: "#9a6060" }}>
+                        {c.partyAName} · {new Date(c.createdAt).toLocaleDateString("fr-DZ")}
+                      </div>
+                    </div>
+                    <span style={{ padding: "4px 12px", borderRadius: 20,
+                      fontSize: "0.74rem", fontWeight: 700,
+                      color: meta.color, background: meta.bg, whiteSpace: "nowrap" }}>
+                      {meta.label}
+                    </span>
+                  </div>
+                  {c.status !== "resiliation" && (
+                    <ClientContractStepper status={c.status} />
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Client contract detail — can upload receipt ───────────────────────────────
+const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
+  const [contract,      setContract]      = useState(initial);
+  const [uploading,     setUploading]     = useState(false);
+  const [receiptFile,   setReceiptFile]   = useState(null);
+  const [msg,           setMsg]           = useState("");
+  const [error,         setError]         = useState("");
+  const [showResiliate, setShowResiliate] = useState(false);
+  const [resilReason,   setResilReason]   = useState("");
+  const [resiliating,   setResiliating]   = useState(false);
+  const [viewer,        setViewer]        = useState(null);
+
+  const meta = CONTRACT_STATUS_META[contract.status] || CONTRACT_STATUS_META.draft;
+
+  const handleReceiptUpload = async () => {
+    if (!receiptFile) return setError("Sélectionnez un fichier");
+    setUploading(true);
+    setError("");
+    try {
+      // Upload file first through the existing upload endpoint
+      const form = new FormData();
+      form.append("file", receiptFile);
+      const uploadRes = await fetch(
+        `${process.env.REACT_APP_API_URL || "http://localhost:5000/api"}/upload`,
+        { method: "POST", body: form, credentials: "include" }
+      );
+      const uploadData = await uploadRes.json();
+      const fileId  = uploadData.fileId  || uploadData.id || "";
+      const fileUrl = uploadData.url     || `/api/upload/${fileId}`;
+
+      // Then attach to contract
+      const updated = await contractService.uploadReceipt(contract._id, {
+        uploadedBy: user._id,
+        filename:   receiptFile.name,
+        url:        fileUrl,
+        fileId,
+      });
+      setContract(updated.contract);
+      setMsg("Reçu envoyé — le prestataire va vous envoyer le bon de commande.");
+      setReceiptFile(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur lors de l'upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleResiliate = async (e) => {
+    e.preventDefault();
+    setResiliating(true);
+    try {
+      const d = await contractService.resiliate(contract._id, user._id, resilReason);
+      setContract(d.contract);
+      setShowResiliate(false);
+      setResilReason("");
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur");
+    } finally { setResiliating(false); }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      {viewer && (
+        <FileViewerModal url={viewer.url} filename={viewer.filename} onClose={() => setViewer(null)} />
+      )}
+      {/* Back */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <button onClick={onBack}
+          style={{ background: "none", border: "1.5px solid #f0dede", borderRadius: 8,
+            padding: "6px 14px", cursor: "pointer", fontSize: "0.82rem",
+            color: "#9a6060", fontFamily: "inherit", fontWeight: 600 }}>
+          ← Retour
+        </button>
+        <div>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#1a0a0a" }}>
+            {contract.title || "Contrat"}
+          </h2>
+          <span style={{ padding: "2px 9px", borderRadius: 20, fontSize: "0.72rem",
+            fontWeight: 700, color: meta.color, background: meta.bg }}>
+            {meta.label}
+          </span>
+        </div>
+      </div>
+
+      {/* Status stepper */}
+      <div className="card" style={{ padding: "16px 22px", marginBottom: 16 }}>
+        <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#9a6060",
+          textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+          Progression
+        </div>
+        <ClientContractStepper status={contract.status} />
+      </div>
+
+      {/* Contract details */}
+      <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
+          textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 14 }}>
+          Détails du contrat
+        </div>
+        <div style={{ display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 12 }}>
+          {[
+            { label: "Prestataire",  value: contract.partyAName },
+            { label: "Type",         value: contract.contractType?.replace("_", " ") },
+            { label: "Objet",        value: contract.objet },
+            { label: "Prestations",  value: contract.prestations },
+            { label: "Livrables",    value: contract.livrables },
+            { label: "Montant",      value: contract.financialTerms?.amount
+              ? `${contract.financialTerms.amount.toLocaleString()} ${contract.financialTerms.currency || "DZD"}`
+              : null },
+            { label: "Paiement",     value: contract.financialTerms?.paymentSchedule },
+            { label: "Début",        value: contract.duration?.startDate
+              ? new Date(contract.duration.startDate).toLocaleDateString("fr-DZ") : null },
+            { label: "Fin",          value: contract.duration?.endDate
+              ? new Date(contract.duration.endDate).toLocaleDateString("fr-DZ") : null },
+          ].filter(i => i.value).map(({ label, value }) => (
+            <div key={label} style={{ background: "#fdf8f8", borderRadius: 8, padding: "10px 12px" }}>
+              <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "#9a6060",
+                textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>
+                {label}
+              </div>
+              <div style={{ fontSize: "0.82rem", color: "#1a0a0a", lineHeight: 1.4 }}>
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Contract PDF link */}
+      {contract.contractPdf?.url && (
+        <div className="card" style={{ padding: "16px 22px", marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
+            textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+            Contrat PDF
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
+            background: "#fff", gap: 12 }}>
+            <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "#1a0a0a",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+              {contract.contractPdf.filename || "Contrat.pdf"}
+            </span>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button onClick={() => setViewer({ url: contract.contractPdf.url, filename: contract.contractPdf.filename || "Contrat.pdf" })}
+                style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+                  cursor: "pointer", fontFamily: "inherit" }}>
+                Visualiser
+              </button>
+              <a href={`${uploadService.resolveUrl(contract.contractPdf.url)}?download=1`}
+                style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #f0dede", background: "none", color: "#9a6060",
+                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                ↓
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bon de commande link */}
+      {contract.bonDeCommande?.url && (
+        <div className="card" style={{ padding: "16px 22px", marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
+            textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+            Bon de commande
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 14px", borderRadius: 8, border: "1px solid #f0dede",
+            background: "#fff", gap: 12 }}>
+            <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "#1a0a0a",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+              {contract.bonDeCommande.filename || "Bon de commande"}
+            </span>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button onClick={() => setViewer({ url: contract.bonDeCommande.url, filename: contract.bonDeCommande.filename || "BonDeCommande.pdf" })}
+                style={{ padding: "5px 12px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #c0152a", background: "#fff5f5", color: "#c0152a",
+                  cursor: "pointer", fontFamily: "inherit" }}>
+                Visualiser
+              </button>
+              <a href={`${uploadService.resolveUrl(contract.bonDeCommande.url)}?download=1`}
+                style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
+                  border: "1.5px solid #f0dede", background: "none", color: "#9a6060",
+                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                ↓
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt upload — only shown when contract is "sent" */}
+      {contract.status === "sent" && (
+        <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#c0152a",
+            textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+            Action requise — Envoyez votre reçu
+          </div>
+          <p style={{ fontSize: "0.83rem", color: "#4a2a2a", lineHeight: 1.6, marginBottom: 14 }}>
+            Le prestataire vous a envoyé ce contrat. Veuillez uploader votre reçu de paiement
+            pour confirmer et recevoir le bon de commande.
+          </p>
+          <input type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.webp"
+            onChange={e => setReceiptFile(e.target.files?.[0] || null)}
+            style={{ marginBottom: 10, fontSize: "0.83rem" }} />
+          {receiptFile && (
+            <div style={{ fontSize: "0.78rem", color: "#9a6060", marginBottom: 10 }}>
+              Fichier : {receiptFile.name}
+            </div>
+          )}
+          {error && (
+            <div style={{ color: "#b91c1c", fontSize: "0.82rem", marginBottom: 10 }}>
+              {error}
+            </div>
+          )}
+          {msg && (
+            <div style={{ color: "#166534", fontSize: "0.82rem",
+              background: "#f0fdf4", borderRadius: 8, padding: "10px 14px", marginBottom: 10 }}>
+              {msg}
+            </div>
+          )}
+          <button onClick={handleReceiptUpload} disabled={uploading || !receiptFile}
+            className="section-cta-btn"
+            style={{ opacity: !receiptFile ? 0.5 : 1 }}>
+            {uploading ? "Envoi..." : "Envoyer le reçu"}
+          </button>
+        </div>
+      )}
+
+      {/* Status: acknowledged — waiting for BDC */}
+      {contract.status === "acknowledged" && (
+        <div style={{ padding: "14px 18px", borderRadius: 10,
+          background: "#f0f9ff", border: "1px solid #bae6fd",
+          color: "#0369a1", fontSize: "0.85rem", fontWeight: 600 }}>
+          Reçu confirmé — En attente du bon de commande du prestataire.
+        </div>
+      )}
+
+      {/* Status: signed */}
+      {contract.status === "signed" && (
+        <div style={{ padding: "14px 18px", borderRadius: 10,
+          background: "#f0fdf4", border: "1px solid #bbf7d0",
+          color: "#166534", fontSize: "0.85rem", fontWeight: 600, marginBottom: 16 }}>
+          Contrat finalisé — Collaboration officiellement engagée.
+        </div>
+      )}
+
+      {/* Resiliation zone */}
+      {!["resiliation", "signed"].includes(contract.status) && (
+        <div className="card" style={{ padding: "18px 22px",
+          borderTop: "3px solid #fecaca" }}>
+          <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#dc2626",
+            textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+            Zone de résiliation
+          </div>
+          <AnimatePresence mode="wait">
+            {!showResiliate ? (
+              <motion.div key="btn"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <p style={{ fontSize: "0.82rem", color: "#9a6060",
+                  lineHeight: 1.5, marginBottom: 12 }}>
+                  Si vous souhaitez mettre fin à ce contrat, vous pouvez en demander
+                  la résiliation.
+                </p>
+                <button onClick={() => setShowResiliate(true)}
+                  style={{ padding: "8px 16px", borderRadius: 8,
+                    border: "1.5px solid #fecaca", background: "#fef2f2",
+                    color: "#dc2626", fontWeight: 700, fontSize: "0.82rem",
+                    cursor: "pointer", fontFamily: "inherit" }}>
+                  Demander la résiliation
+                </button>
+              </motion.div>
+            ) : (
+              <motion.form key="form" onSubmit={handleResiliate}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: "0.78rem", fontWeight: 600,
+                    color: "#9a6060", display: "block", marginBottom: 6 }}>
+                    Motif (optionnel)
+                  </label>
+                  <textarea value={resilReason} onChange={e => setResilReason(e.target.value)}
+                    rows={3} placeholder="Expliquez votre demande..."
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: 8,
+                      border: "1.5px solid #f0dede", fontSize: "0.82rem",
+                      fontFamily: "inherit", resize: "vertical", boxSizing: "border-box" }} />
+                </div>
+                {error && (
+                  <div style={{ color: "#b91c1c", fontSize: "0.82rem", marginBottom: 10 }}>
+                    {error}
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button type="submit" disabled={resiliating}
+                    style={{ padding: "9px 16px", borderRadius: 8, border: "none",
+                      background: "#dc2626", color: "#fff", fontWeight: 700,
+                      fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}>
+                    {resiliating ? "..." : "Confirmer"}
+                  </button>
+                  <button type="button" onClick={() => setShowResiliate(false)}
+                    style={{ padding: "9px 14px", borderRadius: 8,
+                      border: "1.5px solid #f0dede", background: "none",
+                      color: "#9a6060", fontWeight: 600, fontSize: "0.82rem",
+                      cursor: "pointer", fontFamily: "inherit" }}>
+                    Annuler
+                  </button>
+                </div>
+              </motion.form>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SHARED COMPONENTS
+// ══════════════════════════════════════════════════════════════════════════════
+const StatCard = ({ icon, label, value, sub, color, onClick }) => (
+  <motion.div className="stat-card" style={{ "--stat-color": color, cursor: onClick ? "pointer" : "default" }}
+    initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3 }}
+    whileHover={onClick ? { y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.10)" } : {}}
+    onClick={onClick}>
+    <div className="stat-card-header">
+      <span className="stat-card-label">{label}</span>
+      <div className="stat-card-icon">{icon}</div>
+    </div>
+    <div className="stat-card-value">{value}</div>
+    <div className="stat-card-sub">{sub}</div>
+  </motion.div>
+);
+
+const PostRow = ({ post, index, onClick }) => {
+  const STATUS = {
+    open:        { label: "Ouvert",   class: "open"        },
+    in_progress: { label: "En cours", class: "in_progress" },
+    closed:      { label: "Fermé",    class: "closed"      },
+    reactivated: { label: "Réactivé", class: "reactivated" },
+  };
+  const dlDays  = Math.ceil((new Date(post.deadline) - new Date()) / 86400000);
+  const dlColor = post.deadline
+    ? dlDays > 14 ? "#22c55e" : dlDays >= 7 ? "#f59e0b" : dlDays >= 3 ? "#f97316" : "#ef4444"
+    : "#9e9e9e";
+  return (
+    <motion.div initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }}
+      transition={{ delay: index * 0.05 }}
+      onClick={onClick}
+      style={{ display:"flex", alignItems:"center", gap:14, padding:"11px 22px",
+        borderBottom:"1px solid #faeaea", cursor: onClick ? "pointer" : "default",
+        borderLeft: `3px solid ${dlColor}` }}>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ fontWeight:600, fontSize:"0.87rem", color:"#1a0a0a",
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {post.title}
+          </div>
+          {post.initiatedBy?.initiatorType && (
+            <span style={{ fontSize:"0.62rem", fontWeight:700, padding:"2px 7px",
+              borderRadius:20, background:"#fef3c7", color:"#92400e",
+              whiteSpace:"nowrap", flexShrink:0 }}>
+              Proposition reçue
+            </span>
+          )}
+        </div>
+        <div style={{ fontSize:"0.73rem", color:"#9a6060", marginTop:2 }}>
+          {post.pitchCount || 0} offre{(post.pitchCount||0) !== 1 ? "s" : ""}
+          {" · "}
+          <span style={{ color: dlColor, fontWeight: 600 }}>
+            {dlDays > 0 ? `${dlDays}j restants` : "Échéance dépassée"}
+          </span>
+        </div>
+      </div>
+      <span className={`status-badge ${STATUS[post.status]?.class || post.status}`}>
+        {STATUS[post.status]?.label || post.status}
+      </span>
+    </motion.div>
+  );
+};
+
+export default ClientDashboard;

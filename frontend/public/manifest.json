@@ -1,0 +1,15 @@
+{
+  "short_name": "Marketili",
+  "name": "Marketili — Plateforme Marketing",
+  "icons": [
+    {
+      "src": "marketili_logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#c0152a",
+  "background_color": "#ffffff"
+}
