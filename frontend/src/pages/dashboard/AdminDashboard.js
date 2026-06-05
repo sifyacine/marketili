@@ -2,8 +2,9 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import adminService from "../../services/adminService";
-import adService from "../../services/adService";
+import adminService    from "../../services/adminService";
+import adService       from "../../services/adService";
+import uploadService   from "../../services/uploadService";
 import notificationService from "../../services/notificationService";
 import {
   IconGrid, IconUsers, IconUser, IconFlag, IconTrendingUp,
@@ -862,13 +863,22 @@ const TARGET_ROLES = ["all","client","agency","agency_member","team","team_membe
 const PLACEMENTS   = ["banner","sidebar","card"];
 
 const AdsPanel = () => {
-  const [ads,      setAds]      = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [form,     setForm]     = useState({
+  const [ads,        setAds]        = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [showForm,   setShowForm]   = useState(false);
+  const [form,       setForm]       = useState({
     title: "", imageUrl: "", linkUrl: "", placement: "banner", targetRoles: ["all"], isActive: true,
   });
-  const [saving, setSaving] = useState(false);
+  const [imageFile,  setImageFile]  = useState(null);
+  const [uploading,  setUploading]  = useState(false);
+  const [saving,     setSaving]     = useState(false);
+  const [formError,  setFormError]  = useState("");
+
+  const resetForm = () => {
+    setForm({ title: "", imageUrl: "", linkUrl: "", placement: "banner", targetRoles: ["all"], isActive: true });
+    setImageFile(null);
+    setFormError("");
+  };
 
   const load = useCallback(() => {
     adService.getAdminAds().then(d => setAds(d.ads || [])).catch(() => {}).finally(() => setLoading(false));
@@ -877,13 +887,29 @@ const AdsPanel = () => {
   useEffect(() => { load(); }, [load]);
 
   const handleCreate = async (e) => {
-    e.preventDefault(); setSaving(true);
+    e.preventDefault();
+    setFormError("");
+    if (!imageFile && !form.imageUrl) {
+      setFormError("Veuillez sélectionner une image.");
+      return;
+    }
+    setSaving(true);
     try {
-      await adService.createAd(form);
+      let imageUrl = form.imageUrl;
+      if (imageFile) {
+        setUploading(true);
+        const up = await uploadService.upload(imageFile);
+        imageUrl = up.url;
+        setUploading(false);
+      }
+      await adService.createAd({ ...form, imageUrl });
       setShowForm(false);
-      setForm({ title: "", imageUrl: "", linkUrl: "", placement: "banner", targetRoles: ["all"], isActive: true });
+      resetForm();
       load();
-    } catch {}
+    } catch (err) {
+      setFormError(err.response?.data?.message || "Erreur lors de la création");
+      setUploading(false);
+    }
     setSaving(false);
   };
 
@@ -901,9 +927,11 @@ const AdsPanel = () => {
       <SectionTitle title="Gestion des publicités"
         sub={`${ads.length} publicité${ads.length !== 1 ? "s" : ""}`}
         action={
-          <button onClick={() => setShowForm(s => !s)}
+          <button onClick={() => { if (showForm) resetForm(); setShowForm(s => !s); }}
             style={{ ...btnPrimary, display: "flex", alignItems: "center", gap: 6 }}>
-            {showForm ? <><IconX size={13} /> Annuler</> : <><IconPlus size={13} /> Nouvelle publicité</>}
+            {showForm
+            ? <><IconX size={13} /> Annuler</>
+            : <><IconPlus size={13} /> Nouvelle bannière</>}
           </button>
         } />
 
@@ -925,9 +953,16 @@ const AdsPanel = () => {
                   </div>
                   <div>
                     <label style={{ fontSize: "0.75rem", fontWeight: 700, color: C.inkMuted,
-                      display: "block", marginBottom: 5 }}>URL image</label>
-                    <input value={form.imageUrl} placeholder="https://..."
-                      onChange={e => setForm(p => ({ ...p, imageUrl: e.target.value }))} style={inputStyle} />
+                      display: "block", marginBottom: 5 }}>Image *</label>
+                    <input type="file" accept="image/*" required={!form.imageUrl}
+                      onChange={e => setImageFile(e.target.files?.[0] || null)}
+                      style={{ ...inputStyle, padding: "7px 10px", cursor: "pointer" }} />
+                    {imageFile && (
+                      <div style={{ marginTop: 8 }}>
+                        <img src={URL.createObjectURL(imageFile)} alt="preview"
+                          style={{ height: 60, borderRadius: 6, objectFit: "cover" }} />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label style={{ fontSize: "0.75rem", fontWeight: 700, color: C.inkMuted,
@@ -958,8 +993,11 @@ const AdsPanel = () => {
                     ))}
                   </div>
                 </div>
-                <button type="submit" style={btnPrimary} disabled={saving}>
-                  {saving ? "Création en cours..." : "Créer la publicité"}
+                {formError && (
+                  <div style={{ color: C.red, fontSize: "0.78rem", marginBottom: 10 }}>{formError}</div>
+                )}
+                <button type="submit" style={btnPrimary} disabled={saving || uploading}>
+                  {uploading ? "Upload en cours..." : saving ? "Création..." : "Créer la bannière"}
                 </button>
               </form>
             </Card>
@@ -978,7 +1016,7 @@ const AdsPanel = () => {
                 padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
                 opacity: ad.isActive ? 1 : 0.6, boxShadow: "0 2px 6px rgba(0,0,0,0.04)" }}>
               {ad.imageUrl ? (
-                <img src={ad.imageUrl} alt={ad.title}
+                <img src={uploadService.resolveUrl(ad.imageUrl)} alt={ad.title}
                   style={{ height: 48, width: 88, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
               ) : (
                 <div style={{ height: 48, width: 88, borderRadius: 8, background: C.mainBg,
@@ -1105,7 +1143,7 @@ const ActivityLogPanel = () => {
 // ── OPTIONS PANEL ─────────────────────────────────────────────────────────────
 const OPTIONS_KEYS = [
   { key: "specialties", label: "Spécialités" },
-  { key: "regions",     label: "Régions" },
+  { key: "regions",     label: "Wilayas" },
   { key: "categories",  label: "Catégories" },
 ];
 

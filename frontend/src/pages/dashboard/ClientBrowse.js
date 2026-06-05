@@ -4,6 +4,7 @@ import { usePosts } from "../../hooks/usePosts";
 import uploadService from "../../services/uploadService";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 import { IconSearch, IconCompass, IconFilter, IconMapPin } from "../../components/ui/Icons";
+import BrowseBanner from "../../components/ui/BrowseBanner";
 
 const WILAYAT = [
   "Adrar","Chlef","Laghouat","Oum El Bouaghi","Batna","Béjaïa","Biskra",
@@ -115,6 +116,8 @@ const ClientBrowse = () => {
           </span>
         )}
       </div>
+
+      <BrowseBanner />
 
       {/* ── Filter panel ── */}
       <div className="card" style={{ marginBottom: 20, overflow: "visible" }}>
@@ -387,7 +390,7 @@ const PostDetail = ({ post, onBack }) => {
     { label: "Type de marketing",      value: post.marketingType },
     { label: "Type de collaboration",  value: COLLAB_FR[post.collaborationType] },
     { label: "Compensation",           value: COMP_FR[post.compensationType] },
-    { label: "Région",                 value: post.location?.region },
+    { label: "Wilaya",                  value: post.location?.region },
     { label: "Date limite",            value: post.deadline
         ? new Date(post.deadline).toLocaleDateString("fr-DZ") : null },
     { label: "Budget",                 value: post.budget?.min || post.budget?.max

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import pitchService from "../../../services/pitchService";
+import uploadService from "../../../services/uploadService";
 import { getSocket } from "../../../services/socketService";
 import { IconSend } from "../../../components/ui/Icons";
 
@@ -35,7 +36,7 @@ const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
   const t = p.targetAudience || {};
 
   const hasDetails = p.description || s.strategyOverview || c.contentPillars?.length
-    || a.competitiveAnalysis || t.ageMin || t.locations?.length;
+    || a.competitiveAnalysis || t.ageMin || t.locations?.length || p.attachments?.length;
 
   return (
     <motion.div
@@ -121,6 +122,25 @@ const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
                 <div style={{ marginBottom: 6 }}>
                   <span style={{ fontSize: "0.72rem", color: "#888", fontWeight: 600 }}>Localisations : </span>
                   <span style={{ fontSize: "0.82rem", color: "#333" }}>{t.locations.join(", ")}</span>
+                </div>
+              )}
+              {p.attachments?.length > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: "0.72rem", color: "#888", fontWeight: 600, marginBottom: 6 }}>Pièces jointes</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {p.attachments.map((att, i) => (
+                      <a key={i}
+                        href={uploadService.resolveUrl(att.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ display: "flex", alignItems: "center", gap: 8,
+                          padding: "7px 11px", borderRadius: 8, background: "#f5f5f5",
+                          border: "1px solid #eee", color: "#333",
+                          textDecoration: "none", fontSize: "0.8rem", fontWeight: 500 }}>
+                        📎 {att.filename || `Fichier ${i + 1}`}
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

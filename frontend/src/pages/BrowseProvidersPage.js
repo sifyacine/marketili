@@ -6,7 +6,8 @@ import profileService from "../services/profileService";
 import uploadService  from "../services/uploadService";
 import useAuth from "../hooks/useAuth";
 import CollaborationRequestModal from "../components/collaborations/CollaborationRequestModal";
-import { IconSearch } from "../components/ui/Icons";
+import { IconSearch }  from "../components/ui/Icons";
+import BrowseBanner  from "../components/ui/BrowseBanner";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const TYPE_TABS = [
@@ -196,6 +197,8 @@ const BrowseProvidersPage = () => {
         </p>
       </div>
 
+      <BrowseBanner />
+
       {/* Type tabs */}
       <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
         {TYPE_TABS.map(t => (
@@ -237,7 +240,7 @@ const BrowseProvidersPage = () => {
         <input
           style={{ flex: 1, minWidth: 130, padding: "9px 12px", borderRadius: 9,
             border: "1px solid #ddd", fontFamily: "inherit", fontSize: "0.85rem" }}
-          placeholder="Région..."
+          placeholder="Wilaya..."
           value={region} onChange={e => setRegion(e.target.value)} />
         <button type="submit"
           style={{ padding: "9px 18px", borderRadius: 9, border: "none",

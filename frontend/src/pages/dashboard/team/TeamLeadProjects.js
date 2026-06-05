@@ -34,13 +34,30 @@ const STATUS_TABS = [
 
 // ── Project detail ────────────────────────────────────────────────────────────
 const ProjectDetail = ({ project: p, onBack }) => {
-  const [activeTab, setActiveTab] = useState("detail");
+  const [activeTab,   setActiveTab]   = useState("detail");
+  const [notes,       setNotes]       = useState(p.notes || []);
+  const [noteText,    setNoteText]    = useState("");
+  const [noteLoading, setNoteLoading] = useState(false);
+  const [noteError,   setNoteError]   = useState("");
   const st = STATUS_META[p.projectStatus] || STATUS_META.active;
   const clientName = p.client
     ? (p.client.accountType === "company"
         ? p.client.companyName
         : `${p.client.firstName} ${p.client.lastName}`)
     : "Client inconnu";
+
+  const submitNote = async (e) => {
+    e.preventDefault();
+    if (!noteText.trim()) return;
+    setNoteLoading(true); setNoteError("");
+    try {
+      const data = await projectService.addNote(p._id, { text: noteText.trim() });
+      setNotes(data.notes || []);
+      setNoteText("");
+    } catch (err) {
+      setNoteError(err.response?.data?.message || "Erreur lors de l'envoi");
+    } finally { setNoteLoading(false); }
+  };
 
   return (
     <div>
@@ -55,6 +72,7 @@ const ProjectDetail = ({ project: p, onBack }) => {
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
+          { id: "notes",      label: `Notes${notes.length ? ` (${notes.length})` : ""}` },
           { id: "messagerie", label: "Messagerie" },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -72,6 +90,75 @@ const ProjectDetail = ({ project: p, onBack }) => {
       </div>
 
       {activeTab === "messagerie" && <ChatWindow projectId={p._id} />}
+
+      {activeTab === "notes" && (
+        <div>
+          <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--d-muted)",
+              textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+              Laisser une note
+            </div>
+            <form onSubmit={submitNote}>
+              <textarea
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                placeholder="Note sur ce projet..."
+                rows={4}
+                style={{ width: "100%", borderRadius: 9, border: "1.5px solid var(--d-border-soft)",
+                  padding: "10px 14px", fontSize: "0.85rem", fontFamily: "inherit",
+                  resize: "vertical", boxSizing: "border-box", outline: "none",
+                  transition: "border-color 0.15s" }}
+                onFocus={e => e.target.style.borderColor = "#c0152a"}
+                onBlur={e => e.target.style.borderColor = "var(--d-border-soft)"}
+              />
+              {noteError && (
+                <div style={{ color: "#c0152a", fontSize: "0.78rem", marginTop: 6 }}>{noteError}</div>
+              )}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                <button type="submit" disabled={noteLoading || !noteText.trim()}
+                  style={{ padding: "9px 22px", borderRadius: 9, border: "none",
+                    background: noteText.trim() ? "#c0152a" : "var(--d-border-soft)",
+                    color: noteText.trim() ? "#fff" : "var(--d-muted)",
+                    fontWeight: 700, fontSize: "0.85rem",
+                    cursor: noteText.trim() ? "pointer" : "not-allowed",
+                    fontFamily: "inherit", transition: "all 0.15s" }}>
+                  {noteLoading ? "Envoi…" : "Envoyer la note"}
+                </button>
+              </div>
+            </form>
+          </div>
+          {notes.length === 0 ? (
+            <div className="card">
+              <div className="empty-state" style={{ padding: "40px 24px" }}>
+                <div className="empty-state-title">Aucune note pour l'instant</div>
+                <div className="empty-state-desc">Ajoutez des notes de suivi sur ce projet.</div>
+              </div>
+            </div>
+          ) : (
+            <div className="card">
+              {[...notes].reverse().map((n, i) => (
+                <div key={n._id || i} style={{ padding: "14px 22px",
+                  borderBottom: i < notes.length - 1 ? "1px solid var(--d-border-soft)" : "none" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "flex-start", marginBottom: 6 }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "var(--d-ink)" }}>
+                      {n.authorName}
+                      <span style={{ fontWeight: 400, color: "var(--d-muted)", marginLeft: 6,
+                        fontSize: "0.72rem" }}>{n.authorRole}</span>
+                    </div>
+                    <span style={{ fontSize: "0.7rem", color: "var(--d-muted)", whiteSpace: "nowrap" }}>
+                      {n.createdAt ? new Date(n.createdAt).toLocaleDateString("fr-DZ") : ""}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--d-ink)", lineHeight: 1.5 }}>
+                    {n.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {activeTab === "detail" && <>
 

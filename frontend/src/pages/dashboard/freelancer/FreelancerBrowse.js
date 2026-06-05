@@ -73,7 +73,7 @@ const FreelancerBrowse = ({ onPitch }) => {
           </select>
           <input
             className="dash-form-input"
-            placeholder="Région..."
+            placeholder="Wilaya..."
             value={region}
             onChange={e => setRegion(e.target.value)}
             onKeyDown={handleKeyDown}

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMyPitches } from "../../../hooks/usePitches";
 import pitchService from "../../../services/pitchService";
+import uploadService from "../../../services/uploadService";
 import useAuth from "../../../hooks/useAuth";
 import { IconSend, IconSearch } from "../../../components/ui/Icons";
 
@@ -103,6 +104,25 @@ const PitchDetailModal = ({ pitch, onClose }) => {
             <p style={{ fontSize: "0.85rem", color: "#444", lineHeight: 1.6, margin: 0 }}>
               {pitch.description}
             </p>
+          </Section>
+        )}
+
+        {pitch.attachments?.length > 0 && (
+          <Section title="Pièces jointes">
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {pitch.attachments.map((att, i) => (
+                <a key={i}
+                  href={uploadService.resolveUrl(att.url)}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ display: "flex", alignItems: "center", gap: 8,
+                    padding: "8px 12px", borderRadius: 8, background: "#f5f5f5",
+                    border: "1px solid #eee", color: "#333",
+                    textDecoration: "none", fontSize: "0.82rem", fontWeight: 500 }}>
+                  📎 {att.filename || `Fichier ${i + 1}`}
+                </a>
+              ))}
+            </div>
           </Section>
         )}
 

@@ -35,30 +35,35 @@ router.post("/", protect, upload.single("file"), async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const connection = conn(); // Call as function
+    const connection = conn();
     const bucket = new mongoose.mongo.GridFSBucket(connection.db, {
       bucketName: "uploads",
     });
 
-    // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        message: "ID de fichier invalide",
-      });
+      return res.status(400).json({ success: false, message: "ID de fichier invalide" });
     }
 
     const fileId = new mongoose.Types.ObjectId(req.params.id);
     const downloadStream = bucket.openDownloadStream(fileId);
 
+    downloadStream.on("file", (file) => {
+      res.setHeader("Content-Type", file.contentType || "application/octet-stream");
+      if (file.length) res.setHeader("Content-Length", file.length);
+    });
+
     downloadStream.on("error", () => {
-      res.status(404).json({ success: false, message: "File not found" });
+      if (!res.headersSent) {
+        res.status(404).json({ success: false, message: "File not found" });
+      }
     });
 
     downloadStream.pipe(res);
   } catch (error) {
     console.error("Download error:", error);
-    res.status(500).json({ success: false, message: "Download failed" });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: "Download failed" });
+    }
   }
 });
 

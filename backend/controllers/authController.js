@@ -2,11 +2,11 @@ const jwt = require("jsonwebtoken");
 
 const Client       = require("../models/Client");
 const Agency       = require("../models/Agency");
-const AgencyMember = require("../models/AgencyMember");
+const AgencyMember = require("../models/Agencymember");
 const Team         = require("../models/Team");
-const TeamMember   = require("../models/TeamMember");
 const Freelancer   = require("../models/Freelancer");
 const Admin        = require("../models/Admin");
+const TeamMember   = require("../models/TeamMember");
 const logActivity  = require("../utils/logActivity");
 
 const generateToken = (id, role) => {
@@ -81,14 +81,12 @@ const register = async (req, res) => {
     return res.status(201).json({ success: true, user: formatUser(user, role) });
 
   } catch (error) {
-    // ✅ Log the real error so we can see it in the terminal
+   
     console.error("❌ Register error:", error.message, error.stack);
 
-    // Duplicate email
     if (error.code === 11000) {
       return res.status(400).json({ success: false, message: "Cet email est déjà utilisé" });
     }
-    // Mongoose validation errors
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map(e => e.message);
       return res.status(400).json({ success: false, message: messages.join(". ") });

@@ -5,6 +5,7 @@ import { PostCard } from "./shared";
 import { usePosts } from "../../../hooks/usePosts";
 import projectService from "../../../services/projectService";
 import { IconSearch } from "../../../components/ui/Icons";
+import BrowseBanner  from "../../../components/ui/BrowseBanner";
 
 const MARKETING_TYPES = [
   { value: "",               label: "Tous les types"    },
@@ -85,6 +86,8 @@ const CommercialBrowse = ({ user }) => {
         </div>
       </div>
 
+      <BrowseBanner />
+
       {/* Search + filter toggle row */}
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <input className="dash-form-input" placeholder="Rechercher..."
@@ -120,7 +123,7 @@ const CommercialBrowse = ({ user }) => {
                     onChange={e => setCategory(e.target.value)} />
                 </div>
                 <div className="dash-form-group" style={{ flex: "1 1 140px" }}>
-                  <label className="dash-form-label">Région</label>
+                  <label className="dash-form-label">Wilaya</label>
                   <input className="dash-form-input" value={region}
                     placeholder="Alger, Oran..."
                     onChange={e => setRegion(e.target.value)} />

@@ -19,6 +19,8 @@ const JOB_OPTIONS = [
   { value: "digital_manager",      label: "Digital Manager"         },
   { value: "project_manager",      label: "Chef de Projet"          },
   { value: "social_media_manager", label: "Social Media Manager"    },
+  // Commercial
+  { value: "commercial",           label: "Commercial"              },
   // Workers
   { value: "senior",               label: "Senior"                  },
   { value: "junior",               label: "Junior"                  },

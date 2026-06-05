@@ -28,15 +28,17 @@ import WorkerCalendar       from "./agency/WorkerCalendar";
 import WorkerProjects       from "./agency/WorkerProjects";
 import DirectorCalendar     from "./agency/DirectorCalendar";
 import DirectorAnalytics    from "./agency/DirectorAnalytics";
+import BrowseBanner        from "../../components/ui/BrowseBanner";
 import AgencyProfile        from "./agency/AgencyProfile";
 import PersonalNotes        from "./shared/PersonalNotes";
 import HistoryPage          from "./shared/HistoryPage";
 import MessagesPage         from "./shared/MessagesPage";
+import DemandesPage         from "./shared/DemandesPage";
 import { PostCard }         from "./agency/shared";
 import { usePosts }         from "../../hooks/usePosts";
 import {
   IconHome, IconFlag, IconTarget, IconBriefcase,
-  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser, IconNote, IconTrendingUp, IconClock, IconMail,
+  IconUsers, IconCompass, IconCheckSquare, IconCalendar, IconSearch, IconSend, IconFileText, IconBell, IconUser, IconNote, IconTrendingUp, IconClock, IconMail, IconInbox,
 } from "../../components/ui/Icons";
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
@@ -67,44 +69,11 @@ const NAV_DIRECTOR = [
   { label: "Contrats",        icon: <IconFileText    size={16} />, path: "/dashboard/agency/contracts" },
   { label: "Membres",         icon: <IconUsers       size={16} />, path: "/dashboard/agency/members"   },
   { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"    },
+  { label: "Demandes",        icon: <IconInbox       size={16} />, path: "/dashboard/agency/demandes"  },
   { label: "Calendrier",      icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"  },
   { label: "Analytique",      icon: <IconTrendingUp  size={16} />, path: "/dashboard/agency/analytics" },
   { label: "Historique",      icon: <IconClock       size={16} />, path: "/dashboard/agency/history"   },
   { label: "Notes",           icon: <IconNote        size={16} />, path: "/dashboard/agency/notes"     },
-];
-// Sub-directors: Creative Director, Marketing Director, Production Director
-const NAV_SUB_DIRECTOR = [
-  { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"           },
-  { label: "Posts signalés",  icon: <IconFlag        size={16} />, path: "/dashboard/agency/flagged"   },
-  { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"    },
-  { label: "Projets",         icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects"  },
-  { label: "Calendrier",      icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"  },
-  { label: "Messages",        icon: <IconMail        size={16} />, path: "/dashboard/agency/messages"  },
-  { label: "Mon profil",      icon: <IconUser        size={16} />, path: "/dashboard/agency/profile"   },
-];
-// Managers: Art Director, Strategist, Digital Manager, Project Manager, Social Media Manager
-const NAV_MANAGER = [
-  { label: "Vue d'ensemble", icon: <IconHome         size={16} />, path: "/dashboard/agency"           },
-  { label: "Mes tâches",     icon: <IconCheckSquare  size={16} />, path: "/dashboard/agency/tasks"     },
-  { label: "Mes projets",    icon: <IconBriefcase    size={16} />, path: "/dashboard/agency/projects"  },
-  { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/agency/calendar"  },
-  { label: "Messages",       icon: <IconMail         size={16} />, path: "/dashboard/agency/messages"  },
-  { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/agency/profile"   },
-];
-// Workers: Seniors and Juniors — execution only
-const NAV_WORKER = [
-  { label: "Vue d'ensemble", icon: <IconHome         size={16} />, path: "/dashboard/agency"           },
-  { label: "Mes tâches",     icon: <IconCheckSquare  size={16} />, path: "/dashboard/agency/tasks"     },
-  { label: "Calendrier",     icon: <IconCalendar     size={16} />, path: "/dashboard/agency/calendar"  },
-  { label: "Messages",       icon: <IconMail         size={16} />, path: "/dashboard/agency/messages"  },
-  { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/agency/profile"   },
-];
-// Commercial: post browsing + flag + deliverables on assigned projects
-const NAV_COMMERCIAL_BASE = [
-  { label: "Vue d'ensemble",  icon: <IconHome      size={16} />, path: "/dashboard/agency"          },
-  { label: "Parcourir posts", icon: <IconCompass   size={16} />, path: "/dashboard/agency/browse"   },
-  { label: "Mes projets",     icon: <IconBriefcase size={16} />, path: "/dashboard/agency/projects" },
-  { label: "Messages",        icon: <IconMail      size={16} />, path: "/dashboard/agency/messages" },
 ];
 
 // ── Browse posts (director version with pitch action) ─────────────────────────
@@ -120,6 +89,7 @@ const BrowsePosts = ({ onPitch }) => {
           <p>Trouvez des opportunités et envoyez vos offres</p>
         </div>
       </div>
+      <BrowseBanner />
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <input className="dash-form-input" placeholder="Rechercher..."
           value={search} onChange={e => setSearch(e.target.value)}
@@ -230,23 +200,54 @@ const AgencyDashboard = () => {
     setPitchTarget(null);
   };
 
-  const NAV_DIRECTOR_FULL = [
-    ...NAV_DIRECTOR,
-    { label: "Messages",      icon: <IconMail size={16} />, path: "/dashboard/agency/messages"      },
-    { label: "Notifications", icon: <IconBell size={16} />, path: "/dashboard/agency/notifications",
-      badge: unreadCount },
-    { label: "Mon profil",    icon: <IconUser size={16} />, path: "/dashboard/agency/profile" },
+  // Per-role nav arrays (defined inside component so badge: unreadCount is live)
+  const NAV_SUB_DIRECTOR = [
+    { label: "Vue d'ensemble",  icon: <IconHome        size={16} />, path: "/dashboard/agency"               },
+    { label: "Posts signalés",  icon: <IconFlag        size={16} />, path: "/dashboard/agency/flagged"       },
+    { label: "Parcourir posts", icon: <IconCompass     size={16} />, path: "/dashboard/agency/browse"        },
+    { label: "Projets",         icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects"      },
+    { label: "Calendrier",      icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"      },
+    { label: "Messages",        icon: <IconMail        size={16} />, path: "/dashboard/agency/messages"      },
+    { label: "Notifications",   icon: <IconBell        size={16} />, path: "/dashboard/agency/notifications", badge: unreadCount },
+    { label: "Notes",           icon: <IconNote        size={16} />, path: "/dashboard/agency/notes"         },
+  ];
+
+  const NAV_MANAGER = [
+    { label: "Vue d'ensemble", icon: <IconHome        size={16} />, path: "/dashboard/agency"               },
+    { label: "Mes tâches",     icon: <IconCheckSquare size={16} />, path: "/dashboard/agency/tasks"         },
+    { label: "Mes projets",    icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects"      },
+    { label: "Calendrier",     icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"      },
+    { label: "Messages",       icon: <IconMail        size={16} />, path: "/dashboard/agency/messages"      },
+    { label: "Notifications",  icon: <IconBell        size={16} />, path: "/dashboard/agency/notifications", badge: unreadCount },
+    { label: "Notes",          icon: <IconNote        size={16} />, path: "/dashboard/agency/notes"         },
+  ];
+
+  const NAV_WORKER = [
+    { label: "Vue d'ensemble", icon: <IconHome        size={16} />, path: "/dashboard/agency"               },
+    { label: "Mes tâches",     icon: <IconCheckSquare size={16} />, path: "/dashboard/agency/tasks"         },
+    { label: "Mes projets",    icon: <IconBriefcase   size={16} />, path: "/dashboard/agency/projects"      },
+    { label: "Calendrier",     icon: <IconCalendar    size={16} />, path: "/dashboard/agency/calendar"      },
+    { label: "Messages",       icon: <IconMail        size={16} />, path: "/dashboard/agency/messages"      },
+    { label: "Notifications",  icon: <IconBell        size={16} />, path: "/dashboard/agency/notifications", badge: unreadCount },
+    { label: "Notes",          icon: <IconNote        size={16} />, path: "/dashboard/agency/notes"         },
   ];
 
   const NAV_COMMERCIAL = [
-    ...NAV_COMMERCIAL_BASE,
-    { label: "Notifications", icon: <IconBell size={16} />, path: "/dashboard/agency/notifications",
-      badge: unreadCount },
-    { label: "Notes",         icon: <IconNote size={16} />, path: "/dashboard/agency/notes"         },
-    { label: "Mon profil",    icon: <IconUser size={16} />, path: "/dashboard/agency/profile"        },
+    { label: "Vue d'ensemble",  icon: <IconHome      size={16} />, path: "/dashboard/agency"               },
+    { label: "Parcourir posts", icon: <IconCompass   size={16} />, path: "/dashboard/agency/browse"        },
+    { label: "Mes projets",     icon: <IconBriefcase size={16} />, path: "/dashboard/agency/projects"      },
+    { label: "Messages",        icon: <IconMail      size={16} />, path: "/dashboard/agency/messages"      },
+    { label: "Notifications",   icon: <IconBell      size={16} />, path: "/dashboard/agency/notifications", badge: unreadCount },
+    { label: "Notes",           icon: <IconNote      size={16} />, path: "/dashboard/agency/notes"         },
   ];
 
-  const NAV = agencyRole === "director"    ? NAV_DIRECTOR_FULL
+  const NAV = agencyRole === "director"
+    ? [
+        ...NAV_DIRECTOR,
+        { label: "Messages",      icon: <IconMail size={16} />, path: "/dashboard/agency/messages"      },
+        { label: "Notifications", icon: <IconBell size={16} />, path: "/dashboard/agency/notifications", badge: unreadCount },
+        { label: "Mon profil",    icon: <IconUser size={16} />, path: "/dashboard/agency/profile"        },
+      ]
     : agencyRole === "sub_director" ? NAV_SUB_DIRECTOR
     : agencyRole === "commercial"   ? NAV_COMMERCIAL
     : agencyRole === "manager"      ? NAV_MANAGER
@@ -283,33 +284,26 @@ const AgencyDashboard = () => {
             <Route path="pitches"   element={<DirectorPitches   user={user} />} />
             <Route path="clients"   element={<DirectorClients   user={user} />} />
             <Route path="projects"  element={<DirectorProjects  user={user} />} />
-            <Route path="contracts"     element={<DirectorContracts  user={user} />} />
-            <Route path="members"       element={<DirectorMembers    user={user} />} />
-            <Route path="browse"        element={<BrowsePosts onPitch={setPitchTarget} />} />
-            <Route path="calendar"      element={<DirectorCalendar user={user} />} />
-            <Route path="analytics"     element={<DirectorAnalytics user={user} />} />
-            <Route path="history"        element={<HistoryPage />} />
-            <Route path="notes"         element={<PersonalNotes />} />
-            <Route path="messages"      element={<MessagesPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="profile"       element={<AgencyProfile />} />
+            <Route path="contracts" element={<DirectorContracts user={user} />} />
+            <Route path="members"   element={<DirectorMembers   user={user} />} />
+            <Route path="browse"    element={<BrowsePosts onPitch={setPitchTarget} />} />
+            <Route path="demandes"  element={<DemandesPage senderType="Agency" />} />
+            <Route path="calendar"  element={<DirectorCalendar  user={user} />} />
+            <Route path="analytics" element={<DirectorAnalytics user={user} />} />
+            <Route path="history"   element={<HistoryPage />} />
           </>}
 
           {/* ── Commercial ── */}
           {agencyRole === "commercial" && <>
-            <Route index           element={<CommercialOverview  user={user} />} />
-            <Route path="browse"   element={<CommercialBrowse    user={user} />} />
-            <Route path="projects" element={<CommercialProjects  user={user} />} />
-            <Route path="messages"      element={<MessagesPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="notes"         element={<PersonalNotes />} />
-            <Route path="profile"       element={<AgencyProfile />} />
+            <Route index           element={<CommercialOverview user={user} />} />
+            <Route path="browse"   element={<CommercialBrowse   user={user} />} />
+            <Route path="projects" element={<CommercialProjects user={user} />} />
           </>}
 
           {/* ── Sub-Director (Creative Dir, Marketing Dir, Production Dir) ── */}
           {agencyRole === "sub_director" && <>
-            <Route index           element={<CommercialOverview user={user} />} />
-            <Route path="flagged"  element={
+            <Route index          element={<CommercialOverview user={user} />} />
+            <Route path="flagged" element={
               <DirectorFlaggedPosts user={user} onPitch={setPitchTarget}
                 flaggedPosts={flaggedPosts} loading={dataLoading}
                 members={members}
@@ -318,31 +312,32 @@ const AgencyDashboard = () => {
                   projectService.getFlaggedPosts(user.agency || user._id)
                     .then(d => setFlaggedPosts(d.flaggedPosts || []))} />
             } />
-            <Route path="browse"   element={<CommercialBrowse  user={user} />} />
-            <Route path="projects" element={<WorkerProjects    user={user} />} />
-            <Route path="calendar"  element={<WorkerCalendar    user={user} />} />
-            <Route path="messages"  element={<MessagesPage />} />
-            <Route path="profile"   element={<AgencyProfile />} />
+            <Route path="browse"   element={<CommercialBrowse user={user} />} />
+            <Route path="projects" element={<WorkerProjects   user={user} />} />
+            <Route path="calendar" element={<WorkerCalendar   user={user} />} />
           </>}
 
           {/* ── Manager (Art Dir, Strategist, Digital Mgr, Project Mgr, SMM) ── */}
           {agencyRole === "manager" && <>
-            <Route index           element={<WorkerOverview  user={user} />} />
-            <Route path="tasks"    element={<WorkerTasks     user={user} />} />
-            <Route path="projects" element={<WorkerProjects  user={user} />} />
-            <Route path="calendar" element={<WorkerCalendar  user={user} />} />
-            <Route path="messages" element={<MessagesPage />} />
-            <Route path="profile"  element={<AgencyProfile />} />
+            <Route index           element={<WorkerOverview user={user} />} />
+            <Route path="tasks"    element={<WorkerTasks    user={user} />} />
+            <Route path="projects" element={<WorkerProjects user={user} />} />
+            <Route path="calendar" element={<WorkerCalendar user={user} />} />
           </>}
 
           {/* ── Worker (Senior, Junior) ── */}
           {agencyRole === "worker" && <>
-            <Route index           element={<WorkerOverview user={user} />} />
-            <Route path="tasks"    element={<WorkerTasks    user={user} />} />
-            <Route path="calendar" element={<WorkerCalendar user={user} />} />
-            <Route path="messages" element={<MessagesPage />} />
-            <Route path="profile"  element={<AgencyProfile />} />
+            <Route index            element={<WorkerOverview  user={user} />} />
+            <Route path="tasks"     element={<WorkerTasks     user={user} />} />
+            <Route path="projects"  element={<WorkerProjects  user={user} />} />
+            <Route path="calendar"  element={<WorkerCalendar  user={user} />} />
           </>}
+
+          {/* ── Shared routes — available to every role ── */}
+          <Route path="messages"      element={<MessagesPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="notes"         element={<PersonalNotes />} />
+          <Route path="profile"       element={<AgencyProfile />} />
 
           <Route path="*" element={<Navigate to="/dashboard/agency" replace />} />
         </Routes>

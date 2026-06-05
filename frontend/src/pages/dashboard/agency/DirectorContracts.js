@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import contractService from "../../../services/contractService";
-import uploadService  from "../../../services/uploadService";
+import uploadService   from "../../../services/uploadService";
 import { IconFileText, IconCheckSquare } from "../../../components/ui/Icons";
 import ContratProformaForm from "../../../components/contracts/ContratProformaForm";
 import FileViewerModal from "../../../components/ui/FileViewerModal";
@@ -311,7 +311,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   const [error,           setError]           = useState("");
   const [showResiliate,   setShowResiliate]   = useState(false);
   const [resilReason,     setResilReason]     = useState("");
-  const [bdcForm,         setBdcForm]         = useState({ url: "", filename: "" });
+  const [bdcFile,         setBdcFile]         = useState(null);
   const [showBdc,         setShowBdc]         = useState(false);
   const [showProformaForm, setShowProformaForm] = useState(false);
   const [viewer,           setViewer]           = useState(null);
@@ -361,21 +361,22 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
 
   const handleBdc = async (e) => {
     e.preventDefault();
-    if (!bdcForm.url) return;
+    if (!bdcFile) return;
     setSaving(true); setError(""); setMsg("");
     try {
+      const uploaded = await uploadService.upload(bdcFile);
       const d = await contractService.sendBDC(contract._id, {
         sentBy:   user._id,
-        url:      bdcForm.url,
-        filename: bdcForm.filename || "bon-de-commande.pdf",
-        fileId:   "",
+        url:      uploaded.url,
+        filename: uploaded.filename || bdcFile.name || "bon-de-commande.pdf",
+        fileId:   uploaded.fileId || uploaded.id || "",
       });
       setContract(d.contract);
       setMsg("Bon de commande envoyé — contrat finalisé.");
       setShowBdc(false);
-      setBdcForm({ url: "", filename: "" });
+      setBdcFile(null);
     } catch (err) {
-      setError(err.response?.data?.message || "Erreur");
+      setError(err.response?.data?.message || "Erreur lors de l'upload");
     } finally { setSaving(false); }
   };
 
@@ -526,8 +527,8 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         saving={saving}
         showBdc={showBdc}
         setShowBdc={setShowBdc}
-        bdcForm={bdcForm}
-        setBdcForm={setBdcForm}
+        bdcFile={bdcFile}
+        setBdcFile={setBdcFile}
         onSend={handleSend}
         onBdc={handleBdc}
         onOpenProforma={() => setShowProformaForm(true)}
@@ -713,7 +714,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
 // ── Workflow action card — changes per status ─────────────────────────────────
 const WorkflowCard = ({
   contract, user, saving, showBdc, setShowBdc,
-  bdcForm, setBdcForm, onSend, onBdc, onOpenProforma,
+  bdcFile, setBdcFile, onSend, onBdc, onOpenProforma,
   onConfirmStart, onSkip,
 }) => {
   if (contract.status === "draft") {
@@ -808,26 +809,24 @@ const WorkflowCard = ({
             </button>
           ) : (
             <form onSubmit={onBdc} style={{ width: "100%" }}>
-              <div className="dash-form-row" style={{ marginBottom: 10 }}>
-                <div className="dash-form-group">
-                  <label className="dash-form-label">URL du bon de commande *</label>
-                  <input className="dash-form-input" placeholder="https://..." required
-                    value={bdcForm.url}
-                    onChange={e => setBdcForm(p => ({ ...p, url: e.target.value }))} />
-                </div>
-                <div className="dash-form-group">
-                  <label className="dash-form-label">Nom du fichier</label>
-                  <input className="dash-form-input" placeholder="bon-de-commande.pdf"
-                    value={bdcForm.filename}
-                    onChange={e => setBdcForm(p => ({ ...p, filename: e.target.value }))} />
-                </div>
+              <div className="dash-form-group" style={{ marginBottom: 10 }}>
+                <label className="dash-form-label">Fichier bon de commande *</label>
+                <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp"
+                  required
+                  onChange={e => setBdcFile(e.target.files?.[0] || null)}
+                  style={{ fontSize: "0.83rem" }} />
+                {bdcFile && (
+                  <div style={{ fontSize: "0.75rem", color: "var(--d-muted)", marginTop: 4 }}>
+                    {bdcFile.name}
+                  </div>
+                )}
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button type="submit" className="section-cta-btn"
-                  style={{ flex: 1 }} disabled={saving}>
-                  {saving ? "Envoi..." : "Confirmer BDC"}
+                  style={{ flex: 1 }} disabled={saving || !bdcFile}>
+                  {saving ? "Envoi..." : "Envoyer BDC"}
                 </button>
-                <button type="button" onClick={() => setShowBdc(false)}
+                <button type="button" onClick={() => { setShowBdc(false); setBdcFile(null); }}
                   style={{ padding: "9px 14px", border: "1.5px solid var(--d-border-soft)",
                     borderRadius: 8, background: "none", cursor: "pointer",
                     fontSize: "0.82rem", color: "var(--d-muted)", fontFamily: "inherit" }}>

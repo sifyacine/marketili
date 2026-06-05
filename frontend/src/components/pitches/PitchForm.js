@@ -60,6 +60,16 @@ const PitchForm = ({ post, senderType, onSubmit, onClose, loading }) => {
     if (step === 1 && isAgency && !strategyOverview.trim()) {
       return setError("L'aperçu stratégique est requis");
     }
+    if (step === 4 && isAgency) {
+      const min = ageMin !== "" ? Number(ageMin) : null;
+      const max = ageMax !== "" ? Number(ageMax) : null;
+      if (min !== null && (min < 13 || min > 100))
+        return setError("L'âge minimum doit être entre 13 et 100");
+      if (max !== null && (max < 13 || max > 100))
+        return setError("L'âge maximum doit être entre 13 et 100");
+      if (min !== null && max !== null && min > max)
+        return setError("L'âge minimum ne peut pas dépasser l'âge maximum");
+    }
     setStep(s => s + 1);
   };
 

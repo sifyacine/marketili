@@ -17,13 +17,14 @@ import FreelancerCalendar    from "./freelancer/FreelancerCalendar";
 import FreelancerProfile     from "./freelancer/FreelancerProfile";
 import FreelancerClients     from "./freelancer/FreelancerClients";
 import PersonalNotes         from "./shared/PersonalNotes";
+import DemandesPage          from "./shared/DemandesPage";
 import ProviderContracts     from "../../components/contracts/ProviderContracts";
 import HistoryPage           from "./shared/HistoryPage";
 import "../../styles/Dashboard.css";
 import MessagesPage from "./shared/MessagesPage";
 import {
   IconHome, IconUsers, IconCompass, IconSend,
-  IconBriefcase, IconFileText, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail, IconTarget,
+  IconBriefcase, IconFileText, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail, IconTarget, IconInbox,
 } from "../../components/ui/Icons";
 
 const ContextBar = ({ collaborations, activeContext, onSwitch }) => {
@@ -108,6 +109,7 @@ const FreelancerDashboard = () => {
     { label: "Collaborations",   icon: <IconUsers     size={16} />, path: "/dashboard/freelancer/collaborations" },
     { label: "Clients",          icon: <IconTarget    size={16} />, path: "/dashboard/freelancer/clients"         },
     { label: "Explorer",         icon: <IconCompass   size={16} />, path: "/dashboard/freelancer/browse"         },
+    { label: "Demandes",         icon: <IconInbox     size={16} />, path: "/dashboard/freelancer/demandes"       },
     { label: "Mes offres",       icon: <IconSend      size={16} />, path: "/dashboard/freelancer/pitches"        },
     { label: "Mes projets",      icon: <IconBriefcase size={16} />, path: "/dashboard/freelancer/projects"       },
     { label: "Contrats",         icon: <IconFileText  size={16} />, path: "/dashboard/freelancer/contracts"      },
@@ -164,6 +166,8 @@ const FreelancerDashboard = () => {
           <Route path="browse" element={
             <FreelancerBrowse onPitch={setPitchTarget} />
           } />
+
+          <Route path="demandes" element={<DemandesPage senderType="Freelancer" />} />
 
           <Route path="pitches" element={
             <FreelancerPitches user={user} />

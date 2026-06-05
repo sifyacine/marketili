@@ -272,7 +272,7 @@ const AgencyProfile = () => {
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {[
                       { field: "street", p: "Rue, numéro..." },
-                      { field: "region", p: "Wilaya / Région" },
+                      { field: "region", p: "Wilaya" },
                     ].map(({ field, p }) => (
                       <input key={field} className="dash-form-input" value={form.address[field]}
                         placeholder={p} onChange={e => setAddr(field, e.target.value)} />

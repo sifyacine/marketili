@@ -24,13 +24,14 @@ import TeamMemberProjects  from "./team/TeamMemberProjects";
 
 import PersonalNotes      from "./shared/PersonalNotes";
 import TeamProfile        from "./team/TeamProfile";
+import DemandesPage       from "./shared/DemandesPage";
 import ProviderContracts  from "../../components/contracts/ProviderContracts";
 import HistoryPage        from "./shared/HistoryPage";
 import "../../styles/Dashboard.css";
 import MessagesPage from "./shared/MessagesPage";
 import {
   IconHome, IconUsers, IconCompass, IconSend,
-  IconBriefcase, IconFileText, IconBell, IconUser, IconCheckSquare, IconCalendar, IconNote, IconClock, IconMail,
+  IconBriefcase, IconFileText, IconBell, IconUser, IconCheckSquare, IconCalendar, IconNote, IconClock, IconMail, IconInbox,
 } from "../../components/ui/Icons";
 
 // ── Browse posts (team lead) ──────────────────────────────────────────────────
@@ -110,6 +111,7 @@ const TeamDashboard = () => {
   const NAV_LEAD = [
     { label: "Vue d'ensemble", icon: <IconHome      size={16} />, path: "/dashboard/team"              },
     { label: "Explorer",       icon: <IconCompass   size={16} />, path: "/dashboard/team/browse"       },
+    { label: "Demandes",       icon: <IconInbox     size={16} />, path: "/dashboard/team/demandes"     },
     { label: "Mes offres",     icon: <IconSend      size={16} />, path: "/dashboard/team/pitches"      },
     { label: "Projets",        icon: <IconBriefcase size={16} />, path: "/dashboard/team/projects"     },
     { label: "Contrats",       icon: <IconFileText  size={16} />, path: "/dashboard/team/contracts"    },
@@ -131,7 +133,6 @@ const TeamDashboard = () => {
     { label: "Messages",       icon: <IconMail         size={16} />, path: "/dashboard/team/messages"      },
     { label: "Notifications",  icon: <IconBell         size={16} />, path: "/dashboard/team/notifications",
       badge: unreadCount },
-    { label: "Mon profil",     icon: <IconUser         size={16} />, path: "/dashboard/team/profile"       },
   ];
 
   const NAV        = isLead ? NAV_LEAD : NAV_MEMBER;
@@ -150,6 +151,7 @@ const TeamDashboard = () => {
           {isLead && <>
             <Route index element={<TeamLeadOverview user={user} />} />
             <Route path="browse"        element={<BrowsePosts onPitch={setPitchTarget} />} />
+            <Route path="demandes"      element={<DemandesPage senderType="Team" />} />
             <Route path="pitches"       element={<TeamLeadPitches user={user} />} />
             <Route path="projects"      element={<TeamLeadProjects user={user} />} />
             <Route path="contracts"     element={<ProviderContracts user={user} partyType="Team" />} />
@@ -170,7 +172,6 @@ const TeamDashboard = () => {
             <Route path="notes"         element={<PersonalNotes />} />
             <Route path="messages"      element={<MessagesPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="profile"       element={<TeamProfile />} />
           </>}
 
           <Route path="*" element={<Navigate to="/dashboard/team" replace />} />

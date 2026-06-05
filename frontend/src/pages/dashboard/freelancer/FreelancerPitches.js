@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import freelancerService from "../../../services/freelancerService";
 import pitchService from "../../../services/pitchService";
+import uploadService from "../../../services/uploadService";
 import { getSocket } from "../../../services/socketService";
 import { IconSend } from "../../../components/ui/Icons";
 
@@ -81,7 +82,27 @@ const ConventionCard = ({ p, index }) => {
               </div>
             </div>
           )}
-          {(p.description || p.workRequirements) && (
+          {p.attachments?.length > 0 && expanded && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#555",
+                marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Pièces jointes
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {p.attachments.map((att, i) => (
+                  <a key={i} href={uploadService.resolveUrl(att.url)}
+                    target="_blank" rel="noreferrer"
+                    style={{ display: "flex", alignItems: "center", gap: 8,
+                      padding: "7px 11px", borderRadius: 8, background: "#f5f5f5",
+                      border: "1px solid #eee", color: "#333",
+                      textDecoration: "none", fontSize: "0.8rem", fontWeight: 500 }}>
+                    📎 {att.filename || `Fichier ${i + 1}`}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          {(p.description || p.workRequirements || p.attachments?.length > 0) && (
             <button onClick={() => setExpanded(e => !e)}
               style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer",
                 fontSize: "0.72rem", color: "#7c3aed", fontWeight: 600,
@@ -148,7 +169,27 @@ const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
               {p.description}
             </div>
           )}
-          {p.description && (
+          {p.attachments?.length > 0 && expanded && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#555",
+                marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Pièces jointes
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {p.attachments.map((att, i) => (
+                  <a key={i} href={uploadService.resolveUrl(att.url)}
+                    target="_blank" rel="noreferrer"
+                    style={{ display: "flex", alignItems: "center", gap: 8,
+                      padding: "7px 11px", borderRadius: 8, background: "#f5f5f5",
+                      border: "1px solid #eee", color: "#333",
+                      textDecoration: "none", fontSize: "0.8rem", fontWeight: 500 }}>
+                    📎 {att.filename || `Fichier ${i + 1}`}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          {(p.description || p.attachments?.length > 0) && (
             <button onClick={() => setExpanded(e => !e)}
               style={{ marginTop: 6, background: "none", border: "none", cursor: "pointer",
                 fontSize: "0.72rem", color: "#7c3aed", fontWeight: 600,

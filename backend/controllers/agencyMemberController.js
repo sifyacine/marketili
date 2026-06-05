@@ -3,11 +3,7 @@ const Freelancer   = require("../models/Freelancer");
 const Agency       = require("../models/Agency");
 const logActivity  = require("../utils/logActivity");
 
-// ─────────────────────────────────────────────
-// CREATE MEMBER  POST /api/agency-members/create
-// Called by director — generates a temporary password
-// mustChangePassword is true by default on the model
-// ─────────────────────────────────────────────
+
 exports.createMember = async (req, res) => {
   try {
     const { firstName, lastName, email, password, jobTitle, phone } = req.body;
@@ -37,9 +33,7 @@ exports.createMember = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET MEMBERS  GET /api/agency-members
-// ─────────────────────────────────────────────
+
 exports.getMembers = async (req, res) => {
   try {
     const agencyId = req.user._id;
@@ -53,11 +47,7 @@ exports.getMembers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// CHANGE PASSWORD  POST /api/agency-members/change-password
-// Called by member on first login
-// Clears mustChangePassword flag after success
-// ─────────────────────────────────────────────
+
 exports.changePassword = async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -70,13 +60,13 @@ exports.changePassword = async (req, res) => {
       });
     }
 
-    // Must use findById with +password to trigger the pre-save hook
+    
     const member = await AgencyMember.findById(memberId).select("+password");
     if (!member) {
       return res.status(404).json({ success: false, message: "Membre introuvable" });
     }
 
-    member.password          = newPassword; // pre-save hook will hash it
+    member.password  = newPassword; 
     member.mustChangePassword = false;
     await member.save();
 
@@ -88,10 +78,7 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// SET MEMBER STATUS  PATCH /api/agency-members/:id/status
-// Accepts target accountStatus instead of toggling
-// ─────────────────────────────────────────────
+
 const VALID_STATUSES = ["active", "inactive", "suspended", "archived"];
 
 exports.setMemberStatus = async (req, res) => {
@@ -108,7 +95,7 @@ exports.setMemberStatus = async (req, res) => {
     member.accountStatus = status;
     await member.save();
 
-    // Notify member when their account is restored to active
+    
     if (status === "active" && prevStatus && prevStatus !== "active") {
       const Notification = require("../models/Notification");
       Notification.notify({
@@ -133,10 +120,7 @@ exports.setMemberStatus = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ATTACH FREELANCER  PATCH /api/agency-members/attach-freelancer
-// Body: { agencyId, freelancerId, role, contractId }
-// ─────────────────────────────────────────────
+
 exports.attachFreelancer = async (req, res) => {
   try {
     const { agencyId, freelancerId, role, contractId } = req.body;
@@ -153,7 +137,7 @@ exports.attachFreelancer = async (req, res) => {
       c => c.agency?.toString() === agencyId && c.status === "active"
     );
     if (alreadyActive) {
-      return res.status(400).json({ success: false, message: "Collaboration déjà active avec cette agence" });
+      return res.status(400).json({ success: false, message: "Collaboration déjà active" });
     }
 
     freelancer.agencyCollaborations.push({

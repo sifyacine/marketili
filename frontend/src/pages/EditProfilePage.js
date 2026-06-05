@@ -12,7 +12,7 @@ const ROLE_FIELDS = {
     { name: "bio",         label: "Bio",              type: "textarea" },
     { name: "phone",       label: "Téléphone",        type: "text"     },
     { name: "website",     label: "Site web",         type: "url"      },
-    { name: "region",      label: "Wilaya / Région",  type: "text"     },
+    { name: "region",      label: "Wilaya",  type: "text"     },
     { name: "specialties", label: "Spécialités",      type: "tags"     },
   ],
   freelancer: [
@@ -29,14 +29,14 @@ const ROLE_FIELDS = {
     { name: "bio",          label: "Bio",                           type: "textarea" },
     { name: "industry",     label: "Secteur d'activité",            type: "text"     },
     { name: "fieldOfWork",  label: "Domaine / Description",         type: "text"     },
-    { name: "region",       label: "Wilaya / Région",               type: "text"     },
+    { name: "region",       label: "Wilaya",               type: "text"     },
     { name: "achievements", label: "Réalisations / Références",     type: "tags"     },
   ],
   team: [
     { name: "teamName",    label: "Nom de l'équipe",  type: "text"     },
     { name: "bio",         label: "Bio",              type: "textarea" },
     { name: "website",     label: "Site web",         type: "url"      },
-    { name: "region",      label: "Wilaya / Région",  type: "text"     },
+    { name: "region",      label: "Wilaya",  type: "text"     },
     { name: "specialties", label: "Spécialités",      type: "tags"     },
   ],
   agency_member: [

@@ -16,14 +16,15 @@ import FileViewerModal   from "../../components/ui/FileViewerModal";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 import NotificationsPage from "./NotificationsPage";
 import notificationService from "../../services/notificationService";
-import ClientCalendar  from "./client/ClientCalendar";
-import ClientProfile   from "./client/ClientProfile";
-import PersonalNotes   from "./shared/PersonalNotes";
+import ClientCalendar      from "./client/ClientCalendar";
+import ClientProfile       from "./client/ClientProfile";
+import PersonalNotes       from "./shared/PersonalNotes";
+import BrowseProvidersPage from "../BrowseProvidersPage";
 import HistoryPage     from "./shared/HistoryPage";
 import {
   IconHome, IconClipboard, IconCompass, IconInbox,
   IconBriefcase, IconFileText, IconZap, IconCheckSquare,
-  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail,
+  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail, IconUsers,
 } from "../../components/ui/Icons";
 import ChatWindow   from "../../components/chat/ChatWindow";
 import MessagesPage from "./shared/MessagesPage";
@@ -54,6 +55,7 @@ const ClientDashboard = () => {
     { label: "Offres reçues",   icon: <IconInbox      size={16} />, path: "/dashboard/client/pitches"        },
     { label: "Projets",         icon: <IconBriefcase  size={16} />, path: "/dashboard/client/projects"       },
     { label: "Contrats",        icon: <IconFileText   size={16} />, path: "/dashboard/client/contracts"      },
+    { label: "Prestataires",   icon: <IconUsers      size={16} />, path: "/dashboard/client/providers"      },
     { label: "Calendrier",      icon: <IconCalendar   size={16} />, path: "/dashboard/client/calendar"        },
     { label: "Notes",           icon: <IconNote       size={16} />, path: "/dashboard/client/notes"           },
     { label: "Historique",      icon: <IconClock      size={16} />, path: "/dashboard/client/history"          },
@@ -77,6 +79,7 @@ const ClientDashboard = () => {
           <Route path="pitches"       element={<ClientPitches     user={user} />} />
           <Route path="projects"      element={<ClientProjects    user={user} />} />
           <Route path="contracts"     element={<ClientContracts   user={user} />} />
+          <Route path="providers"     element={<BrowseProvidersPage />} />
           <Route path="calendar"      element={<ClientCalendar  user={user} />} />
           <Route path="notes"         element={<PersonalNotes />} />
           <Route path="history"       element={<HistoryPage />} />

@@ -187,6 +187,16 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
     if (form.visibility === "private" && !form.targetProvider.providerId) {
       return setError("Veuillez sélectionner un prestataire pour un post privé");
     }
+    if (form.compensationType !== "benefits") {
+      const bMin = form.budget.min !== "" ? Number(form.budget.min) : null;
+      const bMax = form.budget.max !== "" ? Number(form.budget.max) : null;
+      if (bMin !== null && bMin < 0)
+        return setError("Le budget minimum ne peut pas être négatif");
+      if (bMax !== null && bMax < 0)
+        return setError("Le budget maximum ne peut pas être négatif");
+      if (bMin !== null && bMax !== null && bMin > bMax)
+        return setError("Le budget minimum ne peut pas dépasser le budget maximum");
+    }
     setLoading(true);
     try {
       const uploadedMedia = await uploadAllMedia();
@@ -316,7 +326,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                       </select>
                     </div>
                     <div className="dash-form-group">
-                      <label className="dash-form-label">Région</label>
+                      <label className="dash-form-label">Wilaya</label>
                       <select className="dash-form-select" value={form.location.region}
                         onChange={e => setNested("location", "region", e.target.value)}>
                         <option value="">Toute l'Algérie</option>
@@ -431,6 +441,8 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                   <button type="button" className="dash-form-submit" onClick={() => {
                     if (!form.title.trim() || !form.description.trim() || !form.deadline)
                       return setError("Titre, description et date limite requis");
+                    if (form.deadline < new Date().toISOString().split("T")[0])
+                      return setError("La date limite doit être aujourd'hui ou dans le futur");
                     setError(""); setStep(2);
                   }}>Suivant →</button>
                 </motion.div>
@@ -518,7 +530,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                   {/* Budget — only when monetary or mixed */}
                   {showBudget && (
                     <div className="dash-form-group">
-                      <label className="dash-form-label">Budget estimé (DZD)</label>
+                      <label className="dash-form-label">Budget estimé (DZD) <span style={{ fontWeight: 400, color: "#9a6060" }}>(optionnel)</span></label>
                       <div className="dash-form-row">
                         <input className="dash-form-input" type="number" placeholder="Minimum"
                           value={form.budget.min} onChange={e => setNested("budget","min",e.target.value)} min={0} />

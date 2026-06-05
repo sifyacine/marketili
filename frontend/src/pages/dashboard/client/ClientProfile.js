@@ -296,7 +296,7 @@ const ClientProfile = () => {
               <div className="card-body" style={{ paddingTop: 10 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
-                    { f: "region", l: "Wilaya / Région", p: "Alger, Oran, Annaba..." },
+                    { f: "region", l: "Wilaya", p: "Alger, Oran, Annaba..." },
                   ].map(({ f, l, p }) => (
                     <div key={f} className="dash-form-group" style={{ margin: 0 }}>
                       <label className="dash-form-label">{l}</label>

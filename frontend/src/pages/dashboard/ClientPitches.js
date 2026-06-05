@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePitchesForClient } from "../../hooks/usePitches";
 import pitchService from "../../services/pitchService";
+import uploadService from "../../services/uploadService";
 import { IconInbox, IconSearch } from "../../components/ui/Icons";
 
 // ── Pitch Detail Modal ────────────────────────────────────────────────────────
@@ -105,6 +106,25 @@ const PitchDetailModal = ({ pitch, onClose }) => {
           </Section>
         )}
 
+        {pitch.attachments?.length > 0 && (
+          <Section title="Pièces jointes">
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {pitch.attachments.map((att, i) => (
+                <a key={i}
+                  href={uploadService.resolveUrl(att.url)}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ display: "flex", alignItems: "center", gap: 8,
+                    padding: "8px 12px", borderRadius: 8, background: "#f5f5f5",
+                    border: "1px solid #eee", color: "#333",
+                    textDecoration: "none", fontSize: "0.82rem", fontWeight: 500 }}>
+                  📎 {att.filename || `Fichier ${i + 1}`}
+                </a>
+              ))}
+            </div>
+          </Section>
+        )}
+
         <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
           {pitch.proposedPrice?.amount && (
             <div style={{ padding: "10px 16px", borderRadius: 10, background: "#f8f8f8",
@@ -150,7 +170,6 @@ const fmt = (d) =>
 
 // ── Accept modal ─────────────────────────────────────────────────────────────
 const AcceptModal = ({ pitch, onConfirm, onClose }) => {
-  const [withContract, setWithContract] = useState(false);
   if (!pitch) return null;
 
   const providerName =
@@ -164,50 +183,18 @@ const AcceptModal = ({ pitch, onConfirm, onClose }) => {
       zIndex: 9500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ background: "#fff", borderRadius: 14, padding: "28px 28px 24px",
-        width: "100%", maxWidth: 460, boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}>
+        width: "100%", maxWidth: 440, boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}>
         <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "#1a0a0a", marginBottom: 6 }}>
           Accepter cette offre ?
         </div>
-        <div style={{ fontSize: "0.82rem", color: "#9a6060", marginBottom: 20, lineHeight: 1.5 }}>
+        <div style={{ fontSize: "0.82rem", color: "#9a6060", marginBottom: 14, lineHeight: 1.5 }}>
           Vous allez accepter l'offre de <strong>{providerName}</strong>. Les autres offres en attente seront automatiquement rejetées.
         </div>
-
-        {/* Contract toggle */}
-        <div style={{ background: "#f9f9f9", borderRadius: 10, padding: "14px 16px", marginBottom: 20 }}>
-          <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1a0a0a", marginBottom: 12,
-            textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Mode de démarrage
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-              <input type="radio" name="contractMode" checked={!withContract}
-                onChange={() => setWithContract(false)}
-                style={{ marginTop: 2, accentColor: "#c0152a" }} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#1a0a0a" }}>
-                  Démarrer directement
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "#9a6060", lineHeight: 1.4 }}>
-                  Le projet est créé immédiatement, sans contrat formel.
-                </div>
-              </div>
-            </label>
-            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-              <input type="radio" name="contractMode" checked={withContract}
-                onChange={() => setWithContract(true)}
-                style={{ marginTop: 2, accentColor: "#c0152a" }} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#1a0a0a" }}>
-                  Avec contrat
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "#9a6060", lineHeight: 1.4 }}>
-                  Le prestataire remplira un contrat proforma → PDF → vous envoyez un reçu → projet démarré.
-                </div>
-              </div>
-            </label>
-          </div>
+        <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "12px 14px",
+          border: "1px solid #bbf7d0", marginBottom: 22, fontSize: "0.81rem",
+          color: "#166534", lineHeight: 1.5 }}>
+          Un contrat proforma sera créé automatiquement. Le prestataire le remplira avant le démarrage du projet.
         </div>
-
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
           <button onClick={onClose}
             style={{ padding: "9px 20px", borderRadius: 8, border: "1.5px solid #f0dede",
@@ -215,11 +202,11 @@ const AcceptModal = ({ pitch, onConfirm, onClose }) => {
               color: "#9a6060", fontFamily: "inherit", fontWeight: 600 }}>
             Annuler
           </button>
-          <button onClick={() => onConfirm(withContract)}
+          <button onClick={() => onConfirm(true)}
             style={{ padding: "9px 22px", borderRadius: 8, border: "none",
               background: "#c0152a", color: "#fff", cursor: "pointer",
               fontSize: "0.85rem", fontFamily: "inherit", fontWeight: 700 }}>
-            Confirmer
+            Accepter avec contrat
           </button>
         </div>
       </div>
@@ -253,15 +240,13 @@ const ClientPitches = ({ user }) => {
 
   const handleAccept = (pitch) => setAcceptTarget(pitch);
 
-  const handleAcceptConfirm = async (withContract) => {
+  const handleAcceptConfirm = async () => {
     const pitch = acceptTarget;
     setAcceptTarget(null);
     setActionLoad(pitch._id);
     try {
-      await pitchService.accept(pitch._id, user._id, withContract);
-      setSuccessMsg(withContract
-        ? "Offre acceptée — le prestataire doit remplir le contrat pour démarrer le projet."
-        : "Offre acceptée — le projet a été créé.");
+      await pitchService.accept(pitch._id, user._id, true);
+      setSuccessMsg("Offre acceptée — le prestataire doit remplir le contrat pour démarrer le projet.");
       refetch();
       setTimeout(() => setSuccessMsg(""), 6000);
     } catch (err) {

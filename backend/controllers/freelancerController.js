@@ -1,4 +1,4 @@
-// backend/controllers/freelancerController.js
+
 
 const Freelancer = require("../models/Freelancer");
 const Project    = require("../models/Project");
@@ -7,10 +7,7 @@ const Pitch      = require("../models/Pitch");
 const ok   = (res, data, code = 200) => res.status(code).json({ success: true,  ...data });
 const fail = (res, msg,  code = 400) => res.status(code).json({ success: false, message: msg });
 
-// ─────────────────────────────────────────────────────────────
-// GET COLLABORATIONS  GET /api/freelancer/:id/collaborations
-// Returns active agency collaborations with populated agency data
-// ─────────────────────────────────────────────────────────────
+
 exports.getCollaborations = async (req, res) => {
   try {
     const freelancer = await Freelancer.findById(req.params.id)
@@ -29,11 +26,7 @@ exports.getCollaborations = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET FREELANCER PROJECTS  GET /api/freelancer/:id/projects
-// ?agencyId= filters to projects for that agency where freelancer is assigned
-// Without agencyId: returns projects where freelancer is the direct provider
-// ─────────────────────────────────────────────────────────────
+
 exports.getFreelancerProjects = async (req, res) => {
   try {
     const { id }      = req.params;
@@ -41,13 +34,11 @@ exports.getFreelancerProjects = async (req, res) => {
 
     let filter;
     if (agencyId) {
-      // Projects in an agency context where this freelancer is an assigned member
       filter = {
         providerAgency: agencyId,
         "assignedMembers.memberId": id,
       };
     } else {
-      // Direct freelancer projects
       filter = { providerFreelancer: id };
     }
 
@@ -66,10 +57,7 @@ exports.getFreelancerProjects = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET FREELANCER PITCHES  GET /api/freelancer/:id/pitches
-// Returns pitches sent by this freelancer AND conventions received
-// ─────────────────────────────────────────────────────────────
+
 exports.getFreelancerPitches = async (req, res) => {
   try {
     const { id } = req.params;

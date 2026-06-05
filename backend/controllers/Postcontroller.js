@@ -2,12 +2,10 @@ const Post        = require("../models/Post");
 const Pitch       = require("../models/Pitch");
 const logActivity = require("../utils/logActivity");
 
-// Escape special regex characters to prevent ReDoS via user-supplied input
+
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-// ─────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────
+
 
 const pushStatusHistory = (post, newStatus, reason = "") => {
   post.statusHistory.push({ status: newStatus, changedAt: new Date(), reason });
@@ -17,12 +15,10 @@ const pushStatusHistory = (post, newStatus, reason = "") => {
 const ok = (res, data, code = 200) => res.status(code).json({ success: true, ...data });
 const fail = (res, message, code = 400) => res.status(code).json({ success: false, message });
 
-// ─────────────────────────────────────────────
-// CREATE POST (✅ ONLY CHANGE HERE)
-// ─────────────────────────────────────────────
+
 const createPost = async (req, res) => {
   try {
-    // ✅ FIX: prevent crash if req.body is undefined
+    
     const body = req.body || {};
 
     const {
@@ -44,8 +40,8 @@ const createPost = async (req, res) => {
     } = body;
 
     const clientId     = body.clientId;
-    const initiatorType = body.initiatorType; // "Agency" | "Team" | "Freelancer"
-    const initiatorId   = body.initiatorId;   // provider's _id
+    const initiatorType = body.initiatorType; 
+    const initiatorId   = body.initiatorId;   
 
     if (!clientId) return fail(res, "clientId requis");
 
@@ -55,13 +51,9 @@ const createPost = async (req, res) => {
       }
     }
 
-    // ✅ FIX: safe file handling
-    const file = req.file
-      ? {
-          url: req.file.path,
-          originalName: req.file.originalname,
-        }
-      : null;
+    // Files are pre-uploaded by the frontend via /api/upload; the result array
+    // arrives as req.body.media: [{ fileId, filename, url, mimeType?, size? }]
+    const media = Array.isArray(body.media) ? body.media : [];
 
     const postData = {
       client: clientId,
@@ -78,7 +70,7 @@ const createPost = async (req, res) => {
       collaborationType,
       compensationType,
       benefits,
-      file,
+      media,
       visibility: visibility || "public",
     };
 
@@ -124,9 +116,6 @@ const createPost = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// KEEP EVERYTHING BELOW EXACTLY THE SAME
-// ─────────────────────────────────────────────
 
 const getPosts = async (req, res) => {
   try {
@@ -146,6 +135,7 @@ const getPosts = async (req, res) => {
       order = "asc",
       page = 1,
       limit = 12,
+      targeted,   // "true" → Demande page: only private posts sent to this user
     } = req.query;
 
     const filter = {};
@@ -161,18 +151,16 @@ const getPosts = async (req, res) => {
       filter.targetProviders = { $in: [targetProvider, "all"] };
     }
 
-    // Visibility filtering: providers only see public posts or posts targeted at them
-    const providerRoles = ["agency", "agency_member", "team", "team_member", "freelancer"];
-    if (req.user && providerRoles.includes(req.userRole)) {
-      filter.$and = filter.$and || [];
-      filter.$and.push({
-        $or: [
-          { visibility: { $ne: "private" } },
-          { "targetProvider.providerId": req.user._id },
-        ],
-      });
+    if (targeted === "true") {
+      // Demande page — show only private posts addressed to this authenticated provider
+      if (!req.user) {
+        const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
+        return ok(res, { posts: [], pagination: { total: 0, page: 1, limit: limitNum, totalPages: 0, hasNext: false, hasPrev: false } });
+      }
+      filter.visibility = "private";
+      filter["targetProvider.providerId"] = req.user._id;
     } else {
-      // Unauthenticated or client — only show non-private posts
+      // Browse page — exclude private posts for everyone
       filter.visibility = { $ne: "private" };
     }
 
@@ -284,7 +272,7 @@ const getPost = async (req, res) => {
   }
 };
 
-// ✅ KEEP THESE (VERY IMPORTANT)
+
 
 const updatePost = async (req, res) => {
   try {

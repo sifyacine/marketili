@@ -58,7 +58,7 @@ const buildAttachment = (file) => {
   };
 };
 
-// POST /api/pitches
+
 const sendPitch = async (req, res) => {
   if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial")
     return fail(res, "Accès refusé — rôle commercial", 403);
@@ -68,7 +68,7 @@ const sendPitch = async (req, res) => {
       senderType,
       senderId,
       pitchType,
-      receiverId,    // for agency_to_freelancer conventions
+      receiverId,    
       receiverType,
 
       strategy,
@@ -98,7 +98,7 @@ const sendPitch = async (req, res) => {
 
     const isConvention = finalPitchType === "agency_to_freelancer";
 
-    // For regular pitches (not conventions), postId is required
+    
     let post = null;
     if (!isConvention) {
       if (!postId) return fail(res, "postId requis");
@@ -179,7 +179,7 @@ const sendPitch = async (req, res) => {
         link: `/dashboard/client/pitches`,
         metadata: { postId: post._id, pitchId: pitch._id },
       });
-      // notify() already emits new_notification; also emit pitch_update so the list refetches
+      
       emitPitchUpdate(post.client);
     }
 
@@ -208,7 +208,7 @@ const sendPitch = async (req, res) => {
   }
 };
 
-// GET /api/pitches/post/:postId?clientId=xxx
+
 const getPitchesForPost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -240,7 +240,7 @@ const getPitchesForPost = async (req, res) => {
   }
 };
 
-// GET /api/pitches/my?senderId=xxx&senderType=Agency
+
 const getMyPitches = async (req, res) => {
   try {
     const { senderId, senderType, status, page = 1, limit = 20 } = req.query;
@@ -285,14 +285,12 @@ const getMyPitches = async (req, res) => {
   }
 };
 
-// backend/controllers/pitchController.js
-// Only acceptPitch is modified — everything else stays exactly the same.
 
 const acceptPitch = async (req, res) => {
   try {
     const { clientId, withContract = false } = req.body;
 
-    // ── Find and validate the pitch ──
+    
     const pitch = await Pitch.findById(req.params.id)
       .populate("post");
     if (!pitch) return fail(res, "Offre introuvable", 404);
@@ -301,18 +299,18 @@ const acceptPitch = async (req, res) => {
       return fail(res, "Cette offre ne peut plus être acceptée");
     }
 
-    // ── Accept the pitch ──
+    
     pitch.status = "accepted";
     pitch.respondedAt = new Date();
     await pitch.save();
 
-    // ── Move post to in_progress ──
+    
     await Post.findByIdAndUpdate(pitch.post._id || pitch.post, {
       status: "in_progress",
       $push: { acceptedPitches: pitch._id },
     });
 
-    // ── Auto-reject all other pending pitches for this post ──
+    
     await Pitch.updateMany(
       { post: pitch.post._id || pitch.post, _id: { $ne: pitch._id }, status: "pending" },
       {
@@ -322,7 +320,7 @@ const acceptPitch = async (req, res) => {
       }
     );
 
-    // ── Determine provider ──
+    
     const Project      = require("../models/Project");
     const Contract     = require("../models/Contract");
     const Conversation = require("../models/Conversation");
@@ -341,7 +339,7 @@ const acceptPitch = async (req, res) => {
     const projectTitle = postDoc?.title || "Nouveau projet";
     const deadline     = postDoc?.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    // ── Create project (status depends on whether contract is requested) ──
+    
     const projectStatus = withContract ? "pending_contract" : "active";
 
     const project = await Project.create({
@@ -360,12 +358,12 @@ const acceptPitch = async (req, res) => {
         status:    projectStatus,
         changedAt: new Date(),
         note:      withContract
-          ? "Projet créé — en attente de signature du contrat"
+          ? "Projet créé  en attente de signature du contrat"
           : "Projet créé automatiquement suite à l'acceptation d'une offre",
       }],
     });
 
-    // ── Auto-create the conversation ──
+    
     const participants = [
       { participantType: "Client",           participantId: pitch.client },
       { participantType: pitch.senderType,   participantId: providerId  },
@@ -373,26 +371,48 @@ const acceptPitch = async (req, res) => {
     const conversation = await Conversation.create({ project: project._id, participants });
     await Project.findByIdAndUpdate(project._id, { conversationId: conversation._id });
 
-    // ── If contract flow: auto-create a draft contract + notify provider ──
+    
     let contract = null;
     if (withContract) {
-      const partyAType = pitch.senderType; // Agency | Team | Freelancer
+      const partyAType = pitch.senderType;
       const partyBType = "Client";
 
+      // Resolve provider and client display names
+      const Agency     = require("../models/Agency");
+      const Team       = require("../models/Team");
+      const Freelancer = require("../models/Freelancer");
+      const Client     = require("../models/Client");
+
+      let partyAName = "";
+      if (partyAType === "Agency") {
+        const ag = await Agency.findById(providerId).select("agencyName").lean();
+        partyAName = ag?.agencyName || "";
+      } else if (partyAType === "Team") {
+        const tm = await Team.findById(providerId).select("teamName").lean();
+        partyAName = tm?.teamName || "";
+      } else {
+        const fr = await Freelancer.findById(providerId).select("firstName lastName").lean();
+        partyAName = fr ? `${fr.firstName || ""} ${fr.lastName || ""}`.trim() : "";
+      }
+
+      const clientDoc = await Client.findById(pitch.client).select("firstName lastName companyName").lean();
+      const partyBName = clientDoc?.companyName ||
+        `${clientDoc?.firstName || ""} ${clientDoc?.lastName || ""}`.trim() || "";
+
       contract = await Contract.create({
-        project:        project._id,
-        pitch:          pitch._id,
-        contractType:   pitch.contractType || "service_agreement",
+        project:         project._id,
+        pitch:           pitch._id,
+        contractType:    pitch.contractType || "service_agreement",
         partyAType,
-        partyAId:       providerId,
-        partyAName:     "",
+        partyAId:        providerId,
+        partyAName,
         partyBType,
-        partyBId:       pitch.client,
-        partyBName:     "",
-        title:          `Contrat — ${projectTitle}`,
-        initiatedBy:    pitch.client,
+        partyBId:        pitch.client,
+        partyBName,
+        title:           `Contrat — ${projectTitle}`,
+        initiatedBy:     pitch.client,
         initiatedByRole: "client",
-        status:         "draft",
+        status:          "draft",
         statusHistory: [{
           status:    "draft",
           changedAt: new Date(),
@@ -402,7 +422,7 @@ const acceptPitch = async (req, res) => {
       });
     }
 
-    // ── Notify the pitch sender ──
+    
     const senderRecipient = providerId;
     const senderModel     = pitch.senderType === "Agency"  ? "Agency"     :
                             pitch.senderType === "Team"    ? "Team"       : "Freelancer";
@@ -424,7 +444,7 @@ const acceptPitch = async (req, res) => {
       metadata: { pitchId: pitch._id, projectId: project._id, contractId: contract?._id },
     });
 
-    // Notify client that their project has been created
+    
     Notification.notify({
       recipient: pitch.client, recipientRole: "client", recipientModel: "Client",
       type: "project_created", category: "projects",
@@ -448,7 +468,6 @@ const acceptPitch = async (req, res) => {
       description: `Projet créé automatiquement : "${project?.title || ""}"`,
     });
 
-    // Refresh pitch lists for both the provider and the client
     emitPitchUpdate([providerId, pitch.client]);
 
     return ok(res, {
@@ -456,8 +475,8 @@ const acceptPitch = async (req, res) => {
       project,
       contract: contract || undefined,
       message: withContract
-        ? "Offre acceptée — le prestataire doit remplir le contrat pour démarrer le projet"
-        : "Offre acceptée — projet créé automatiquement",
+        ? "Offre acceptée  le prestataire doit remplir le contrat pour démarrer le projet"
+        : "Offre acceptée  projet créé ",
     });
   } catch (err) {
     console.error("acceptPitch:", err);
@@ -465,7 +484,7 @@ const acceptPitch = async (req, res) => {
   }
 };
 
-// PATCH /api/pitches/:id/withdraw
+
 const withdrawPitch = async (req, res) => {
   try {
     const { senderId, senderType } = req.body;
@@ -492,7 +511,7 @@ const withdrawPitch = async (req, res) => {
     pitch.respondedAt = new Date();
     await pitch.save();
 
-    // Notify the client so their pitch list refreshes
+    
     if (pitch.client) emitPitchUpdate(pitch.client);
 
     return ok(res, { pitch, message: "Offre retirée" });
@@ -517,7 +536,7 @@ const rejectPitch = async (req, res) => {
     pitch.rejectionReason = reason || "";
     await pitch.save();
 
-    // Notify sender
+   
     const rejSenderRecipient = pitch.senderType === "Agency"     ? pitch.senderAgency :
                                pitch.senderType === "Team"       ? pitch.senderTeam   :
                                                                   pitch.senderFreelancer;
@@ -564,7 +583,7 @@ const getPitch = async (req, res) => {
   }
 };
 
-// GET /api/pitches/client/:clientId
+
 const getPitchesForClient = async (req, res) => {
   try {
     const { clientId } = req.params;
@@ -584,8 +603,7 @@ const getPitchesForClient = async (req, res) => {
   }
 };
 
-// PATCH /api/pitches/:id/internal-status
-// Strategist → with_chef_de_projet | chef_de_projet → approved or draft | director → sent
+
 const INTERNAL_TRANSITIONS = {
   strategist:      { from: ["draft"],               to: "with_chef_de_projet" },
   chef_de_projet:  { from: ["with_chef_de_projet"], to: ["approved", "draft"] },
@@ -617,10 +635,10 @@ const updateInternalStatus = async (req, res) => {
     if (internalNotes !== undefined) pitch.internalNotes = internalNotes;
     await pitch.save();
 
-    // Fire internal workflow notifications
+    
     if (pitch.senderAgency) {
       if (newStatus === "with_chef_de_projet") {
-        // Notify the chef de projet(s) in this agency
+        
         const chefs = await AgencyMember.find({
           agency: pitch.senderAgency, jobTitle: "chef_de_projet", accountStatus: "active",
         }).select("_id").lean();
@@ -635,11 +653,11 @@ const updateInternalStatus = async (req, res) => {
           });
         });
       } else if (newStatus === "approved") {
-        // Notify the director of this agency
+        
         const directors = await AgencyMember.find({
           agency: pitch.senderAgency, jobTitle: "director", accountStatus: "active",
         }).select("_id").lean();
-        // Also notify the Agency entity itself (the director account)
+        
         Notification.notify({
           recipient: pitch.senderAgency, recipientRole: "agency", recipientModel: "Agency",
           type: "director_approval_needed", category: "pitches",
@@ -661,7 +679,7 @@ const updateInternalStatus = async (req, res) => {
       }
     }
 
-    // Notify all agency members and the agency entity so their pitch lists refresh
+    
     if (pitch.senderAgency) {
       emitPitchUpdate(pitch.senderAgency);
       const allMembers = await AgencyMember.find({
