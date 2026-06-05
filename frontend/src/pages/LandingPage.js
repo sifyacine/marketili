@@ -53,6 +53,7 @@ const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
             {l.label}
           </button>
         ))}
+        <Link to="/pricing" className="lp-nav-link" style={{ textDecoration: "none" }}>Tarifs</Link>
       </div>
 
       {/* Right actions */}
@@ -73,6 +74,7 @@ const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
             {NAV_LINKS.map(l => (
               <button key={l.label} onClick={() => scrollTo(l.ref)}>{l.label}</button>
             ))}
+            <Link to="/pricing"  onClick={() => setOpen(false)}>Tarifs</Link>
             <Link to="/login"    onClick={() => setOpen(false)}>Se connecter</Link>
             <Link to="/register" onClick={() => setOpen(false)} className="lp-mobile-cta">Commencer</Link>
           </motion.div>

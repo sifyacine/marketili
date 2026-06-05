@@ -5,11 +5,12 @@ import useAuth from "../../hooks/useAuth";
 import adminService from "../../services/adminService";
 import adService from "../../services/adService";
 import notificationService from "../../services/notificationService";
+import subscriptionService from "../../services/subscriptionService";
 import {
   IconGrid, IconUsers, IconFlag, IconTrendingUp,
   IconBriefcase, IconSend, IconClipboard, IconSettings,
   IconBell, IconLogOut, IconChevronLeft, IconChevronRight,
-  IconShield, IconSearch, IconPlus, IconX,
+  IconShield, IconSearch, IconPlus, IconX, IconAward,
 } from "../../components/ui/Icons";
 import "../../styles/Dashboard.css";
 
@@ -538,6 +539,7 @@ const PostStatusBadge = ({ status }) => {
 const PostsPanel = () => {
   const [posts,           setPosts]           = useState([]);
   const [total,           setTotal]           = useState(0);
+  const [, setPages] = useState(1);
   const [page,            setPage]            = useState(1);
   const [status,          setStatus]          = useState("all");
   const [search,          setSearch]          = useState("");
@@ -551,7 +553,7 @@ const PostsPanel = () => {
   const load = useCallback(() => {
     setLoading(true);
     adminService.getPosts({ status: status !== "all" ? status : undefined, search: search || undefined, page, limit: 15 })
-      .then(d => { setPosts(d.posts || []); setTotal(d.total || 0); })
+      .then(d => { setPosts(d.posts || []); setTotal(d.total || 0); setPages(d.pages || 1); })
       .catch(() => {}).finally(() => setLoading(false));
   }, [status, search, page]);
 
@@ -1177,12 +1179,235 @@ const OptionsPanel = () => (
   </div>
 );
 
+// ── SUBSCRIPTIONS PANEL ───────────────────────────────────────────────────────
+const fmtDZD = (n) => `${Number(n || 0).toLocaleString("fr-DZ")} DZD`;
+
+const SUB_STATUS = {
+  active:   { label: "Payé · Actif", color: C.green,    bg: "#d1fae5" },
+  trialing: { label: "Essai",        color: C.blue,     bg: "#e0f2fe" },
+  expired:  { label: "Expiré",       color: C.red,      bg: "#fee2e2" },
+  past_due: { label: "Impayé",       color: C.red,      bg: "#fee2e2" },
+  canceled: { label: "Annulé",       color: C.orange,   bg: "#ffedd5" },
+  none:     { label: "Aucun",        color: C.inkMuted, bg: "#f3f4f6" },
+};
+
+const INTERVAL_LABEL = { month: "Mensuel", year: "Annuel" };
+
+const SubscriptionsPanel = () => {
+  const [data,    setData]    = useState(null);
+  const [conn,    setConn]    = useState(null);
+  const [role,    setRole]    = useState("");
+  const [status,  setStatus]  = useState("");
+  const [search,  setSearch]  = useState("");
+  const [loading, setLoading] = useState(true);
+  const [backfilling, setBackfilling] = useState(false);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    subscriptionService.adminOverview({
+      role:   role   || undefined,
+      status: status || undefined,
+      search: search || undefined,
+    })
+      .then(setData)
+      .catch(() => setData({ users: [], summary: {} }))
+      .finally(() => setLoading(false));
+  }, [role, status, search]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [role, status]);
+
+  useEffect(() => {
+    subscriptionService.connection().then(setConn).catch(() => setConn(null));
+  }, []);
+
+  const handleBackfill = () => {
+    setBackfilling(true);
+    subscriptionService.backfill()
+      .then(() => load())
+      .catch(() => {})
+      .finally(() => setBackfilling(false));
+  };
+
+  const summary = data?.summary || {};
+  const users   = data?.users || [];
+
+  const ConnBadge = () => {
+    if (!conn) return null;
+    const ok = conn.configured && conn.success !== false;
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 6,
+        padding: "5px 12px", borderRadius: 20, fontSize: "0.72rem", fontWeight: 700,
+        background: ok ? "#d1fae5" : "#fef3c7", color: ok ? "#065f46" : "#92400e" }}>
+        <span style={{ width: 7, height: 7, borderRadius: "50%",
+          background: ok ? C.green : C.yellow }} />
+        Chargily · {conn.mode || "test"} · {conn.configured ? (ok ? "connecté" : "clé invalide") : "non configuré"}
+      </span>
+    );
+  };
+
+  return (
+    <div>
+      <SectionTitle title="Abonnements"
+        sub="Suivi des paiements et de l'état d'abonnement de chaque utilisateur"
+        action={
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <ConnBadge />
+            <button onClick={handleBackfill} disabled={backfilling}
+              style={{ ...btnGhost, fontSize: "0.75rem", opacity: backfilling ? 0.6 : 1 }}
+              title="Crée un essai (depuis la date d'inscription) pour les comptes sans abonnement">
+              {backfilling ? "Initialisation..." : "Initialiser les essais"}
+            </button>
+          </div>
+        } />
+
+      {/* Summary cards */}
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 22 }}>
+        <StatCard icon={<IconUsers size={15} />}      label="Comptes facturables" value={summary.total}    color={C.purple} />
+        <StatCard icon={<IconAward size={15} />}      label="Abonnés payants"     value={summary.active}   color={C.green} />
+        <StatCard icon={<IconClipboard size={15} />}  label="En essai"            value={summary.trialing} color={C.blue} />
+        <StatCard icon={<IconFlag size={15} />}       label="Expirés"             value={summary.expired}  color={C.red} />
+        <StatCard icon={<IconTrendingUp size={15} />} label="Total encaissé"      value={fmtDZD(summary.collected)} color={C.accent} />
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+        <select value={role} onChange={e => setRole(e.target.value)}
+          style={{ ...inputStyle, flex: "0 0 160px" }}>
+          <option value="">Tous les rôles</option>
+          <option value="client">Client</option>
+          <option value="agency">Agence</option>
+          <option value="team">Équipe</option>
+          <option value="freelancer">Freelancer</option>
+        </select>
+        <select value={status} onChange={e => setStatus(e.target.value)}
+          style={{ ...inputStyle, flex: "0 0 170px" }}>
+          <option value="">Tous les statuts</option>
+          <option value="active">Payé · Actif</option>
+          <option value="trialing">En essai</option>
+          <option value="expired">Expiré / Annulé</option>
+          <option value="none">Aucun abonnement</option>
+        </select>
+        <div style={{ display: "flex", gap: 10, flex: 1, minWidth: 240 }}>
+          <div style={{ flex: 1, position: "relative" }}>
+            <IconSearch size={14} style={{ position: "absolute", left: 11, top: "50%",
+              transform: "translateY(-50%)", color: C.inkMuted, pointerEvents: "none" }} />
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && load()}
+              placeholder="Rechercher par nom ou email..."
+              style={{ ...inputStyle, paddingLeft: 34 }} />
+          </div>
+          <button onClick={load} style={btnPrimary}>Rechercher</button>
+        </div>
+      </div>
+
+      <Card pad="0">
+        {loading ? <Spinner /> : users.length === 0 ? (
+          <EmptyState icon="💳" text="Aucun utilisateur trouvé" />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 880 }}>
+              <thead>
+                <tr style={{ borderBottom: `2px solid ${C.border}` }}>
+                  {["Compte","Rôle","Statut","Formule","Échéance","Dernier paiement"].map(h => (
+                    <th key={h} style={{ padding: "11px 18px", textAlign: "left", fontSize: "0.72rem",
+                      fontWeight: 700, color: C.inkMuted, textTransform: "uppercase",
+                      letterSpacing: "0.04em", whiteSpace: "nowrap" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u, i) => {
+                  const st = SUB_STATUS[u.status] || SUB_STATUS.none;
+                  const roleColor = ROLE_COLORS[u.role] || "#888";
+                  const echeance = u.status === "active" ? u.currentPeriodEnd
+                    : u.status === "trialing" ? u.trialEndsAt : null;
+                  return (
+                    <motion.tr key={u.id || i} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.02 }}
+                      style={{ borderBottom: `1px solid ${C.border}` }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#faf9fc"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      {/* Account */}
+                      <td style={{ padding: "12px 18px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+                            background: roleColor + "18", display: "flex", alignItems: "center",
+                            justifyContent: "center", color: roleColor, fontWeight: 800, fontSize: "0.72rem" }}>
+                            {u.name?.[0]?.toUpperCase() || "?"}
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 600, fontSize: "0.85rem", color: C.ink,
+                              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {u.name}{!u.accountActive && (
+                                <span style={{ marginLeft: 6, fontSize: "0.66rem", color: C.red,
+                                  fontWeight: 700 }}>(désactivé)</span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: "0.72rem", color: C.inkMuted,
+                              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {u.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      {/* Role */}
+                      <td style={{ padding: "12px 18px" }}>
+                        <Badge color={roleColor}>{ROLE_LABELS[u.role] || u.role}</Badge>
+                      </td>
+                      {/* Status */}
+                      <td style={{ padding: "12px 18px" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6,
+                          padding: "3px 11px", borderRadius: 20, fontSize: "0.72rem", fontWeight: 700,
+                          background: st.bg, color: st.color, whiteSpace: "nowrap" }}>
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: st.color }} />
+                          {st.label}
+                          {u.status === "trialing" && u.daysLeft > 0 && (
+                            <span style={{ fontWeight: 600, opacity: 0.85 }}>· {u.daysLeft}j</span>
+                          )}
+                          {u.status === "active" && u.cancelAtPeriodEnd && (
+                            <span style={{ fontWeight: 600, opacity: 0.85 }}>· annulé</span>
+                          )}
+                        </span>
+                      </td>
+                      {/* Plan / formule */}
+                      <td style={{ padding: "12px 18px", fontSize: "0.8rem", color: C.ink, whiteSpace: "nowrap" }}>
+                        {u.status === "active"
+                          ? `${INTERVAL_LABEL[u.interval] || "—"} · ${fmtDZD(u.amount)}`
+                          : <span style={{ color: C.inkMuted }}>—</span>}
+                      </td>
+                      {/* Échéance */}
+                      <td style={{ padding: "12px 18px", fontSize: "0.8rem", color: C.inkMuted, whiteSpace: "nowrap" }}>
+                        {echeance ? fmt(echeance) : "—"}
+                      </td>
+                      {/* Last payment */}
+                      <td style={{ padding: "12px 18px", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
+                        {u.lastPaidAt ? (
+                          <span style={{ color: C.ink }}>
+                            {fmt(u.lastPaidAt)}
+                            <span style={{ color: C.inkMuted }}> · {fmtDZD(u.lastPaidAmount)}</span>
+                          </span>
+                        ) : <span style={{ color: C.inkMuted }}>Jamais</span>}
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+};
+
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { id: "overview",  label: "Tableau de bord", icon: <IconGrid size={16} />,       group: "general" },
   { id: "users",     label: "Utilisateurs",    icon: <IconUsers size={16} />,       group: "gestion" },
   { id: "posts",     label: "Posts",           icon: <IconFlag size={16} />,        group: "gestion" },
   { id: "activity",  label: "Activité",        icon: <IconBriefcase size={16} />,   group: "gestion" },
+  { id: "subscriptions", label: "Abonnements",  icon: <IconAward size={16} />,       group: "monetisation" },
   { id: "ads",       label: "Publicités",      icon: <IconSend size={16} />,        group: "monetisation" },
   { id: "stats",     label: "Statistiques",    icon: <IconTrendingUp size={16} />,  group: "systeme" },
   { id: "log",       label: "Journal",         icon: <IconClipboard size={16} />,   group: "systeme" },
@@ -1343,6 +1568,7 @@ const PAGE_TITLES = {
   stats:    "Statistiques",
   posts:    "Posts",
   activity: "Activité",
+  subscriptions: "Abonnements",
   ads:      "Publicités",
   log:      "Journal",
   options:  "Options",
@@ -1462,6 +1688,7 @@ const PANEL_MAP = {
   stats:    () => <StatsPanel />,
   posts:    () => <PostsPanel />,
   activity: () => <ActivityPanel />,
+  subscriptions: () => <SubscriptionsPanel />,
   ads:      () => <AdsPanel />,
   log:      () => <ActivityLogPanel />,
   options:  () => <OptionsPanel />,

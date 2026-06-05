@@ -12,8 +12,9 @@ const {
   getPitch,
   updateInternalStatus,
 } = require("../controllers/pitchController");
+const subscriptionGate = require("../middleware/subscriptionGate");
 
-router.post("/",                        upload.single("file"), sendPitch);
+router.post("/",                        subscriptionGate, upload.single("file"), sendPitch);
 router.get("/my",                       getMyPitches);
 router.get("/post/:postId",             getPitchesForPost);
 router.get("/client/:clientId",         getPitchesForClient);

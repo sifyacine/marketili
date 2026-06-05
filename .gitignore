@@ -36,3 +36,6 @@ node_modules
 backend/logs/
 DEPLOY.md
 
+# Claude Code local tooling (skills had a stray nested .git → broke Netlify submodule checkout)
+.claude/
+

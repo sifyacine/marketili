@@ -15,6 +15,8 @@ import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import ProfilePage        from "./pages/ProfilePage";
 import EditProfilePage    from "./pages/EditProfilePage";
 import BrowseProvidersPage from "./pages/BrowseProvidersPage";
+import BillingPage         from "./pages/BillingPage";
+import PricingPage         from "./pages/PricingPage";
 //uuyou
 let LandingPage;
 try {
@@ -30,12 +32,14 @@ function App() {
         <Route path="/"             element={<LandingPage />} />
         <Route path="/login"        element={<Login />} />
         <Route path="/register"     element={<Register />} />
+        <Route path="/pricing"      element={<PricingPage />} />
+        <Route path="/tarifs"       element={<PricingPage />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* ✅ Admin handles its own auth internally — no PrivateRoute */}
         <Route path="/admin"        element={<AdminDashboard />} />
 
-        {/* Public route (no PrivateRoute wrapper — member is logged in but forced here): */}
+        {/* Public route (no PrivateRoute wrapper — member is logged in but forced here) */}
         <Route path="/change-password" element={<ChangePasswordPage />} />
 
         <Route path="/dashboard/client/*" element={
@@ -56,6 +60,13 @@ function App() {
         <Route path="/dashboard/freelancer/*" element={
           <PrivateRoute allowedRoles={["freelancer"]}>
             <FreelancerDashboard />
+          </PrivateRoute>
+        } />
+
+        {/* Subscription / billing — any authenticated role */}
+        <Route path="/billing" element={
+          <PrivateRoute>
+            <BillingPage />
           </PrivateRoute>
         } />
 

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "../../hooks/useAuth";
 import notificationService from "../../services/notificationService";
 import AdBanner from "../ads/AdBanner";
+import SubscriptionBanner from "../subscription/SubscriptionBanner";
 import chatService from "../../services/chatService";
 import { getSocket } from "../../services/socketService";
 import {
@@ -275,6 +276,17 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           </div>
           <div className="dash-topbar-right">
 
+            {/* Subscription / billing */}
+            {role !== "admin" && (
+              <button title="Abonnement" onClick={() => navigate("/billing")}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "6px 12px", borderRadius: 8, border: "1px solid var(--d-border-soft, #eee)",
+                  background: "none", cursor: "pointer", fontFamily: "inherit",
+                  fontSize: "0.78rem", fontWeight: 700, color: "var(--d-ink, #1a0a0a)" }}>
+                ✦ Abonnement
+              </button>
+            )}
+
             {/* Notification bell */}
               {/* Chat unread badge */}
             {chatUnreadCount > 0 && (
@@ -400,6 +412,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
         </header>
 
         <main className="dash-content">
+          <SubscriptionBanner />
           {role !== "admin" && <AdBanner />}
           <AnimatePresence mode="wait">
             <motion.div key={location.pathname}

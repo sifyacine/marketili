@@ -18,6 +18,14 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
 
+    // 402 = trial/subscription expired on a gated action → send to billing.
+    const is402 = error.response?.status === 402;
+    if (is402 && error.response?.data?.code === "SUBSCRIPTION_REQUIRED") {
+      if (!window.location.pathname.startsWith("/billing")) {
+        window.location.href = "/billing";
+      }
+    }
+
     return Promise.reject(error);
   }
 );

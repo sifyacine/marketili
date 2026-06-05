@@ -81,7 +81,12 @@ app.options("/{*path}", cors(corsOptions));
 app.use(cors(corsOptions));
 
 // ── 5. Body parsing ──────────────────────────────────────────────────────────
-app.use(express.json({ limit: "10mb" }));
+// Capture the raw body (needed to verify the Chargily webhook HMAC signature,
+// which is computed over the exact received bytes).
+app.use(express.json({
+  limit: "10mb",
+  verify: (req, _res, buf) => { req.rawBody = buf; },
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // ── 6. Input sanitization ────────────────────────────────────────────────────
@@ -170,6 +175,7 @@ app.use("/api/collaboration-requests", require("./routes/collaborationRequestRou
 app.use("/api/analytics",              require("./routes/analyticsRoutes"));
 app.use("/api/ads",                    require("./routes/adRoutes"));
 app.use("/api/activity",               require("./routes/activityRoutes"));
+app.use("/api/subscriptions",          require("./routes/subscriptionRoutes"));
 
 // ── 10. Health check ─────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {

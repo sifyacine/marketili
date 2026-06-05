@@ -12,6 +12,7 @@ const {
   deletePost,
 } = require("../controllers/Postcontroller");
 const { optionalAuth } = require("../middleware/auth");
+const subscriptionGate = require("../middleware/subscriptionGate");
 
 // ── Public / open routes (no auth yet — Phase 7 will add protect middleware) ──
 
@@ -24,8 +25,8 @@ router.get("/my",         getMyPosts);
 // Single post detail
 router.get("/:id",        getPost);
 
-// Create new post
-router.post("/",          createPost);
+// Create new post (requires an active trial/subscription)
+router.post("/",          subscriptionGate, createPost);
 
 // Edit post
 router.put("/:id",        updatePost);
