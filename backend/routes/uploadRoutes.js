@@ -57,6 +57,8 @@ router.post("/", protect, uploadLimiter, upload.single("file"), async (req, res)
         fileId:   fileId.toString(),
         id:       fileId.toString(),
         filename,
+        mimeType: req.file.mimetype,
+        size:     req.file.size,
         url:      `/api/upload/${fileId}`,
       });
     });

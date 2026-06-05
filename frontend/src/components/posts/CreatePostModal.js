@@ -170,10 +170,20 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
             m.id === item.id ? { ...m, progress: pct } : m
           ));
         });
+        // Normalize to the Post.media shape, ensuring mimeType is present
+        // (the local File.type is the reliable fallback) so the card can tell
+        // images from videos when rendering.
+        const media = {
+          fileId:   res.fileId || res.id,
+          url:      res.url,
+          filename: res.filename,
+          mimeType: res.mimeType || item.mimeType || item.file.type,
+          size:     res.size || item.file.size,
+        };
         setMediaFiles(prev => prev.map(m =>
-          m.id === item.id ? { ...m, uploaded: res, progress: 100 } : m
+          m.id === item.id ? { ...m, uploaded: media, progress: 100 } : m
         ));
-        results.push(res);
+        results.push(media);
       } catch (err) {
         console.error("Upload failed for", item.file.name, err);
       }

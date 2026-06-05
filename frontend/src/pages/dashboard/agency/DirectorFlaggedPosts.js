@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getDeadlineColor, getDeadlineLabel } from "../../../utils/deadlineColor";
 import { IconFlag, IconSend, IconSearch, IconUsers } from "../../../components/ui/Icons";
+import uploadService from "../../../services/uploadService";
 
 const COLLAB_FR = {
   service:     "Service",
@@ -151,6 +152,36 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
             marginBottom: 10, display: "-webkit-box",
             WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
             {post.description}
+          </div>
+        )}
+
+        {/* Media attachments */}
+        {post.media?.length > 0 && (
+          <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+            {post.media.slice(0, 3).map((m, i) => (
+              m.mimeType?.startsWith("image/") ? (
+                <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
+                  style={{ display: "block", flexShrink: 0 }}>
+                  <img src={uploadService.resolveUrl(m.url)} alt={m.filename}
+                    style={{ width: 64, height: 48, objectFit: "cover",
+                      borderRadius: 6, border: "1px solid #f0dede" }} />
+                </a>
+              ) : (
+                <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
+                  style={{ display: "flex", alignItems: "center", gap: 4,
+                    padding: "4px 8px", borderRadius: 6, background: "#f5f3f8",
+                    border: "1px solid #eceaf2", fontSize: "0.68rem",
+                    color: "#6b617e", textDecoration: "none", flexShrink: 0 }}>
+                  🎬 {m.filename?.split("-").slice(1).join("-") || m.filename}
+                </a>
+              )
+            ))}
+            {post.media.length > 3 && (
+              <div style={{ display: "flex", alignItems: "center",
+                fontSize: "0.68rem", color: "var(--d-muted)" }}>
+                +{post.media.length - 3}
+              </div>
+            )}
           </div>
         )}
 

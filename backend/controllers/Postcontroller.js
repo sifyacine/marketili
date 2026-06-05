@@ -63,6 +63,21 @@ const createPost = async (req, res) => {
         }
       : null;
 
+    // Persist uploaded media (images / videos already streamed to GridFS by the
+    // /api/upload endpoint). The client sends an array of { fileId, filename,
+    // mimeType, size, url }; normalize it to the Post.media sub-schema.
+    const media = Array.isArray(body.media)
+      ? body.media
+          .filter((m) => m && m.url)
+          .map((m) => ({
+            fileId:   m.fileId || m.id,
+            filename: m.filename,
+            mimeType: m.mimeType,
+            size:     m.size,
+            url:      m.url,
+          }))
+      : [];
+
     const postData = {
       client: clientId,
       title,
@@ -79,6 +94,7 @@ const createPost = async (req, res) => {
       compensationType,
       benefits,
       file,
+      media,
       visibility: visibility || "public",
     };
 

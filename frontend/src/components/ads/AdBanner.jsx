@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import adService from "../../services/adService";
+import uploadService from "../../services/uploadService";
 import useAuth from "../../hooks/useAuth";
 
 const AdBanner = () => {
@@ -23,7 +24,7 @@ const AdBanner = () => {
       boxShadow: "0 2px 8px rgba(0,0,0,0.10)", gap: 16,
     }}>
       {ad.imageUrl && (
-        <img src={ad.imageUrl} alt={ad.title}
+        <img src={uploadService.resolveUrl(ad.imageUrl)} alt={ad.title}
           style={{ height: 36, objectFit: "contain", borderRadius: 4, flexShrink: 0 }} />
       )}
       <div style={{ flex: 1, minWidth: 0 }}>

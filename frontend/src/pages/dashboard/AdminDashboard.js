@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import adminService from "../../services/adminService";
 import adService from "../../services/adService";
+import uploadService from "../../services/uploadService";
 import notificationService from "../../services/notificationService";
 import subscriptionService from "../../services/subscriptionService";
 import {
@@ -864,6 +865,9 @@ const AdsPanel = () => {
     title: "", imageUrl: "", linkUrl: "", placement: "banner", targetRoles: ["all"], isActive: true,
   });
   const [saving, setSaving] = useState(false);
+  const [imgUploading, setImgUploading] = useState(false);
+  const [imgError, setImgError] = useState("");
+  const fileRef = useRef();
 
   const load = useCallback(() => {
     adService.getAdminAds().then(d => setAds(d.ads || [])).catch(() => {}).finally(() => setLoading(false));
@@ -871,11 +875,34 @@ const AdsPanel = () => {
 
   useEffect(() => { load(); }, [load]);
 
+  // Upload an image file to GridFS and store its URL on the ad. Admins can still
+  // paste an external URL in the field instead.
+  const handleImageFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImgError("");
+    if (!file.type.startsWith("image/")) {
+      setImgError("Veuillez choisir un fichier image.");
+      return;
+    }
+    setImgUploading(true);
+    try {
+      const res = await uploadService.upload(file);
+      setForm(p => ({ ...p, imageUrl: res.url }));
+    } catch {
+      setImgError("Échec du téléversement. Réessayez.");
+    } finally {
+      setImgUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault(); setSaving(true);
     try {
       await adService.createAd(form);
       setShowForm(false);
+      setImgError("");
       setForm({ title: "", imageUrl: "", linkUrl: "", placement: "banner", targetRoles: ["all"], isActive: true });
       load();
     } catch {}
@@ -920,9 +947,27 @@ const AdsPanel = () => {
                   </div>
                   <div>
                     <label style={{ fontSize: "0.75rem", fontWeight: 700, color: C.inkMuted,
-                      display: "block", marginBottom: 5 }}>URL image</label>
-                    <input value={form.imageUrl} placeholder="https://..."
-                      onChange={e => setForm(p => ({ ...p, imageUrl: e.target.value }))} style={inputStyle} />
+                      display: "block", marginBottom: 5 }}>Image</label>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <input value={form.imageUrl} placeholder="https://... ou téléverser →"
+                        onChange={e => setForm(p => ({ ...p, imageUrl: e.target.value }))}
+                        style={{ ...inputStyle, flex: 1 }} />
+                      <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }}
+                        onChange={handleImageFile} />
+                      <button type="button" onClick={() => fileRef.current?.click()} disabled={imgUploading}
+                        style={{ ...btnGhost, fontSize: "0.75rem", whiteSpace: "nowrap",
+                          opacity: imgUploading ? 0.6 : 1, cursor: imgUploading ? "wait" : "pointer" }}>
+                        {imgUploading ? "Téléversement…" : "Téléverser"}
+                      </button>
+                    </div>
+                    {imgError && (
+                      <div style={{ fontSize: "0.7rem", color: C.red, marginTop: 5 }}>{imgError}</div>
+                    )}
+                    {form.imageUrl && (
+                      <img src={uploadService.resolveUrl(form.imageUrl)} alt="Aperçu"
+                        style={{ marginTop: 8, height: 44, maxWidth: 160, objectFit: "cover",
+                          borderRadius: 6, border: `1px solid ${C.border}` }} />
+                    )}
                   </div>
                   <div>
                     <label style={{ fontSize: "0.75rem", fontWeight: 700, color: C.inkMuted,
@@ -973,7 +1018,7 @@ const AdsPanel = () => {
                 padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
                 opacity: ad.isActive ? 1 : 0.6, boxShadow: "0 2px 6px rgba(0,0,0,0.04)" }}>
               {ad.imageUrl ? (
-                <img src={ad.imageUrl} alt={ad.title}
+                <img src={uploadService.resolveUrl(ad.imageUrl)} alt={ad.title}
                   style={{ height: 48, width: 88, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
               ) : (
                 <div style={{ height: 48, width: 88, borderRadius: 8, background: C.mainBg,
