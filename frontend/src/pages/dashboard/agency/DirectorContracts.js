@@ -407,7 +407,6 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
 
   const DocLink = ({ label, filename, url }) => {
     if (!url) return null;
-    const resolved = uploadService.resolveUrl(url);
     return (
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
         padding: "10px 14px", borderRadius: 8, border: "1px solid var(--d-border-soft)",
@@ -429,12 +428,12 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
               cursor: "pointer", fontFamily: "inherit" }}>
             Visualiser
           </button>
-          <a href={`${resolved}?download=1`}
+          <button onClick={() => uploadService.downloadFile(url, filename).catch(() => {})}
             style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
               border: "1.5px solid var(--d-border-soft)", background: "none", color: "var(--d-muted)",
-              textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+              cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center" }}>
             ↓
-          </a>
+          </button>
         </div>
       </div>
     );

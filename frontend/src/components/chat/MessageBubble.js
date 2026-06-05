@@ -1,6 +1,34 @@
 import React, { useState } from "react";
 import FileViewerModal from "../ui/FileViewerModal";
 import uploadService from "../../services/uploadService";
+import useFileBlob from "../../hooks/useFileBlob";
+
+// Loads a chat image through the authenticated axios client (so it works
+// behind the dev proxy / cross-origin) and renders the resulting blob.
+const ChatImage = ({ url, alt, onClick }) => {
+  const { blobUrl, loading, error } = useFileBlob(url);
+
+  const box = {
+    width: 220, maxWidth: 220, height: 150, borderRadius: 8,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    background: "rgba(0,0,0,0.06)", color: "#9a6060", fontSize: "0.72rem",
+  };
+
+  if (loading) return <div style={box}>Chargement…</div>;
+  if (error || !blobUrl) return <div style={box}>Image indisponible</div>;
+
+  return (
+    <div onClick={onClick} style={{ cursor: "pointer" }}>
+      <img src={blobUrl} alt={alt}
+        style={{ maxWidth: 220, maxHeight: 160, borderRadius: 8, display: "block" }} />
+    </div>
+  );
+};
+
+const downloadDoc = (file) => {
+  if (!file?.url) return;
+  uploadService.downloadFile(file.url, file.filename).catch(() => {});
+};
 
 const TYPE_META = {
   contract_pdf:    { label: "Contrat (PDF)",      bg: "#7c3aed", icon: "◤" },
@@ -86,14 +114,14 @@ const MessageBubble = ({ message, isMine }) => {
             </div>
             {file && resolvedFileUrl && (
               <>
-                <BtnView color={meta.bg} onClick={() => setViewer({ url: resolvedFileUrl, filename: file.filename })} />
-                <a href={`${resolvedFileUrl}?download=1`} style={{
-                  display: "block", fontSize: "0.75rem", color: "var(--d-muted)",
-                  textDecoration: "none", textAlign: "center", marginTop: 4,
-                  padding: "4px 0",
+                <BtnView color={meta.bg} onClick={() => setViewer({ url: file.url, filename: file.filename })} />
+                <button onClick={() => downloadDoc(file)} style={{
+                  display: "block", width: "100%", fontSize: "0.75rem", color: "var(--d-muted)",
+                  background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+                  textAlign: "center", marginTop: 4, padding: "4px 0",
                 }}>
                   ↓ Télécharger — {file.filename}
-                </a>
+                </button>
               </>
             )}
             <div style={{ fontSize: "0.68rem", color: "#9a6060", marginTop: 6, textAlign: "right" }}>
@@ -109,7 +137,6 @@ const MessageBubble = ({ message, isMine }) => {
   if (messageType === "file" && file) {
     const isPdf   = file.mimeType?.includes("pdf");
     const isImage = file.mimeType?.startsWith("image/");
-    const resolvedFileUrl = uploadService.resolveUrl(file.url);
     return (
       <>
         {viewer && (
@@ -129,14 +156,14 @@ const MessageBubble = ({ message, isMine }) => {
             padding: "10px 14px", maxWidth: "65%",
           }}>
             {isImage ? (
-              <div onClick={() => setViewer({ url: resolvedFileUrl, filename: file.filename })} style={{ cursor: "pointer" }}>
-                <img src={resolvedFileUrl} alt={file.filename}
-                  style={{ maxWidth: 220, maxHeight: 160, borderRadius: 8, display: "block" }} />
-              </div>
+              <ChatImage
+                url={file.url} alt={file.filename}
+                onClick={() => setViewer({ url: file.url, filename: file.filename })}
+              />
             ) : isPdf ? (
               <div>
                 <button
-                  onClick={() => setViewer({ url: resolvedFileUrl, filename: file.filename })}
+                  onClick={() => setViewer({ url: file.url, filename: file.filename })}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     background: "none", border: "none", cursor: "pointer",
@@ -146,23 +173,26 @@ const MessageBubble = ({ message, isMine }) => {
                   <span style={{ fontSize: "1rem" }}>📄</span>
                   {file.filename}
                 </button>
-                <a href={`${resolvedFileUrl}?download=1`} style={{
+                <button onClick={() => downloadDoc(file)} style={{
                   display: "block", fontSize: "0.68rem", marginTop: 4,
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: 0, fontFamily: "inherit",
                   color: isMine ? "rgba(255,255,255,0.6)" : "var(--d-muted)",
-                  textDecoration: "none",
                 }}>
                   ↓ Télécharger
-                </a>
+                </button>
               </div>
             ) : (
-              <a href={`${resolvedFileUrl}?download=1`} style={{
+              <button onClick={() => downloadDoc(file)} style={{
                 display: "flex", alignItems: "center", gap: 8,
-                color: isMine ? "#fff" : "#c0152a", textDecoration: "none",
+                background: "none", border: "none", cursor: "pointer",
+                padding: 0, fontFamily: "inherit",
+                color: isMine ? "#fff" : "#c0152a",
                 fontSize: "0.82rem", fontWeight: 600,
               }}>
                 <span style={{ fontSize: "1rem" }}>📎</span>
                 {file.filename}
-              </a>
+              </button>
             )}
             <div style={{
               fontSize: "0.65rem", marginTop: 4, textAlign: "right",

@@ -399,12 +399,12 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
                   cursor: "pointer", fontFamily: "inherit" }}>
                 Visualiser
               </button>
-              <a href={`${uploadService.resolveUrl(contract.contractPdf.url)}?download=1`}
+              <button onClick={() => uploadService.downloadFile(contract.contractPdf.url, contract.contractPdf.filename || "Contrat.pdf").catch(() => {})}
                 style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
                   border: "1.5px solid var(--d-border-soft)", background: "none", color: "var(--d-muted)",
-                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                  cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center" }}>
                 ↓
-              </a>
+              </button>
             </div>
           </div>
         </div>
