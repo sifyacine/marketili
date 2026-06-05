@@ -289,18 +289,17 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 }
 
 .lp-hero-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   position: relative;
   z-index: 1;
   width: 100%;
   min-height: calc(100vh - 80px);
-  padding: 60px 0;
+  padding: 100px 0 80px;
 }
 
-.lp-hero-text { display: flex; flex-direction: column; }
+.lp-hero-text { display: flex; flex-direction: column; max-width: 780px; }
 
 .lp-eyebrow {
   display: inline-flex;
@@ -333,7 +332,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 }
 
 .lp-hero-h1 {
-  font-size: clamp(2.8rem, 5.5vw, 5rem);
+  font-size: clamp(3rem, 6.5vw, 6rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   color: #fff;
@@ -353,7 +352,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
   color: rgba(244,244,246,0.5);
   line-height: 1.75;
   margin-bottom: 40px;
-  max-width: 460px;
+  max-width: 600px;
 }
 
 .lp-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
@@ -772,9 +771,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 }
 
 @media (max-width: 820px) {
-  .lp-hero-inner     { grid-template-columns: 1fr; min-height: auto; padding: 40px 0 60px; }
-  .lp-hero-mock-wrap { display: none; }
-  .lp-hero-sub       { max-width: 100%; }
+  .lp-hero-inner { min-height: auto; padding: 60px 0 60px; }
+  .lp-hero-sub   { max-width: 100%; }
 }
 
 @media (max-width: 768px) {

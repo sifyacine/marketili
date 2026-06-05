@@ -27,6 +27,7 @@ import {
 } from "../../components/ui/Icons";
 import ChatWindow   from "../../components/chat/ChatWindow";
 import MessagesPage from "./shared/MessagesPage";
+import ProjectHistory from "../../components/projects/ProjectHistory";
 import "../../styles/Dashboard.css";
 
 const ClientDashboard = () => {
@@ -434,6 +435,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
+          { id: "historique", label: "Historique" },
           { id: "notes",      label: `Notes${notes.length ? ` (${notes.length})` : ""}` },
           { id: "messagerie", label: "Messagerie" },
         ].map(tab => (
@@ -452,6 +454,8 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
       </div>
 
       {activeTab === "messagerie" && <ChatWindow projectId={project._id} />}
+
+      {activeTab === "historique" && <ProjectHistory projectId={project._id} />}
 
       {/* ── Notes tab ── */}
       {activeTab === "notes" && (
@@ -946,12 +950,12 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
                   cursor: "pointer", fontFamily: "inherit" }}>
                 Visualiser
               </button>
-              <a href={`${uploadService.resolveUrl(contract.contractPdf.url)}?download=1`}
+              <button onClick={() => uploadService.downloadFile(contract.contractPdf.url, contract.contractPdf.filename || "Contrat.pdf").catch(() => {})}
                 style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
                   border: "1.5px solid #f0dede", background: "none", color: "#9a6060",
-                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                  cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center" }}>
                 ↓
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -978,12 +982,12 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
                   cursor: "pointer", fontFamily: "inherit" }}>
                 Visualiser
               </button>
-              <a href={`${uploadService.resolveUrl(contract.bonDeCommande.url)}?download=1`}
+              <button onClick={() => uploadService.downloadFile(contract.bonDeCommande.url, contract.bonDeCommande.filename || "BonDeCommande.pdf").catch(() => {})}
                 style={{ padding: "5px 10px", borderRadius: 6, fontSize: "0.78rem", fontWeight: 600,
                   border: "1.5px solid #f0dede", background: "none", color: "#9a6060",
-                  textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                  cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center" }}>
                 ↓
-              </a>
+              </button>
             </div>
           </div>
         </div>

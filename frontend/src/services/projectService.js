@@ -10,6 +10,10 @@ const projectService = {
   getProject: (projectId) =>
     api.get(`/projects/${projectId}`).then(r => r.data),
 
+  // Unified per-project timeline (status, deliverables, decisions, contract milestones)
+  getHistory: (projectId) =>
+    api.get(`/projects/${projectId}/history`).then(r => r.data),
+
   getAgencyMembers: (agencyId) =>
     api.get(`/projects/agency/${agencyId}/members`).then(r => r.data),
 

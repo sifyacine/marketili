@@ -5,8 +5,30 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # Talk to the backend through a same-origin relative path so the browser
+  # only ever makes HTTPS requests to the Netlify domain. The /api and
+  # /socket.io rewrites below proxy these to the (HTTP-only) backend
+  # server-side, which avoids mixed-content blocking on the HTTPS frontend.
+  REACT_APP_API_URL = "/api"
 
-# SPA fallback — every path serves index.html so React Router works
+# ── Proxy API + real-time traffic to the backend ──────────────────────────────
+# These MUST come before the SPA fallback, otherwise "/*" swallows them.
+# Netlify performs the upstream HTTP call server-side, so the browser sees
+# only HTTPS responses from marketili.netlify.app (no mixed content, and the
+# secure/SameSite=None auth cookie is stored as first-party over HTTPS).
+[[redirects]]
+  from   = "/api/*"
+  to     = "http://157.245.255.43/api/:splat"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/socket.io/*"
+  to     = "http://157.245.255.43/socket.io/:splat"
+  status = 200
+  force  = true
+
+# SPA fallback — every other path serves index.html so React Router works
 [[redirects]]
   from   = "/*"
   to     = "/index.html"

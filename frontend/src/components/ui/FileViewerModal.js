@@ -1,10 +1,16 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
-import uploadService from "../../services/uploadService";
+import useFileBlob from "../../hooks/useFileBlob";
 
 const FileViewerModal = ({ url, filename, onClose }) => {
-  const resolvedUrl = uploadService.resolveUrl(url);
-  const isImage = /\.(png|jpe?g|gif|webp|svg)$/i.test(filename || "");
+  const { blobUrl, type, loading, error } = useFileBlob(url);
+
+  // Decide how to render: prefer the real Content-Type from the blob,
+  // fall back to the filename extension if the server didn't send one.
+  const nameIsImage = /\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(filename || "");
+  const nameIsPdf = /\.pdf$/i.test(filename || "");
+  const isImage = type ? type.startsWith("image/") : nameIsImage;
+  const isPdf = type ? type === "application/pdf" : nameIsPdf;
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -15,6 +21,16 @@ const FileViewerModal = ({ url, filename, onClose }) => {
       document.body.style.overflow = "";
     };
   }, [onClose]);
+
+  const handleDownload = () => {
+    if (!blobUrl) return;
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename || "document";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
 
   return createPortal(
     <div
@@ -54,29 +70,33 @@ const FileViewerModal = ({ url, filename, onClose }) => {
             {filename || "Document"}
           </span>
           <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-            <a
-              href={`${resolvedUrl}?download=1`}
+            <button
+              onClick={handleDownload}
+              disabled={!blobUrl}
               style={{
                 padding: "5px 13px", borderRadius: 6,
                 background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.18)",
                 color: "#fff", fontSize: "0.78rem", fontWeight: 600,
-                textDecoration: "none", display: "inline-block",
+                cursor: blobUrl ? "pointer" : "not-allowed",
+                opacity: blobUrl ? 1 : 0.5,
               }}
             >
               ↓ Télécharger
-            </a>
+            </button>
             <button
-              onClick={() => window.open(resolvedUrl, "_blank")}
+              onClick={() => blobUrl && window.open(blobUrl, "_blank")}
+              disabled={!blobUrl}
               style={{
                 padding: "5px 13px", borderRadius: 6,
                 background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.18)",
                 color: "#fff", fontSize: "0.78rem", fontWeight: 600,
-                cursor: "pointer",
+                cursor: blobUrl ? "pointer" : "not-allowed",
+                opacity: blobUrl ? 1 : 0.5,
               }}
             >
-              ⎙ Imprimer
+              ⎙ Ouvrir
             </button>
             <button
               onClick={onClose}
@@ -99,18 +119,48 @@ const FileViewerModal = ({ url, filename, onClose }) => {
           flex: 1, overflow: "hidden",
           background: "#0f0f23",
           display: "flex", alignItems: "center", justifyContent: "center",
+          color: "rgba(255,255,255,0.7)", fontSize: "0.85rem", textAlign: "center",
+          padding: 16,
         }}>
-          {isImage ? (
+          {loading ? (
+            <div>
+              <div className="spinner" style={{ margin: "0 auto 12px" }} />
+              Chargement du document…
+            </div>
+          ) : error || !blobUrl ? (
+            <div style={{ maxWidth: 360 }}>
+              <div style={{ fontSize: "2rem", marginBottom: 8 }}>⚠️</div>
+              Impossible de charger ce document.
+              <br />
+              Vérifiez votre connexion puis réessayez.
+            </div>
+          ) : isImage ? (
             <img
-              src={resolvedUrl} alt={filename}
+              src={blobUrl} alt={filename}
               style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
             />
-          ) : (
+          ) : isPdf ? (
             <iframe
-              src={resolvedUrl}
+              src={blobUrl}
               title={filename}
               style={{ width: "100%", height: "100%", border: "none" }}
             />
+          ) : (
+            <div style={{ maxWidth: 360 }}>
+              <div style={{ fontSize: "2rem", marginBottom: 8 }}>📄</div>
+              Aperçu indisponible pour ce type de fichier.
+              <br />
+              <button
+                onClick={handleDownload}
+                style={{
+                  marginTop: 12, padding: "7px 16px", borderRadius: 6,
+                  background: "#c0152a", border: "none", color: "#fff",
+                  fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                ↓ Télécharger le fichier
+              </button>
+            </div>
           )}
         </div>
       </div>
