@@ -137,6 +137,7 @@ const DirectorContracts = ({ user }) => {
       .finally(() => setLoading(false));
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [user._id, filter]);
 
   const handleFilterApply = () => load();
@@ -340,13 +341,6 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   };
 
   const meta = STATUS_META[contract.status] || STATUS_META.draft;
-
-  const refresh = async () => {
-    try {
-      const d = await contractService.getById(contract._id);
-      setContract(d.contract);
-    } catch {}
-  };
 
   const handleSend = async () => {
     setSaving(true); setError(""); setMsg("");

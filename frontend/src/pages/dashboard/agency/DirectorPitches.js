@@ -248,7 +248,6 @@ const InternalWorkflowPanel = ({ pitch, jobTitle, onUpdated }) => {
 const DirectorPitches = ({ user }) => {
   const { user: authUser } = useAuth();
   const jobTitle = authUser?.jobTitle || (authUser?.role === "agency" ? "director" : "");
-  const isDirector = jobTitle === "director" || authUser?.role === "agency";
 
   const { pitches, loading, refetch } = useMyPitches(user?._id, "Agency");
   const [statusF,      setStatusF]      = useState("all");

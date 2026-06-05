@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import profileService  from "../../../services/profileService";
 import uploadService   from "../../../services/uploadService";
@@ -7,7 +7,7 @@ import {
   AvatarCircle, AvatarEditBtn, InfoGrid, StatBar, TagList, TagInput,
   SocialLinks, ErrorBanner, SuccessBanner, EditActions, PostFeed, fmt,
 } from "../../../components/profile/ProfileKit";
-import { IconMapPin, IconMail, IconPhone, IconCalendar, IconGlobe, IconAward } from "../../../components/ui/Icons";
+import { IconMapPin, IconMail, IconPhone, IconCalendar, IconAward } from "../../../components/ui/Icons";
 
 const SOCIAL_PLATFORMS = ["instagram", "tiktok", "youtube", "linkedin", "twitter"];
 const ACCENT = "#c0152a";

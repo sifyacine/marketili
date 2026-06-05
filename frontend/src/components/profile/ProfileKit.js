@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import profileService from "../../services/profileService";
 import uploadService  from "../../services/uploadService";
 import {
-  IconX, IconPlus, IconMapPin, IconCalendar, IconFileText,
-  IconMail, IconPhone, IconGlobe, IconCamera, IconLink,
-  IconCheck, IconAward,
+  IconX, IconPlus, IconFileText,
+  IconCamera, IconLink, IconCheck,
 } from "../ui/Icons";
 
 // ── Formatters ────────────────────────────────────────────────────────────────

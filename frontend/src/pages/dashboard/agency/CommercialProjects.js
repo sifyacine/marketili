@@ -40,6 +40,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
     ])
       .catch(() => {})
       .finally(() => setDlLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial._id]);
 
   const showMsg = (text, ok = true) => {

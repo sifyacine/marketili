@@ -189,7 +189,7 @@ const FreelancerPitches = ({ user }) => {
   const [loading,     setLoading]     = useState(true);
   const [filter,      setFilter]      = useState("all");
   const [page,        setPage]        = useState(1);
-  const [total,       setTotal]       = useState(0);
+  const [, setTotal] = useState(0);
   const [pages,       setPages]       = useState(1);
   const [withdrawing, setWithdrawing] = useState(null);
 

@@ -180,6 +180,7 @@ const ClientOverview = ({ user, onCreatePost }) => {
 // ══════════════════════════════════════════════════════════════════════════════
 const ClientPosts = ({ user, onCreatePost, refetchKey }) => {
   const { posts, loading, refetch } = useMyPosts(user._id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { refetch(); }, [refetchKey]);
 
   return (
@@ -381,12 +382,13 @@ const ClientProjects = ({ user }) => {
 // ── Client project detail — read-only view ────────────────────────────────────
 const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
   const [activeTab,   setActiveTab]   = useState("detail");
-  const [project,     setProject]     = useState(initial);
+  const [project]                     = useState(initial);
   const [notes,       setNotes]       = useState(initial.notes || []);
   const [noteText,    setNoteText]    = useState("");
   const [noteLoading, setNoteLoading] = useState(false);
   const [noteError,   setNoteError]   = useState("");
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { onRefresh && onRefresh(); }, []);
 
   const submitNote = async (e) => {

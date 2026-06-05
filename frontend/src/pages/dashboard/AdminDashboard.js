@@ -6,10 +6,10 @@ import adminService from "../../services/adminService";
 import adService from "../../services/adService";
 import notificationService from "../../services/notificationService";
 import {
-  IconGrid, IconUsers, IconUser, IconFlag, IconTrendingUp,
+  IconGrid, IconUsers, IconFlag, IconTrendingUp,
   IconBriefcase, IconSend, IconClipboard, IconSettings,
   IconBell, IconLogOut, IconChevronLeft, IconChevronRight,
-  IconShield, IconSearch, IconPlus, IconX, IconNote,
+  IconShield, IconSearch, IconPlus, IconX,
 } from "../../components/ui/Icons";
 import "../../styles/Dashboard.css";
 
@@ -60,13 +60,6 @@ const ROLE_COLORS = {
   team: C.green, team_member: "#047857", freelancer: C.orange,
 };
 
-const ACTION_TYPES = [
-  "user_registered","user_disabled","user_enabled",
-  "post_created","post_closed","post_removed","post_reactivated",
-  "pitch_sent","pitch_accepted",
-  "project_created","project_completed","contract_signed",
-  "ad_created","member_created","account_restored",
-];
 const ACTION_META = {
   user_registered:   { icon: "👤", color: C.blue },
   user_disabled:     { icon: "🚫", color: C.red },
@@ -348,6 +341,7 @@ const UsersPanel = () => {
     } finally { setLoading(false); }
   }, [role, search]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchUsers(); }, [role]);
 
   const handleToggle = async (u) => {
@@ -544,7 +538,6 @@ const PostStatusBadge = ({ status }) => {
 const PostsPanel = () => {
   const [posts,           setPosts]           = useState([]);
   const [total,           setTotal]           = useState(0);
-  const [pages,           setPages]           = useState(1);
   const [page,            setPage]            = useState(1);
   const [status,          setStatus]          = useState("all");
   const [search,          setSearch]          = useState("");
@@ -558,7 +551,7 @@ const PostsPanel = () => {
   const load = useCallback(() => {
     setLoading(true);
     adminService.getPosts({ status: status !== "all" ? status : undefined, search: search || undefined, page, limit: 15 })
-      .then(d => { setPosts(d.posts || []); setTotal(d.total || 0); setPages(d.pages || 1); })
+      .then(d => { setPosts(d.posts || []); setTotal(d.total || 0); })
       .catch(() => {}).finally(() => setLoading(false));
   }, [status, search, page]);
 

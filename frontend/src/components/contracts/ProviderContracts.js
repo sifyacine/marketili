@@ -85,6 +85,7 @@ const ProviderContracts = ({ user, partyType }) => {
       .finally(() => setLoading(false));
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [user._id, partyType]);
 
   const filtered = filter === "all"

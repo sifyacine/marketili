@@ -5,7 +5,7 @@ import { ProgressBar, PriorityBadge } from "./shared";
 import projectService from "../../../services/projectService";
 import contractService from "../../../services/contractService";
 import { getDeadlineColor, getDeadlineLabel } from "../../../utils/deadlineColor";
-import { IconCheckSquare, IconZap, IconUsers, IconSend } from "../../../components/ui/Icons";
+import { IconCheckSquare, IconZap } from "../../../components/ui/Icons";
 import ChatWindow from "../../../components/chat/ChatWindow";
 import ProjectHistory from "../../../components/projects/ProjectHistory";
 
@@ -326,9 +326,6 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
       .catch(() => {})
       .finally(() => setContractLoading(false));
   }, [project._id]);
-
-  const refresh = () =>
-    projectService.getProject(project._id).then(d => setProject(d.project)).catch(() => {});
 
   const handleAddTask = async (e) => {
     e.preventDefault();

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import postService from "../../services/postService";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
-import { IconSearch, IconFilter, IconClipboard } from "../ui/Icons";
+import { IconSearch, IconClipboard } from "../ui/Icons";
 
 const STATUS_META = {
   open:        { label: "Ouvert",   cls: "open"        },
@@ -20,15 +20,6 @@ const COLLAB_FR = {
 
 const fmt = (d) =>
   new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" });
-
-const deadlineClass = (d) => {
-  if (!d) return "";
-  const days = Math.ceil((new Date(d) - new Date()) / 86400000);
-  if (days < 0 || days <= 7) return "deadline-red";
-  if (days <= 14) return "deadline-orange";
-  if (days <= 30) return "deadline-yellow";
-  return "deadline-green";
-};
 
 const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions = true, onRowClick }) => {
   const [search,    setSearch]    = useState("");

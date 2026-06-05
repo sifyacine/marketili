@@ -19,7 +19,6 @@ const EMAIL     = "contact@marketili.dz";
 const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
   const [open,     setOpen]     = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -557,7 +556,9 @@ const LandingPage = () => {
             </div>
             <p className="lp-footer-tagline">La collaboration marketing professionnelle en Algérie.</p>
             <div className="lp-footer-socials">
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
               <a href="#" className="lp-social-link" aria-label="LinkedIn">in</a>
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
               <a href="#" className="lp-social-link" aria-label="Instagram">ig</a>
             </div>
           </div>

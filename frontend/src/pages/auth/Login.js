@@ -133,6 +133,7 @@ const Login = () => {
                 </div>
               </div>
 
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
               <a href="#" className="auth-forgot">Mot de passe oublié ?</a>
 
               {error && (

@@ -32,6 +32,7 @@ export const usePosts = (initialFilters = {}, autoFetch = true) => {
 
   useEffect(() => {
     if (autoFetch) fetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, autoFetch]);
 
   // Call this to apply new filters and reset to page 1

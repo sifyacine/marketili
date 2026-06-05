@@ -24,7 +24,7 @@ const STATUS_OPTIONS = [
 ];
 
 const CommercialBrowse = ({ user }) => {
-  const { posts, loading, applyFilters, filters } = usePosts({ status: "open", limit: 12 });
+  const { posts, loading, applyFilters } = usePosts({ status: "open", limit: 12 });
 
   const [search,       setSearch]       = useState("");
   const [category,     setCategory]     = useState("");

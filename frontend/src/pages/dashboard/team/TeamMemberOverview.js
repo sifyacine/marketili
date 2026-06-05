@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import projectService from "../../../services/projectService";
 import { getDeadlineColor, getDeadlineLabel } from "../../../utils/deadlineColor";
-import { IconCheckSquare, IconBriefcase, IconCalendar } from "../../../components/ui/Icons";
+import { IconCheckSquare, IconCalendar } from "../../../components/ui/Icons";
 import { PriorityBadge } from "../agency/shared";
 
 const sortByDue = (tasks) =>

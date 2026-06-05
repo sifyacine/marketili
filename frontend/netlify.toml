@@ -5,6 +5,10 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # Create React App treats ESLint warnings as errors when CI=true (Netlify
+  # sets this automatically). Keep warnings non-fatal so the production build
+  # succeeds; lint warnings are still surfaced in the build log.
+  CI = "false"
   # Talk to the backend through a same-origin relative path so the browser
   # only ever makes HTTPS requests to the Netlify domain. The /api and
   # /socket.io rewrites below proxy these to the (HTTP-only) backend

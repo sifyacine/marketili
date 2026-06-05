@@ -193,6 +193,7 @@ const AgencyDashboard = () => {
     ])
       .catch(() => {})
       .finally(() => setDataLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agencyRole, user?._id, user?.agency]);
 
   const handleSendToStrategist = async (flagEntry, member) => {

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
 import { usePosts } from "../../../hooks/usePosts";
 import { PostCard } from "../agency/shared";
 import { IconSearch, IconCompass } from "../../../components/ui/Icons";
