@@ -1255,8 +1255,8 @@ const SubscriptionsPanel = () => {
             <ConnBadge />
             <button onClick={handleBackfill} disabled={backfilling}
               style={{ ...btnGhost, fontSize: "0.75rem", opacity: backfilling ? 0.6 : 1 }}
-              title="Crée un essai (depuis la date d'inscription) pour les comptes sans abonnement">
-              {backfilling ? "Initialisation..." : "Initialiser les essais"}
+              title="Crée un enregistrement d'abonnement pour les comptes facturables qui n'en ont pas encore">
+              {backfilling ? "Initialisation..." : "Initialiser les abonnements"}
             </button>
           </div>
         } />
@@ -1265,7 +1265,7 @@ const SubscriptionsPanel = () => {
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 22 }}>
         <StatCard icon={<IconUsers size={15} />}      label="Comptes facturables" value={summary.total}    color={C.purple} />
         <StatCard icon={<IconAward size={15} />}      label="Abonnés payants"     value={summary.active}   color={C.green} />
-        <StatCard icon={<IconClipboard size={15} />}  label="En essai"            value={summary.trialing} color={C.blue} />
+        <StatCard icon={<IconClipboard size={15} />}  label="Sans abonnement"     value={summary.none}     color={C.blue} />
         <StatCard icon={<IconFlag size={15} />}       label="Expirés"             value={summary.expired}  color={C.red} />
         <StatCard icon={<IconTrendingUp size={15} />} label="Total encaissé"      value={fmtDZD(summary.collected)} color={C.accent} />
       </div>
@@ -1284,7 +1284,6 @@ const SubscriptionsPanel = () => {
           style={{ ...inputStyle, flex: "0 0 170px" }}>
           <option value="">Tous les statuts</option>
           <option value="active">Payé · Actif</option>
-          <option value="trialing">En essai</option>
           <option value="expired">Expiré / Annulé</option>
           <option value="none">Aucun abonnement</option>
         </select>

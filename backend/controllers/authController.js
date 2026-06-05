@@ -8,7 +8,7 @@ const TeamMember   = require("../models/TeamMember");
 const Freelancer   = require("../models/Freelancer");
 const Admin        = require("../models/Admin");
 const logActivity  = require("../utils/logActivity");
-const { createTrialSubscription } = require("../services/subscriptionService");
+const { createInitialSubscription } = require("../services/subscriptionService");
 
 const generateToken = (id, role) => {
   return jwt.sign(
@@ -59,11 +59,12 @@ const register = async (req, res) => {
       case "freelancer": user = await Freelancer.create(data); break;
     }
 
-    // Start the 14-day free trial. Non-fatal: never block registration on it.
+    // Create the initial (unpaid) subscription record so the account is tracked
+    // and gated until it subscribes. Non-fatal: never block registration on it.
     try {
-      await createTrialSubscription(user._id, role, user.email, user.createdAt);
+      await createInitialSubscription(user._id, role, user.email, user.createdAt);
     } catch (subErr) {
-      console.error("⚠️ trial subscription creation failed:", subErr.message);
+      console.error("⚠️ initial subscription creation failed:", subErr.message);
     }
 
     const token = generateToken(user._id, role);

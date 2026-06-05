@@ -2,8 +2,8 @@
 //
 // One subscription per billed account (client / agency / team / freelancer).
 // Chargily Pay V2 has no native recurring billing, so the period is managed
-// here: a 14-day trial on signup, then each paid Chargily checkout extends
-// `currentPeriodEnd` by one interval.
+// here. There is no free trial: a new account starts unpaid (status "expired")
+// and each paid Chargily checkout extends `currentPeriodEnd` by one month.
 
 const mongoose = require("mongoose");
 

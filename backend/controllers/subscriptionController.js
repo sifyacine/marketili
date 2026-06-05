@@ -82,8 +82,9 @@ const createCheckout = async (req, res) => {
       });
     }
 
-    const interval = req.body.interval === "year" ? "year" : "month";
-    const amount = getPlanAmount(role, interval);
+    // Billing is monthly only.
+    const interval = "month";
+    const amount = getPlanAmount(role);
     const plan = PLANS[role];
     if (!amount) {
       return res.status(400).json({ success: false, message: "Plan introuvable." });
@@ -96,7 +97,7 @@ const createCheckout = async (req, res) => {
       currency: CURRENCY,
       success_url: `${FRONTEND_URL}/billing?payment=success`,
       failure_url: `${FRONTEND_URL}/billing?payment=failed`,
-      description: `Abonnement Marketili ${plan.name} (${interval === "year" ? "annuel" : "mensuel"})`,
+      description: `Abonnement Marketili ${plan.name} (mensuel)`,
       locale: "fr",
       metadata: {
         subscriptionId: String(sub._id),
@@ -255,7 +256,7 @@ const checkConnection = async (req, res) => {
 };
 
 // ── POST /api/subscriptions/admin/backfill (admin) ─────────────────────────────
-// Creates a (signup-anchored) trial subscription for every billed user that
+// Creates an initial (unpaid) subscription record for every billed user that
 // doesn't have one yet — brings legacy accounts into the billing system so the
 // overview shows real statuses. Idempotent.
 const backfillTrials = async (req, res) => {
@@ -267,7 +268,7 @@ const backfillTrials = async (req, res) => {
       for (const u of users) {
         const existing = await Subscription.findOne({ user: u._id, role }).select("_id").lean();
         if (existing) { skipped++; continue; }
-        await subService.createTrialSubscription(u._id, role, u.email, u.createdAt);
+        await subService.createInitialSubscription(u._id, role, u.email, u.createdAt);
         created++;
       }
     }

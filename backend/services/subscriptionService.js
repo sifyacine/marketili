@@ -1,8 +1,10 @@
 // backend/services/subscriptionService.js
 //
 // Business logic around the Subscription model: lazy creation/backfill of the
-// trial, computing the *effective* status (handling lazy expiry without a cron),
-// and activating a paid period after a successful Chargily checkout.
+// initial (unpaid) subscription, computing the *effective* status (handling
+// lazy expiry without a cron), and activating a paid period after a successful
+// Chargily checkout. There is no free trial — a new account starts unpaid and
+// must subscribe before it can use value actions.
 
 const Subscription = require("../models/Subscription");
 const { TRIAL_DAYS, CURRENCY, PLANS, ROLE_TO_MODEL } = require("../config/plans");
@@ -26,32 +28,47 @@ function isBilledRole(role) {
   return Boolean(PLANS[role]);
 }
 
-// Create the trial subscription for a user. Idempotent. The trial is anchored
-// to the account's creation date (the "14-day free trial" begins at signup), so
-// back-filling a legacy account reflects its real remaining trial (often none).
-async function createTrialSubscription(userId, role, email, accountCreatedAt) {
+// Create the initial subscription record for a user. Idempotent. With no free
+// trial (TRIAL_DAYS = 0) the account starts as "expired" — i.e. it must
+// subscribe before it can use value actions. If a trial is ever reintroduced
+// (TRIAL_DAYS > 0) this anchors it to the account's creation date.
+async function createInitialSubscription(userId, role, email, accountCreatedAt) {
   if (!isBilledRole(role)) return null;
   const existing = await Subscription.findOne({ user: userId, role });
   if (existing) return existing;
 
   const start = accountCreatedAt ? new Date(accountCreatedAt) : new Date();
-  const trialEndsAt = new Date(start.getTime() + TRIAL_DAYS * DAY_MS);
 
+  if (TRIAL_DAYS > 0) {
+    const trialEndsAt = new Date(start.getTime() + TRIAL_DAYS * DAY_MS);
+    return Subscription.create({
+      user: userId,
+      userModel: ROLE_TO_MODEL[role],
+      role,
+      email,
+      planCode: PLANS[role].code,
+      status: "trialing",
+      trialEndsAt,
+      currency: CURRENCY,
+      history: [{ event: "trial_started", at: start, periodEnd: trialEndsAt, note: `${TRIAL_DAYS} jours d'essai` }],
+    });
+  }
+
+  // No free trial: the account is unpaid and gated until it subscribes.
   return Subscription.create({
     user: userId,
     userModel: ROLE_TO_MODEL[role],
     role,
     email,
     planCode: PLANS[role].code,
-    status: "trialing",
-    trialEndsAt,
+    status: "expired",
     currency: CURRENCY,
-    history: [{ event: "trial_started", at: start, periodEnd: trialEndsAt, note: `${TRIAL_DAYS} jours d'essai` }],
+    history: [{ event: "registered", at: start, note: "Compte créé — abonnement requis" }],
   });
 }
 
-// Find the user's subscription, creating the trial on the fly if missing
-// (backfills accounts that existed before subscriptions were introduced).
+// Find the user's subscription, creating the initial record on the fly if
+// missing (backfills accounts that existed before subscriptions were introduced).
 async function ensureSubscription(userId, role, email, accountCreatedAt) {
   if (!isBilledRole(role)) return null;
   let sub = await Subscription.findOne({ user: userId, role });
@@ -63,7 +80,7 @@ async function ensureSubscription(userId, role, email, accountCreatedAt) {
       email = email || u?.email;
       accountCreatedAt = accountCreatedAt || u?.createdAt;
     }
-    sub = await createTrialSubscription(userId, role, email, accountCreatedAt);
+    sub = await createInitialSubscription(userId, role, email, accountCreatedAt);
   }
   return sub;
 }
@@ -154,7 +171,7 @@ function toPublic(sub) {
     role: sub.role,
     planCode: sub.planCode,
     plan: plan
-      ? { code: plan.code, name: plan.name, tagline: plan.tagline, monthly: plan.monthly, yearly: plan.yearly, features: plan.features, currency: CURRENCY }
+      ? { code: plan.code, name: plan.name, tagline: plan.tagline, monthly: plan.monthly, features: plan.features, currency: CURRENCY }
       : null,
     status: eff.status,
     allowed: eff.allowed,
@@ -173,7 +190,7 @@ module.exports = {
   DAY_MS,
   addInterval,
   isBilledRole,
-  createTrialSubscription,
+  createInitialSubscription,
   ensureSubscription,
   getEffectiveStatus,
   reconcile,

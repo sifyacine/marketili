@@ -1,9 +1,9 @@
 // frontend/src/pages/PricingPage.js
 //
-// Public pricing / "Tarifs" page. Lists every per-role plan (monthly ⇄ yearly)
-// from the public /api/subscriptions/plans endpoint. Visible to anyone — the
-// CTA sends visitors to register (14-day free trial) or, if already logged in,
-// straight to their billing page.
+// Public pricing / "Tarifs" page. Lists every per-role plan (monthly) from the
+// public /api/subscriptions/plans endpoint. Visible to anyone — the CTA sends
+// visitors to register (subscription required, no free trial) or, if already
+// logged in, straight to their billing page.
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,8 +19,6 @@ const PricingPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [plans, setPlans] = useState(null);
-  const [trialDays, setTrialDays] = useState(14);
-  const [interval, setInterval] = useState("month");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +26,6 @@ const PricingPage = () => {
       .getPlans()
       .then((res) => {
         setPlans(res.plans || {});
-        setTrialDays(res.trialDays || 14);
       })
       .catch(() => setPlans({}))
       .finally(() => setLoading(false));
@@ -73,39 +70,13 @@ const PricingPage = () => {
 
       {/* Hero */}
       <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto", padding: "40px 24px 20px" }}>
-        <span style={{
-          display: "inline-block", padding: "5px 14px", borderRadius: 20,
-          background: "rgba(192,21,42,0.15)", color: "#ff8095",
-          fontSize: "0.78rem", fontWeight: 700, marginBottom: 18,
-        }}>
-          🎁 {trialDays} jours d'essai gratuit — sans carte bancaire
-        </span>
         <h1 style={{ fontSize: "2.4rem", fontWeight: 900, margin: "0 0 12px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
           Tarification simple<br />et transparente
         </h1>
         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "1rem", lineHeight: 1.6, margin: 0 }}>
-          Choisissez la formule adaptée à votre profil. Commencez gratuitement,
-          payez seulement après votre période d'essai.
+          Choisissez la formule adaptée à votre profil. Abonnement mensuel,
+          sans engagement — annulable à tout moment.
         </p>
-
-        {/* Interval toggle */}
-        <div style={{ display: "inline-flex", marginTop: 26, background: "rgba(255,255,255,0.06)", borderRadius: 12, padding: 5, gap: 4 }}>
-          {[
-            { key: "month", label: "Mensuel" },
-            { key: "year", label: "Annuel" },
-          ].map((o) => (
-            <button key={o.key} onClick={() => setInterval(o.key)}
-              style={{
-                padding: "9px 22px", borderRadius: 9, border: "none", cursor: "pointer",
-                fontFamily: "inherit", fontSize: "0.86rem", fontWeight: 700,
-                background: interval === o.key ? ACCENT : "transparent",
-                color: interval === o.key ? "#fff" : "rgba(255,255,255,0.6)",
-                transition: "all 0.15s",
-              }}>
-              {o.label}{o.key === "year" && <span style={{ fontSize: "0.7rem", marginLeft: 6, opacity: 0.85 }}>-2 mois</span>}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Plans */}
@@ -129,7 +100,7 @@ const PricingPage = () => {
           gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
         }}>
           {ordered.map((plan) => {
-            const price = interval === "year" ? plan.yearly : plan.monthly;
+            const price = plan.monthly;
             const featured = plan.code === "agency";
             return (
               <div key={plan.code}
@@ -155,15 +126,10 @@ const PricingPage = () => {
                 <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", margin: "8px 0 18px", lineHeight: 1.5, minHeight: 48 }}>
                   {plan.tagline}
                 </p>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 18 }}>
                   <span style={{ fontSize: "1.8rem", fontWeight: 900 }}>{fmtDZD(price)}</span>
-                  <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.82rem" }}>/ {interval === "year" ? "an" : "mois"}</span>
+                  <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.82rem" }}>/ mois</span>
                 </div>
-                {interval === "year" && (
-                  <div style={{ fontSize: "0.72rem", color: "#10b981", fontWeight: 700, marginBottom: 14 }}>
-                    Soit 2 mois offerts
-                  </div>
-                )}
 
                 <button onClick={() => goSubscribe(plan.role)}
                   style={{
@@ -173,7 +139,7 @@ const PricingPage = () => {
                     fontFamily: "inherit", margin: "14px 0 18px",
                     boxShadow: featured ? "0 8px 24px rgba(192,21,42,0.3)" : "none",
                   }}>
-                  {isAuthenticated ? "Choisir cette formule" : "Commencer l'essai gratuit"}
+                  {isAuthenticated ? "Choisir cette formule" : "S'abonner"}
                 </button>
 
                 <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>

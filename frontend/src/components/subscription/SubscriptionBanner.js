@@ -1,7 +1,7 @@
 // frontend/src/components/subscription/SubscriptionBanner.js
 //
-// Thin status bar shown at the top of dashboards: trial countdown, an expiry
-// warning, or a hard "subscribe now" prompt. Hidden for exempt accounts
+// Thin status bar shown at the top of dashboards: a hard "subscribe now" prompt
+// when access is gated, or a cancellation notice. Hidden for exempt accounts
 // (members / admin) and for healthy active subscriptions.
 
 import React from "react";
@@ -16,7 +16,7 @@ const TONES = {
 
 const SubscriptionBanner = () => {
   const navigate = useNavigate();
-  const { loading, billed, status, daysLeft, allowed, subscription } = useSubscription();
+  const { loading, billed, status, allowed, subscription } = useSubscription();
 
   if (loading || !billed || !status || status === "exempt") return null;
 
@@ -25,22 +25,10 @@ const SubscriptionBanner = () => {
   let text = "";
   let cta = "Voir les abonnements";
 
-  const plural = daysLeft > 1 ? "s" : "";
-
-  if (status === "trialing") {
-    show = true;
-    if (daysLeft <= 3) {
-      tone = "warn";
-      text = `Votre essai gratuit se termine dans ${daysLeft} jour${plural}.`;
-      cta = "S'abonner";
-    } else {
-      tone = "info";
-      text = `🎁 Essai gratuit en cours — ${daysLeft} jour${plural} restant${plural}.`;
-    }
-  } else if (!allowed) {
+  if (!allowed) {
     show = true;
     tone = "danger";
-    text = "Votre accès est limité : votre essai ou abonnement a expiré.";
+    text = "Un abonnement actif est requis pour accéder à toutes les fonctionnalités.";
     cta = "S'abonner maintenant";
   } else if (status === "active" && subscription?.cancelAtPeriodEnd) {
     show = true;

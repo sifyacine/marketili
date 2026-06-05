@@ -1,10 +1,9 @@
 // frontend/src/pages/BillingPage.js
 //
-// Subscription & billing screen. Shows the user's current status (trial / active
-// / expired), their per-role plan, a monthly⇄yearly toggle, and a "subscribe"
-// button that opens a Chargily Pay V2 checkout. On return from the hosted
-// payment page (?payment=success) it verifies the checkout and reflects the
-// new active period.
+// Subscription & billing screen. Shows the user's current status (active /
+// expired), their per-role monthly plan, and a "subscribe" button that opens a
+// Chargily Pay V2 checkout. On return from the hosted payment page
+// (?payment=success) it verifies the checkout and reflects the new active period.
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -17,11 +16,10 @@ const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "long", year: "numeric" }) : "—";
 
 const STATUS_META = {
-  trialing: { label: "Essai gratuit", color: "#1d4ed8", bg: "#eff6ff" },
-  active:   { label: "Actif",         color: "#15803d", bg: "#f0fdf4" },
-  expired:  { label: "Expiré",        color: "#b91c1c", bg: "#fef2f2" },
-  past_due: { label: "Impayé",        color: "#b91c1c", bg: "#fef2f2" },
-  canceled: { label: "Annulé",        color: "#b45309", bg: "#fffbeb" },
+  active:   { label: "Actif",            color: "#15803d", bg: "#f0fdf4" },
+  expired:  { label: "Abonnement requis", color: "#b45309", bg: "#fffbeb" },
+  past_due: { label: "Impayé",           color: "#b91c1c", bg: "#fef2f2" },
+  canceled: { label: "Annulé",           color: "#b45309", bg: "#fffbeb" },
 };
 
 const BillingPage = () => {
@@ -31,7 +29,6 @@ const BillingPage = () => {
   const [sub, setSub] = useState(null);
   const [billed, setBilled] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [interval, setInterval] = useState("month");
   const [processing, setProcessing] = useState(false);
   const [notice, setNotice] = useState(null); // { tone, text }
 
@@ -42,7 +39,6 @@ const BillingPage = () => {
       .then((res) => {
         setBilled(res.billed);
         setSub(res.subscription);
-        if (res.subscription?.interval) setInterval(res.subscription.interval);
         return res;
       })
       .catch(() => setNotice({ tone: "danger", text: "Impossible de charger votre abonnement." }))
@@ -87,7 +83,7 @@ const BillingPage = () => {
     setProcessing(true);
     setNotice(null);
     subscriptionService
-      .createCheckout(interval)
+      .createCheckout("month")
       .then((res) => {
         if (res.checkout_url) {
           window.location.href = res.checkout_url; // off to Chargily
@@ -154,7 +150,7 @@ const BillingPage = () => {
 
   const plan = sub?.plan;
   const meta = STATUS_META[sub?.status] || STATUS_META.expired;
-  const price = interval === "year" ? plan?.yearly : plan?.monthly;
+  const price = plan?.monthly;
   const isActive = sub?.status === "active";
   const ctaLabel = isActive ? "Prolonger l'abonnement" : "S'abonner";
 
@@ -173,11 +169,6 @@ const BillingPage = () => {
               <span style={{ padding: "3px 12px", borderRadius: 20, fontSize: "0.78rem", fontWeight: 700, color: meta.color, background: meta.bg }}>
                 {meta.label}
               </span>
-              {sub?.status === "trialing" && (
-                <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>
-                  {sub.daysLeft} jour{sub.daysLeft > 1 ? "s" : ""} restant{sub.daysLeft > 1 ? "s" : ""} · jusqu'au {fmtDate(sub.trialEndsAt)}
-                </span>
-              )}
               {isActive && (
                 <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>
                   {sub.cancelAtPeriodEnd ? "Se termine le " : "Renouvellement le "}{fmtDate(sub.currentPeriodEnd)}
@@ -201,36 +192,12 @@ const BillingPage = () => {
               </h3>
               <p style={{ margin: 0, color: "#6b7280", fontSize: "0.86rem", lineHeight: 1.5 }}>{plan.tagline}</p>
             </div>
-
-            {/* Interval toggle */}
-            <div style={{ display: "flex", background: "#f3f4f6", borderRadius: 10, padding: 4, gap: 4 }}>
-              {[
-                { key: "month", label: "Mensuel" },
-                { key: "year", label: "Annuel" },
-              ].map((o) => (
-                <button key={o.key} onClick={() => setInterval(o.key)}
-                  style={{
-                    padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer",
-                    fontFamily: "inherit", fontSize: "0.8rem", fontWeight: 700,
-                    background: interval === o.key ? "#fff" : "transparent",
-                    color: interval === o.key ? ACCENT : "#6b7280",
-                    boxShadow: interval === o.key ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                  }}>
-                  {o.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Price */}
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "18px 0" }}>
             <span style={{ fontSize: "2rem", fontWeight: 800, color: "#1a0a0a" }}>{fmtDZD(price)}</span>
-            <span style={{ color: "#6b7280", fontSize: "0.9rem" }}>/ {interval === "year" ? "an" : "mois"}</span>
-            {interval === "year" && (
-              <span style={{ padding: "2px 10px", borderRadius: 20, background: "#f0fdf4", color: "#15803d", fontSize: "0.74rem", fontWeight: 700 }}>
-                2 mois offerts
-              </span>
-            )}
+            <span style={{ color: "#6b7280", fontSize: "0.9rem" }}>/ mois</span>
           </div>
 
           {/* Features */}
