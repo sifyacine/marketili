@@ -14,6 +14,14 @@ const authService = {
 
   logout: () =>
     api.post("/auth/logout").then(r => r.data),
+
+  // Verify an email address from the link token.
+  verifyEmail: (token) =>
+    api.post("/auth/verify-email", { token }).then(r => r.data),
+
+  // Re-send the verification email to the logged-in user.
+  resendVerification: () =>
+    api.post("/auth/resend-verification").then(r => r.data),
 };
 
 export default authService;

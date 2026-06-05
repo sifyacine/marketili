@@ -2,7 +2,7 @@ const express   = require("express");
 const rateLimit = require("express-rate-limit");
 const router    = express.Router();
 
-const { register, login, getMe, logout } = require("../controllers/authController");
+const { register, login, getMe, logout, verifyEmail, resendVerification } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
 
 // Strict limiter for auth endpoints — only counts failed attempts
@@ -17,11 +17,13 @@ const authLimiter = rateLimit({
 });
 
 // Public routes
-router.post("/register", authLimiter, register);
-router.post("/login",    authLimiter, login);
+router.post("/register",     authLimiter, register);
+router.post("/login",        authLimiter, login);
+router.post("/verify-email", authLimiter, verifyEmail);
 
 // Protected routes (require valid JWT)
-router.get("/me",        protect, getMe);
-router.post("/logout",   protect, logout);
+router.get("/me",                   protect, getMe);
+router.post("/logout",              protect, logout);
+router.post("/resend-verification", authLimiter, protect, resendVerification);
 
 module.exports = router;

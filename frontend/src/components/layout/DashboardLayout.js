@@ -5,6 +5,7 @@ import useAuth from "../../hooks/useAuth";
 import notificationService from "../../services/notificationService";
 import AdBanner from "../ads/AdBanner";
 import SubscriptionBanner from "../subscription/SubscriptionBanner";
+import VerifyEmailBanner from "../auth/VerifyEmailBanner";
 import chatService from "../../services/chatService";
 import { getSocket } from "../../services/socketService";
 import {
@@ -412,6 +413,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
         </header>
 
         <main className="dash-content">
+          <VerifyEmailBanner />
           <SubscriptionBanner />
           {role !== "admin" && <AdBanner />}
           <AnimatePresence mode="wait">
