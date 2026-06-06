@@ -170,7 +170,7 @@ const ConventionCollaborationForm = ({ freelancer, agencyUser, onClose, onSucces
     setSaving(true); setError("");
     try {
       const payload = {
-        senderId:     agencyUser._id,
+        senderId:     agencyUser.agency || agencyUser._id,
         senderType:   "Agency",
         pitchType:    "agency_to_freelancer",
         receiverId:   freelancer._id,

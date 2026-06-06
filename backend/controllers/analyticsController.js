@@ -1,17 +1,17 @@
-// backend/controllers/analyticsController.js
+
 
 const Pitch      = require("../models/Pitch");
 const Project    = require("../models/Project");
 const AgencyMember = require("../models/AgencyMember");
 const mongoose   = require("mongoose");
 
-// GET /api/analytics/agency/:agencyId
+
 exports.getAgencyAnalytics = async (req, res) => {
   try {
     const agencyId = new mongoose.Types.ObjectId(req.params.agencyId);
     const now = new Date();
 
-    // Last 6 months boundaries
+    
     const months = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -19,7 +19,7 @@ exports.getAgencyAnalytics = async (req, res) => {
     }
     const rangeStart = months[0].start;
 
-    // ── Pitches ───────────────────────────────────────────────────────────────
+    
     const pitches = await Pitch.find({ senderAgency: agencyId })
       .select("status createdAt").lean();
 
@@ -38,7 +38,7 @@ exports.getAgencyAnalytics = async (req, res) => {
       };
     });
 
-    // ── Projects ──────────────────────────────────────────────────────────────
+    
     const projects = await Project.find({ providerAgency: agencyId })
       .select("projectStatus createdAt agreedPrice tasks assignedMembers deadline").lean();
 
@@ -58,7 +58,7 @@ exports.getAgencyAnalytics = async (req, res) => {
       };
     });
 
-    // ── Revenue ───────────────────────────────────────────────────────────────
+    
     const totalRevenue = projects
       .filter(p => p.projectStatus === "completed" && p.agreedPrice?.amount)
       .reduce((sum, p) => sum + (p.agreedPrice.amount || 0), 0);
@@ -74,7 +74,7 @@ exports.getAgencyAnalytics = async (req, res) => {
       };
     });
 
-    // ── Tasks ─────────────────────────────────────────────────────────────────
+    
     const allTasks = projects.flatMap(p => p.tasks || []);
     const taskTotal     = allTasks.length;
     const taskTodo      = allTasks.filter(t => t.status === "todo").length;
@@ -84,7 +84,7 @@ exports.getAgencyAnalytics = async (req, res) => {
     const taskOverdue   = allTasks.filter(t =>
       t.dueDate && new Date(t.dueDate) < now && t.status !== "done").length;
 
-    // ── Member productivity ───────────────────────────────────────────────────
+    
     const members = await AgencyMember.find({ agency: agencyId })
       .select("firstName lastName jobTitle").lean();
 

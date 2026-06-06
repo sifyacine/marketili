@@ -21,6 +21,7 @@ const BrowseBanner = () => {
     <img
       src={imgSrc}
       alt={ad.title || "Annonce"}
+      onError={e => { e.target.style.display = "none"; }}
       style={{
         width: "100%",
         maxHeight: 180,

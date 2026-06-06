@@ -222,7 +222,7 @@ const TeamLeadMembers = () => {
         </div>
       ) : (
         <>
-          {/* Active members */}
+          {}
           {active.length > 0 && (
             <div className="card" style={{ padding: 0, marginBottom: 20 }}>
               <div style={{ padding: "12px 22px 10px",
@@ -238,7 +238,7 @@ const TeamLeadMembers = () => {
             </div>
           )}
 
-          {/* Inactive members */}
+          {}
           {inactive.length > 0 && (
             <div className="card" style={{ padding: 0 }}>
               <div style={{ padding: "12px 22px 10px",

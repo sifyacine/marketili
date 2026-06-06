@@ -30,7 +30,7 @@ const PostDetailModal = ({ post, onClose }) => {
               textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Médias</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {post.media.map((m, i) => (
-                m.mimeType?.startsWith("image/") ? (
+                (m.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(m.filename || "")) ? (
                   <img key={i} src={uploadService.resolveUrl(m.url)} alt={m.filename}
                     onError={e => { e.target.style.display = "none"; }}
                     style={{ width: 120, height: 90, objectFit: "cover", borderRadius: 8, border: "1px solid #eee" }} />
@@ -206,29 +206,32 @@ const FreelancerBrowse = ({ onPitch }) => {
           </div>
         </div>
       ) : (
-        {detailPost && (
-          <PostDetailModal post={detailPost} onClose={() => setDetailPost(null)} />
-        )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px,1fr))", gap: 16 }}>
-          {posts.map((post, i) => (
-            <div key={post._id} style={{ position: "relative" }}>
-              <button
-                onClick={() => setDetailPost(post)}
-                style={{ position: "absolute", top: 10, right: 10, zIndex: 2,
-                  padding: "4px 10px", borderRadius: 6, border: "1px solid #ddd",
-                  background: "#fff", cursor: "pointer", fontSize: "0.72rem",
-                  color: "#555", fontFamily: "inherit", fontWeight: 600 }}>
-                Voir détail
-              </button>
-              <PostCard
-                post={post}
-                index={i}
-                actionLabel="Envoyer une offre"
-                onAction={() => onPitch({ post })}
-              />
-            </div>
-          ))}
-        </div>
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px,1fr))", gap: 16 }}>
+            {posts.map((post, i) => (
+              <div key={post._id} style={{ position: "relative" }}>
+                <button
+                  onClick={() => setDetailPost(post)}
+                  style={{ position: "absolute", top: 10, right: 10, zIndex: 2,
+                    padding: "4px 10px", borderRadius: 6, border: "1px solid #ddd",
+                    background: "#fff", cursor: "pointer", fontSize: "0.72rem",
+                    color: "#555", fontFamily: "inherit", fontWeight: 600 }}>
+                  Voir détail
+                </button>
+                <PostCard
+                  post={post}
+                  index={i}
+                  actionLabel="Envoyer une offre"
+                  onAction={() => onPitch({ post })}
+                />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {detailPost && (
+        <PostDetailModal post={detailPost} onClose={() => setDetailPost(null)} />
       )}
 
       {!loading && posts.length > 0 && (

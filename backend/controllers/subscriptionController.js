@@ -1,4 +1,4 @@
-// backend/controllers/subscriptionController.js
+
 
 const chargily = require("../config/chargily");
 const {
@@ -33,8 +33,8 @@ function deriveName(u, role) {
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
 const BACKEND_PUBLIC_URL = (process.env.BACKEND_PUBLIC_URL || "http://localhost:5000").replace(/\/$/, "");
 
-// ── GET /api/subscriptions/plans ───────────────────────────────────────────────
-// Public-ish catalog. If authenticated as a billed role, highlights their plan.
+
+
 const getPlans = async (req, res) => {
   return res.status(200).json({
     success: true,
@@ -45,12 +45,12 @@ const getPlans = async (req, res) => {
   });
 };
 
-// ── GET /api/subscriptions/me ──────────────────────────────────────────────────
+
 const getMySubscription = async (req, res) => {
   try {
     const role = req.userRole;
     if (!subService.isBilledRole(role)) {
-      // Members / admin are never billed.
+      
       return res.status(200).json({
         success: true,
         billed: false,
@@ -66,8 +66,8 @@ const getMySubscription = async (req, res) => {
   }
 };
 
-// ── POST /api/subscriptions/checkout ───────────────────────────────────────────
-// body: { interval: "month" | "year" }
+
+
 const createCheckout = async (req, res) => {
   try {
     const role = req.userRole;
@@ -82,7 +82,7 @@ const createCheckout = async (req, res) => {
       });
     }
 
-    // Billing is monthly only.
+    
     const interval = "month";
     const amount = getPlanAmount(role);
     const plan = PLANS[role];
@@ -108,7 +108,7 @@ const createCheckout = async (req, res) => {
       webhook_endpoint: `${BACKEND_PUBLIC_URL}/api/subscriptions/webhook`,
     });
 
-    // Remember what's being paid so the webhook / verify step can fulfil it.
+    
     sub.pendingInterval = interval;
     sub.pendingAmount = amount;
     sub.chargily.lastCheckoutId = checkout.id;
@@ -132,10 +132,10 @@ const createCheckout = async (req, res) => {
   }
 };
 
-// ── POST /api/subscriptions/verify ─────────────────────────────────────────────
-// Re-reads the last checkout from Chargily and activates the subscription if
-// it's paid. Lets the success-redirect flow work in local/test dev without a
-// publicly reachable webhook. Idempotent.
+
+
+
+
 const verifyLastCheckout = async (req, res) => {
   try {
     const role = req.userRole;
@@ -146,7 +146,12 @@ const verifyLastCheckout = async (req, res) => {
     const checkoutId = sub.chargily.lastCheckoutId;
 
     if (checkoutId && chargily.isConfigured() && sub.status !== "active") {
-      const checkout = await chargily.getCheckout(checkoutId).catch(() => null);
+      let checkout = null;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        checkout = await chargily.getCheckout(checkoutId).catch(() => null);
+        if (checkout?.status === "paid") break;
+        if (attempt < 3) await new Promise(r => setTimeout(r, 1500));
+      }
       if (checkout && checkout.status === "paid") {
         const interval = checkout?.metadata?.interval || sub.pendingInterval || "month";
         const amount = Number(checkout.amount) || sub.pendingAmount || getPlanAmount(role, interval);
@@ -167,8 +172,8 @@ const verifyLastCheckout = async (req, res) => {
   }
 };
 
-// ── POST /api/subscriptions/cancel ─────────────────────────────────────────────
-// Cancels at period end (keeps access until currentPeriodEnd).
+
+
 const cancelSubscription = async (req, res) => {
   try {
     const role = req.userRole;
@@ -186,9 +191,9 @@ const cancelSubscription = async (req, res) => {
   }
 };
 
-// ── POST /api/subscriptions/webhook ────────────────────────────────────────────
-// Chargily server-to-server callback. No cookie auth — verified by signature.
-// Needs the RAW body (captured in server.js via express.json's verify hook).
+
+
+
 const webhook = async (req, res) => {
   try {
     const signature = req.get("signature") || req.get("Signature");
@@ -222,17 +227,17 @@ const webhook = async (req, res) => {
       }
     }
 
-    // Always 200 so Chargily stops retrying once received.
+    
     return res.status(200).json({ received: true });
   } catch (err) {
     console.error("❌ chargily webhook:", err);
-    // Still 200 to avoid infinite retries on our own bug; logged for review.
+    
     return res.status(200).json({ received: true });
   }
 };
 
-// ── GET /api/subscriptions/connection (admin) ──────────────────────────────────
-// Confirms the Chargily API key works by fetching the wallet balance.
+
+
 const checkConnection = async (req, res) => {
   try {
     if (!chargily.isConfigured()) {
@@ -255,10 +260,10 @@ const checkConnection = async (req, res) => {
   }
 };
 
-// ── POST /api/subscriptions/admin/backfill (admin) ─────────────────────────────
-// Creates an initial (unpaid) subscription record for every billed user that
-// doesn't have one yet — brings legacy accounts into the billing system so the
-// overview shows real statuses. Idempotent.
+
+
+
+
 const backfillTrials = async (req, res) => {
   try {
     let created = 0;
@@ -279,20 +284,20 @@ const backfillTrials = async (req, res) => {
   }
 };
 
-// ── GET /api/subscriptions (admin) ─────────────────────────────────────────────
-// Full per-user billing overview: every billed account joined with its
-// subscription, the *effective* status (so an expired trial reads "expired"
-// even if the stored status is stale), plus a summary + total collected.
-// Query: ?status=active|trialing|expired|none  ?role=client|agency|team|freelancer  ?search=
+
+
+
+
+
 const listSubscriptions = async (req, res) => {
   try {
     const { status: statusFilter, role: roleFilter, search } = req.query;
 
-    // 1. All subscriptions, indexed by user id.
+    
     const subs = await Subscription.find({}).lean();
     const subByUser = new Map(subs.map((s) => [String(s.user), s]));
 
-    // 2. Join with every billed user.
+    
     let rows = [];
     let collected = 0;
     for (const { role, Model } of USER_MODELS) {
@@ -316,7 +321,7 @@ const listSubscriptions = async (req, res) => {
           email: u.email,
           accountActive: u.isActive !== false,
           hasSubscription: !!sub,
-          status: eff.status, // effective: active | trialing | expired | past_due | canceled | none
+          status: eff.status, 
           allowed: eff.allowed,
           daysLeft: eff.daysLeft,
           interval: sub?.interval || null,
@@ -332,7 +337,7 @@ const listSubscriptions = async (req, res) => {
       }
     }
 
-    // 3. Summary over the unfiltered set.
+    
     const isExpired = (s) => ["expired", "past_due", "canceled"].includes(s);
     const summary = {
       total: rows.length,
@@ -344,7 +349,7 @@ const listSubscriptions = async (req, res) => {
       currency: CURRENCY,
     };
 
-    // 4. Apply filters (summary above stays global).
+    
     if (roleFilter) rows = rows.filter((r) => r.role === roleFilter);
     if (statusFilter) {
       rows =

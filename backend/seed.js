@@ -1,26 +1,26 @@
-/**
- * seed.js — Full demo data seed for Marketili
- *
- * Creates demo accounts for every role with pre-filled profiles, active
- * subscriptions, sample posts, pitches, a project with tasks, and a
- * collaboration request so every page of the app can be tested immediately.
- *
- * ACCOUNTS CREATED
- * ─────────────────────────────────────────────────────────────
- * Role             Email                           Password
- * ─────────────────────────────────────────────────────────────
- * agency           agency@gmail.com                AAAAAAAA
- * agency_member    director.agency@gmail.com       DDDDDDDD
- * agency_member    strategist.agency@gmail.com     SSSSSSSS
- * team             team@gmail.com                  TTTTTTTT
- * team_member      member.team@gmail.com           MMMMMMMM
- * freelancer       freelancer@gmail.com            FFFFFFFF
- * client           client@gmail.com                CCCCCCCC
- * ─────────────────────────────────────────────────────────────
- *
- * Run: cd backend && node seed.js
- * Requires: MONGO_URI in backend/.env
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const mongoose = require("mongoose");
 require("dotenv").config();
@@ -37,14 +37,14 @@ const Pitch               = require("./models/Pitch");
 const Project             = require("./models/Project");
 const CollaborationRequest = require("./models/CollaborationRequest");
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 
-/** Future date offset from today */
+
+
 const future = (days) => new Date(Date.now() + days * 86400000);
-/** Past date offset from today */
+
 const past   = (days) => new Date(Date.now() - days * 86400000);
 
-/** Create a subscription with "active" status for any billed role */
+
 async function ensureSubscription(userId, userModel, role, email) {
   const existing = await Subscription.findOne({ user: userId, role });
   if (existing) return existing;
@@ -77,13 +77,13 @@ async function ensureSubscription(userId, userModel, role, email) {
   });
 }
 
-// ── Main seed function ─────────────────────────────────────────────────────
+
 
 async function seed() {
   await mongoose.connect(process.env.MONGO_URI);
   console.log("Connected to MongoDB");
 
-  // ─── 1. AGENCY ────────────────────────────────────────────────────────────
+  
   let agency = await Agency.findOne({ email: "agency@gmail.com" });
   if (!agency) {
     agency = await Agency.create({
@@ -120,7 +120,7 @@ async function seed() {
   await ensureSubscription(agency._id, "Agency", "agency", agency.email);
   console.log("✅ Agency subscription active");
 
-  // ─── 2. AGENCY MEMBERS ────────────────────────────────────────────────────
+  
   let director = await AgencyMember.findOne({ email: "director.agency@gmail.com" });
   if (!director) {
     director = await AgencyMember.create({
@@ -161,7 +161,7 @@ async function seed() {
     console.log("⏭  Agency member (strategist) already exists:", strategist.email);
   }
 
-  // Push members onto agency if not already there
+  
   const agencyMemberIds = [director._id, strategist._id];
   for (const memberId of agencyMemberIds) {
     if (!agency.members.some((m) => m.toString() === memberId.toString())) {
@@ -170,7 +170,7 @@ async function seed() {
   }
   await agency.save();
 
-  // ─── 3. TEAM ──────────────────────────────────────────────────────────────
+  
   let team = await Team.findOne({ email: "team@gmail.com" });
   if (!team) {
     team = await Team.create({
@@ -201,7 +201,7 @@ async function seed() {
   await ensureSubscription(team._id, "Team", "team", team.email);
   console.log("✅ Team subscription active");
 
-  // ─── 4. TEAM MEMBER ───────────────────────────────────────────────────────
+  
   let teamMember = await TeamMember.findOne({ email: "member.team@gmail.com" });
   if (!teamMember) {
     teamMember = await TeamMember.create({
@@ -227,7 +227,7 @@ async function seed() {
     await team.save();
   }
 
-  // ─── 5. FREELANCER ────────────────────────────────────────────────────────
+  
   let freelancer = await Freelancer.findOne({ email: "freelancer@gmail.com" });
   if (!freelancer) {
     freelancer = await Freelancer.create({
@@ -268,7 +268,7 @@ async function seed() {
   await ensureSubscription(freelancer._id, "Freelancer", "freelancer", freelancer.email);
   console.log("✅ Freelancer subscription active");
 
-  // ─── 6. CLIENT ────────────────────────────────────────────────────────────
+  
   let client = await Client.findOne({ email: "client@gmail.com" });
   if (!client) {
     client = await Client.create({
@@ -297,7 +297,7 @@ async function seed() {
   await ensureSubscription(client._id, "Client", "client", client.email);
   console.log("✅ Client subscription active");
 
-  // ─── 7. POSTS ─────────────────────────────────────────────────────────────
+  
   let post1 = await Post.findOne({ title: "Campagne Ramadan 2025 – Social Media & Influence" });
   if (!post1) {
     post1 = await Post.create({
@@ -346,15 +346,15 @@ async function seed() {
     console.log("⏭  Post 2 already exists");
   }
 
-  // Update client's createdPosts
+  
   client.createdPosts = [];
   if (post1) client.createdPosts.push(post1._id);
   if (post2) client.createdPosts.push(post2._id);
   await client.save();
 
-  // ─── 8. PITCHES ───────────────────────────────────────────────────────────
+  
 
-  // Pitch A: Agency → Client (on Post 1) — ACCEPTED
+  
   let pitchAgency = await Pitch.findOne({ post: post1._id, senderAgency: agency._id });
   if (!pitchAgency) {
     const startDate = future(7);
@@ -404,7 +404,7 @@ async function seed() {
     console.log("⏭  Pitch (agency) already exists");
   }
 
-  // Pitch B: Team → Client (on Post 1) — PENDING
+  
   let pitchTeam = await Pitch.findOne({ post: post1._id, senderTeam: team._id });
   if (!pitchTeam) {
     const startDate = future(10);
@@ -446,7 +446,7 @@ async function seed() {
     console.log("⏭  Pitch (team) already exists");
   }
 
-  // Pitch C: Freelancer → Client (on Post 2) — PENDING
+  
   let pitchFreelancer = await Pitch.findOne({ post: post2._id, senderFreelancer: freelancer._id });
   if (!pitchFreelancer) {
     const startDate = future(5);
@@ -484,7 +484,7 @@ async function seed() {
     console.log("⏭  Pitch (freelancer) already exists");
   }
 
-  // Update post1 pitches array
+  
   post1.pitches        = [pitchAgency._id, pitchTeam._id];
   post1.acceptedPitches = [pitchAgency._id];
   await post1.save();
@@ -492,7 +492,7 @@ async function seed() {
   post2.pitches = [pitchFreelancer._id];
   await post2.save();
 
-  // Update agency/team pitchesSent
+  
   if (!agency.pitchesSent.some((p) => p.toString() === pitchAgency._id.toString())) {
     agency.pitchesSent.push(pitchAgency._id);
     await agency.save();
@@ -506,7 +506,7 @@ async function seed() {
     await freelancer.save();
   }
 
-  // ─── 9. PROJECT ───────────────────────────────────────────────────────────
+  
   let project = await Project.findOne({ pitch: pitchAgency._id });
   if (!project) {
     project = await Project.create({
@@ -617,19 +617,19 @@ async function seed() {
     console.log("⏭  Project already exists");
   }
 
-  // Update post1 projects array
+  
   if (!post1.projects.some((p) => p.toString() === project._id.toString())) {
     post1.projects.push(project._id);
     await post1.save();
   }
 
-  // Update freelancer clientProjects
+  
   if (!freelancer.clientProjects.some((p) => p.toString() === project._id.toString())) {
     freelancer.clientProjects.push(project._id);
     await freelancer.save();
   }
 
-  // ─── 10. COLLABORATION REQUEST ────────────────────────────────────────────
+  
   let collabReq = await CollaborationRequest.findOne({
     fromId: agency._id,
     toId:   freelancer._id,
@@ -651,7 +651,7 @@ async function seed() {
     console.log("⏭  Collaboration request already exists");
   }
 
-  // ─── SUMMARY ──────────────────────────────────────────────────────────────
+  
   console.log(`
 ╔══════════════════════════════════════════════════════════════════╗
 ║              SEED COMPLETE — DEMO CREDENTIALS                    ║

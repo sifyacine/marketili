@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import authService from "../services/authService";
 
-// ── Module-level singleton state ──────────────────────────────────────────────
+
 
 let _user    = null;
 let _role    = null;
@@ -17,7 +17,7 @@ const setShared = (user, role, loading) => {
   notify();
 };
 
-// Kick off the /me check once
+
 let _initialized = false;
 const init = () => {
   if (_initialized) return;
@@ -26,14 +26,14 @@ const init = () => {
   authService.getMe()
     .then((data) => {
       const u = data.user;
-      setShared(u, u?.role || null, false); // ✅ FIXED
+      setShared(u, u?.role || null, false); 
     })
     .catch(() => {
       setShared(null, null, false);
     });
 };
 
-// ── Hook ─────────────────────────────────────────────────────────────────────
+
 
 const useAuth = () => {
   const [, rerender] = useState(0);
@@ -48,14 +48,14 @@ const useAuth = () => {
   }, []);
 
   const login = useCallback((userData, userRole) => {
-    setShared(userData, userRole || userData?.role || null, false); // ✅ FIXED
+    setShared(userData, userRole || userData?.role || null, false); 
   }, []);
 
   const logout = useCallback(async () => {
     try {
       await authService.logout();
     } catch (_) {
-      // ignore
+      
     } finally {
       setShared(null, null, false);
     }

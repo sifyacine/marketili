@@ -1,17 +1,17 @@
-// backend/config/chargily.js
-//
-// Thin client for Chargily Pay V2 (https://dev.chargily.com/pay-v2).
-//
-// The mode (test vs live) is decided by CHARGILY_MODE and the secret key you
-// provide. In test mode no real money moves and the banking network is not
-// engaged — ideal for development.
-//
-//   CHARGILY_MODE        = "test" | "live"      (default: test)
-//   CHARGILY_SECRET_KEY  = test_sk_... | live_sk_...
-//   CHARGILY_WEBHOOK_SECRET = (optional) used to verify webhook signatures;
-//                          falls back to CHARGILY_SECRET_KEY if unset.
-//
-// Uses Node 18+ global fetch (no extra dependency).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const crypto = require("crypto");
 
@@ -67,8 +67,8 @@ async function request(method, path, body) {
   return data;
 }
 
-// ── Checkouts ────────────────────────────────────────────────────────────────
-// payload: { amount, currency, success_url, failure_url, description, metadata, ... }
+
+
 function createCheckout(payload) {
   return request("POST", "/checkouts", payload);
 }
@@ -77,21 +77,21 @@ function getCheckout(id) {
   return request("GET", `/checkouts/${id}`);
 }
 
-// ── Customers (optional) ───────────────────────────────────────────────────────
+
 function createCustomer(payload) {
   return request("POST", "/customers", payload);
 }
 
-// ── Balance ────────────────────────────────────────────────────────────────────
-// Handy for confirming the API key works (used by the admin connection check).
+
+
 function getBalance() {
   return request("GET", "/balance");
 }
 
-// ── Webhook signature verification ─────────────────────────────────────────────
-// Chargily signs each webhook with HMAC-SHA256 of the RAW request body, using
-// your secret key, and sends it in the `signature` header. Compare in constant
-// time. `rawBody` must be the exact bytes received (Buffer or string).
+
+
+
+
 function verifyWebhookSignature(rawBody, signature) {
   if (!signature || !WEBHOOK_SECRET) return false;
   const payload = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody || "", "utf8");

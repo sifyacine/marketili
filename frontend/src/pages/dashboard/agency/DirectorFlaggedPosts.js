@@ -159,7 +159,7 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
         {post.media?.length > 0 && (
           <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
             {post.media.slice(0, 3).map((m, i) => (
-              m.mimeType?.startsWith("image/") ? (
+              (m.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(m.filename || "")) ? (
                 <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
                   style={{ display: "block", flexShrink: 0 }}>
                   <img src={uploadService.resolveUrl(m.url)} alt={m.filename}

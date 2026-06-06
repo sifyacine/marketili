@@ -1,4 +1,4 @@
-// backend/utils/generateContractPdf.js
+
 const PDFDocument = require("pdfkit");
 
 const fmtDate = (d) =>
@@ -45,7 +45,7 @@ const generateContractPdf = (contract) =>
       doc.fontSize(9).font("Helvetica").fillColor("#000").text(value);
     };
 
-    // ── HEADER ──
+    
     doc
       .fontSize(18)
       .font("Helvetica-Bold")
@@ -70,7 +70,7 @@ const generateContractPdf = (contract) =>
 
     const s = contract.sections || {};
 
-    // ── PRÉAMBULE ──
+    
     doc
       .fontSize(11)
       .font("Helvetica-Bold")
@@ -108,7 +108,7 @@ const generateContractPdf = (contract) =>
     doc.moveDown(0.5);
     doc.moveTo(60, doc.y).lineTo(535, doc.y).stroke("#ccc");
 
-    // ── ARTICLES 01–03 ──
+    
     addArticle("01", "OBJET DU CONTRAT", s.article1 || contract.objet || "Non défini.");
     addArticle(
       "02",
@@ -126,7 +126,7 @@ const generateContractPdf = (contract) =>
       s.article4 || "Chaque partie s'engage à respecter les termes du présent contrat et à coopérer de bonne foi pour atteindre les objectifs définis."
     );
 
-    // ── ARTICLE 05 — Financial ──
+    
     doc.moveDown(0.8);
     doc
       .fontSize(10)
@@ -162,7 +162,7 @@ const generateContractPdf = (contract) =>
         "Selon accord entre les parties."
     );
 
-    // ── ARTICLE 08 — Duration ──
+    
     doc.moveDown(0.8);
     doc
       .fontSize(10)
@@ -227,7 +227,7 @@ const generateContractPdf = (contract) =>
       }\n- Partie B : ${contract.partyBName || "—"}`
     );
 
-    // ── SIGNATURES ──
+    
     doc.moveDown(1.5);
     doc.moveTo(60, doc.y).lineTo(535, doc.y).stroke("#ccc");
     doc.moveDown(0.8);

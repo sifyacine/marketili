@@ -13,6 +13,7 @@ import FreelancerDashboard from "./pages/dashboard/FreelancerDashboard";
 import TeamDashboard from "./pages/dashboard/TeamDashboard";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import VerifyEmailPage    from "./pages/auth/VerifyEmailPage";
+import ResetPasswordPage  from "./pages/auth/ResetPasswordPage";
 import ProfilePage        from "./pages/ProfilePage";
 import EditProfilePage    from "./pages/EditProfilePage";
 import BrowseProvidersPage from "./pages/BrowseProvidersPage";
@@ -45,7 +46,8 @@ function App() {
         <Route path="/register"     element={<Register />} />
         <Route path="/pricing"      element={<PricingPage />} />
         <Route path="/tarifs"       element={<PricingPage />} />
-        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/verify-email"   element={<VerifyEmailPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/privacy"      element={<PrivacyPolicyPage />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 

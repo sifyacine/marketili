@@ -1,9 +1,3 @@
-// frontend/src/pages/PricingPage.js
-//
-// Public pricing / "Tarifs" page. Lists every per-role plan (monthly) from the
-// public /api/subscriptions/plans endpoint. Visible to anyone — the CTA sends
-// visitors to register (subscription required, no free trial) or, if already
-// logged in, straight to their billing page.
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,36 +5,38 @@ import subscriptionService from "../services/subscriptionService";
 import useAuth from "../hooks/useAuth";
 
 const ACCENT = "#c0152a";
-const ORDER = ["client", "freelancer", "team", "agency"];
+const ORDER  = ["client", "freelancer", "team", "agency"];
 
 const fmtDZD = (n) => `${Number(n || 0).toLocaleString("fr-DZ")} DZD`;
 
+const ROLE_LABEL = {
+  client: "Client", freelancer: "Freelancer", team: "Équipe", agency: "Agence",
+};
+
 const PricingPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const [plans, setPlans] = useState(null);
+  const { isAuthenticated, user } = useAuth();
+  const [plans,   setPlans]   = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     subscriptionService
       .getPlans()
-      .then((res) => {
-        setPlans(res.plans || {});
-      })
+      .then((res) => setPlans(res.plans || {}))
       .catch(() => setPlans({}))
       .finally(() => setLoading(false));
   }, []);
 
-  const goSubscribe = (role) => {
-    if (isAuthenticated) navigate("/billing");
-    else navigate(`/register?role=${role}`);
-  };
-
   const ordered = plans ? ORDER.filter((r) => plans[r]).map((r) => plans[r]) : [];
+
+  const myPlan = isAuthenticated && user?.role && plans
+    ? plans[user.role] || null
+    : null;
+
+  const displayedPlans = myPlan ? [myPlan] : ordered;
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d0b14", color: "#fff", paddingBottom: 60 }}>
-      {/* Header */}
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "18px 24px", maxWidth: 1140, margin: "0 auto",
@@ -68,18 +64,37 @@ const PricingPage = () => {
         </div>
       </header>
 
-      {/* Hero */}
-      <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto", padding: "40px 24px 20px" }}>
-        <h1 style={{ fontSize: "2.4rem", fontWeight: 900, margin: "0 0 12px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-          Tarification simple<br />et transparente
-        </h1>
-        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "1rem", lineHeight: 1.6, margin: 0 }}>
-          Choisissez la formule adaptée à votre profil. Abonnement mensuel,
-          sans engagement — annulable à tout moment.
-        </p>
+      <div style={{ textAlign: "center", maxWidth: 680, margin: "0 auto", padding: "40px 24px 20px" }}>
+        {myPlan ? (
+          <>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "6px 16px", borderRadius: 20, marginBottom: 16,
+              background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)",
+              fontSize: "0.82rem", fontWeight: 700, color: "#34d399",
+            }}>
+              Compte {ROLE_LABEL[user.role] || user.role} créé avec succès
+            </div>
+            <h1 style={{ fontSize: "2.2rem", fontWeight: 900, margin: "0 0 12px", letterSpacing: "-0.03em", lineHeight: 1.15 }}>
+              Une dernière étape
+            </h1>
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.98rem", lineHeight: 1.6, margin: 0 }}>
+              Activez votre abonnement pour accéder à toutes les fonctionnalités de votre espace.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 style={{ fontSize: "2.4rem", fontWeight: 900, margin: "0 0 12px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+              Tarification simple<br />et transparente
+            </h1>
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "1rem", lineHeight: 1.6, margin: 0 }}>
+              Choisissez la formule adaptée à votre profil. Abonnement mensuel,
+              sans engagement — annulable à tout moment.
+            </p>
+          </>
+        )}
       </div>
 
-      {/* Plans */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.5)" }}>
           <div style={{
@@ -90,61 +105,58 @@ const PricingPage = () => {
           Chargement des tarifs…
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
-      ) : ordered.length === 0 ? (
+      ) : displayedPlans.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.5)" }}>
           Tarifs indisponibles pour le moment.
         </div>
       ) : (
         <div style={{
-          display: "grid", gap: 18, maxWidth: 1140, margin: "30px auto 0", padding: "0 24px",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          display: "grid", gap: 18,
+          maxWidth: myPlan ? 480 : 1140,
+          margin: "30px auto 0", padding: "0 24px",
+          gridTemplateColumns: myPlan ? "1fr" : "repeat(auto-fit, minmax(240px, 1fr))",
         }}>
-          {ordered.map((plan) => {
-            const price = plan.monthly;
-            const featured = plan.code === "agency";
+          {displayedPlans.map((plan) => {
+            const price    = plan.monthly;
+            const featured = myPlan ? true : plan.code === "agency";
             return (
               <div key={plan.code}
                 style={{
-                  background: featured ? "linear-gradient(180deg, rgba(192,21,42,0.16), rgba(255,255,255,0.03))" : "rgba(255,255,255,0.03)",
+                  background: featured
+                    ? "linear-gradient(180deg, rgba(192,21,42,0.16), rgba(255,255,255,0.03))"
+                    : "rgba(255,255,255,0.03)",
                   border: `1px solid ${featured ? "rgba(192,21,42,0.5)" : "rgba(255,255,255,0.09)"}`,
-                  borderRadius: 18, padding: "26px 24px", position: "relative",
+                  borderRadius: 18, padding: "28px 26px", position: "relative",
                   display: "flex", flexDirection: "column",
                 }}>
-                {featured && (
-                  <span style={{
-                    position: "absolute", top: 16, right: 16,
-                    fontSize: "0.66rem", fontWeight: 800, color: "#ff8095",
-                    background: "rgba(192,21,42,0.2)", padding: "3px 10px", borderRadius: 20,
-                    textTransform: "uppercase", letterSpacing: "0.05em",
-                  }}>
-                    Complet
-                  </span>
-                )}
-                <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#ff8095", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#ff8095",
+                  textTransform: "uppercase", letterSpacing: "0.06em" }}>
                   {plan.name}
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", margin: "8px 0 18px", lineHeight: 1.5, minHeight: 48 }}>
+                <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", margin: "8px 0 18px",
+                  lineHeight: 1.55, minHeight: 44 }}>
                   {plan.tagline}
                 </p>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 18 }}>
-                  <span style={{ fontSize: "1.8rem", fontWeight: 900 }}>{fmtDZD(price)}</span>
+                  <span style={{ fontSize: "2rem", fontWeight: 900 }}>{fmtDZD(price)}</span>
                   <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.82rem" }}>/ mois</span>
                 </div>
 
-                <button onClick={() => goSubscribe(plan.role)}
+                <button
+                  onClick={() => isAuthenticated ? navigate("/billing") : navigate(`/register?role=${plan.role}`)}
                   style={{
-                    width: "100%", padding: "11px", borderRadius: 10, border: "none",
-                    background: featured ? ACCENT : "rgba(255,255,255,0.08)",
-                    color: "#fff", fontWeight: 700, fontSize: "0.86rem", cursor: "pointer",
-                    fontFamily: "inherit", margin: "14px 0 18px",
-                    boxShadow: featured ? "0 8px 24px rgba(192,21,42,0.3)" : "none",
+                    width: "100%", padding: "13px", borderRadius: 10, border: "none",
+                    background: ACCENT, color: "#fff", fontWeight: 700, fontSize: "0.9rem",
+                    cursor: "pointer", fontFamily: "inherit", margin: "14px 0 20px",
+                    boxShadow: "0 8px 24px rgba(192,21,42,0.35)",
                   }}>
-                  {isAuthenticated ? "Choisir cette formule" : "S'abonner"}
+                  {isAuthenticated ? "Activer mon abonnement" : "S'abonner"}
                 </button>
 
                 <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
                   {(plan.features || []).map((f, j) => (
-                    <li key={j} style={{ display: "flex", gap: 9, alignItems: "flex-start", fontSize: "0.83rem", color: "rgba(255,255,255,0.8)" }}>
+                    <li key={j} style={{ display: "flex", gap: 9, alignItems: "flex-start",
+                      fontSize: "0.83rem", color: "rgba(255,255,255,0.82)" }}>
                       <span style={{ color: "#10b981", fontWeight: 800, flexShrink: 0 }}>✓</span> {f}
                     </li>
                   ))}
@@ -155,8 +167,17 @@ const PricingPage = () => {
         </div>
       )}
 
-      {/* Footer note */}
-      <p style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: "0.8rem", marginTop: 36 }}>
+      {myPlan && !loading && (
+        <p style={{ textAlign: "center", marginTop: 20, fontSize: "0.8rem", color: "rgba(255,255,255,0.35)" }}>
+          <button onClick={() => navigate(-1)}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)",
+              cursor: "pointer", fontSize: "0.8rem", fontFamily: "inherit" }}>
+            Passer pour l'instant
+          </button>
+        </p>
+      )}
+
+      <p style={{ textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: "0.78rem", marginTop: 32 }}>
         Paiement sécurisé via Chargily Pay (CIB / Edahabia). Annulable à tout moment.
       </p>
     </div>

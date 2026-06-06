@@ -1,11 +1,11 @@
-// backend/routes/projectRoutes.js
+
 
 const express = require("express");
 const router  = express.Router();
 const c       = require("../controllers/projectController");
 const { protect } = require("../middleware/auth");
 
-// ── Specific routes first (before /:projectId) ──
+
 router.get("/agency/:agencyId/members",            protect, c.getAgencyMembers);
 router.get("/agency/:agencyId/flagged-posts",      protect, c.getFlaggedPosts);
 router.patch("/agency/:agencyId/flagged-posts/:postId/pitched",             protect, c.markFlaggedAsPitched);
@@ -17,7 +17,7 @@ router.get("/client/:clientId",                    protect, c.getClientProjects)
 router.get("/team/:teamId/members",                protect, c.getTeamMembers);
 router.get("/team/:teamId",                        protect, c.getTeamProjects);
 
-// ── Generic routes after ──
+
 router.get("/agency/:agencyId",                              protect, c.getAgencyProjects);
 router.post("/",                                             protect, c.createProject);
 router.get("/:projectId/history",                            protect, c.getProjectHistory);

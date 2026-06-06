@@ -1,8 +1,8 @@
-// frontend/src/components/auth/VerifyEmailBanner.js
-//
-// Soft, persistent nudge shown at the top of dashboards while the logged-in
-// user hasn't confirmed their email. Lets them re-send the verification email.
-// Hidden once verified, and for roles that don't self-register (members/admin).
+
+
+
+
+
 
 import React, { useState } from "react";
 import authService from "../../services/authService";
@@ -13,9 +13,9 @@ const VERIFIABLE = ["client", "agency", "team", "freelancer"];
 const VerifyEmailBanner = () => {
   const { user, role } = useAuth();
   const [sending, setSending] = useState(false);
-  const [note, setNote] = useState(null); // { ok, text }
+  const [note, setNote] = useState(null); 
 
-  // Only nudge self-registering accounts that aren't verified yet.
+  
   if (!user || !VERIFIABLE.includes(role) || user.isVerified) return null;
 
   const handleResend = () => {

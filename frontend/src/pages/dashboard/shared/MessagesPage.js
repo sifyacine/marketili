@@ -5,7 +5,7 @@ import chatService from "../../../services/chatService";
 import ChatWindow  from "../../../components/chat/ChatWindow";
 import useAuth     from "../../../hooks/useAuth";
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+
 const ROLE_LABELS = {
   client:        "Client",
   agency:        "Agence",
@@ -47,7 +47,7 @@ const getOtherParticipant = (conv, currentUserId) => {
 const initials = (name = "") =>
   name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?";
 
-// ── Conversation row ───────────────────────────────────────────────────────────
+
 const ConvRow = ({ conv, currentUserId, isSelected, onClick }) => {
   const other   = getOtherParticipant(conv, currentUserId);
   const color   = ROLE_COLORS[other.role] || "#6b7280";
@@ -67,7 +67,7 @@ const ConvRow = ({ conv, currentUserId, isSelected, onClick }) => {
         borderLeft: isSelected ? "3px solid #c0152a" : "3px solid transparent",
       }}
     >
-      {/* Avatar */}
+      {}
       <div style={{
         width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
         background: `linear-gradient(135deg, ${color}, ${color}99)`,
@@ -77,7 +77,7 @@ const ConvRow = ({ conv, currentUserId, isSelected, onClick }) => {
         {initials(other.name)}
       </div>
 
-      {/* Content */}
+      {}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <span style={{
@@ -122,9 +122,9 @@ const ConvRow = ({ conv, currentUserId, isSelected, onClick }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MESSAGES PAGE
-// ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 const MessagesPage = () => {
   const { user }   = useAuth();
   const location   = useLocation();
@@ -133,7 +133,7 @@ const MessagesPage = () => {
   const [conversations,  setConversations]  = useState([]);
   const [selectedConvId, setSelectedConvId] = useState(openConvId);
   const [loading,        setLoading]        = useState(true);
-  // Mobile: show thread panel instead of list (only relevant on small screens)
+  
   const [mobileThread,   setMobileThread]   = useState(!!openConvId);
   const [isMobile,       setIsMobile]       = useState(() => window.innerWidth < 768);
 
@@ -153,7 +153,7 @@ const MessagesPage = () => {
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
-  // When navigated here with an openConvId, reload list if conversation isn't in it yet
+  
   useEffect(() => {
     if (openConvId && conversations.length > 0) {
       if (!conversations.find(c => c._id === openConvId)) loadConversations();
@@ -176,7 +176,7 @@ const MessagesPage = () => {
     ? getOtherParticipant(selectedConv, user._id)
     : null;
 
-  // On mobile: show either list or thread. On desktop: always show both.
+  
   const showSidebar = !isMobile || !mobileThread;
   const showThread  = !isMobile || mobileThread;
 
@@ -191,7 +191,7 @@ const MessagesPage = () => {
       background: "var(--d-card, #fff)",
     }}>
 
-      {/* ── Sidebar: conversation list ── */}
+      {}
       <div style={{
         width: 300, flexShrink: 0,
         borderRight: "1.5px solid var(--d-border-soft, #eee)",
@@ -200,7 +200,7 @@ const MessagesPage = () => {
       }}
         className="messages-sidebar"
       >
-        {/* Header */}
+        {}
         <div style={{
           padding: "16px 16px 12px",
           borderBottom: "1px solid var(--d-border-soft, #f0f0f0)",
@@ -213,7 +213,7 @@ const MessagesPage = () => {
           </p>
         </div>
 
-        {/* List */}
+        {}
         <div style={{ flex: 1, overflowY: "auto" }}>
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: 32 }}>
@@ -254,14 +254,14 @@ const MessagesPage = () => {
         </div>
       </div>
 
-      {/* ── Thread panel ── */}
+      {}
       <div style={{
         flex: 1,
         display: showThread ? "flex" : "none",
         flexDirection: "column",
         minWidth: 0,
       }}>
-        {/* Thread header */}
+        {}
         {selectedConvId && otherParticipant ? (
           <>
             <div style={{
@@ -269,7 +269,7 @@ const MessagesPage = () => {
               borderBottom: "1px solid var(--d-border-soft, #f0f0f0)",
               display: "flex", alignItems: "center", gap: 10,
             }}>
-              {/* Back button (mobile: always; desktop: always shown) */}
+              {}
               <button
                 onClick={handleBack}
                 style={{
@@ -298,7 +298,7 @@ const MessagesPage = () => {
               </div>
             </div>
 
-            {/* Thread content */}
+            {}
             <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
               <ChatWindow
                 conversationId={selectedConvId}

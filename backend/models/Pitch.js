@@ -1,17 +1,17 @@
 const mongoose = require("mongoose");
 
-/**
- * PITCH MODEL
- *
- * One model, four pitch types. Each type uses different fields.
- * The pitchType field acts as a discriminator.
- *
- * Types:
- *   "agency_to_client"
- *   "team_to_client"
- *   "freelancer_to_client"
- *   "agency_to_freelancer"
- */
+
+
+
+
+
+
+
+
+
+
+
+
 const pitchSchema = new mongoose.Schema(
   {
     pitchType: {
@@ -68,6 +68,12 @@ const pitchSchema = new mongoose.Schema(
       colorPalette: [String],
       inspiration: [String],
       positioningStrategy: { type: String, trim: true },
+      socialNetworks: [String],
+      confidentialityClause: { type: Boolean },
+      effectiveDate: { type: Date },
+      amendments: { type: String, trim: true },
+      artNote03: { type: String, trim: true },
+      artNote04: { type: String, trim: true },
     },
 
     targetAudience: {
@@ -94,6 +100,8 @@ const pitchSchema = new mongoose.Schema(
     proposedPrice: {
       amount: { type: Number },
       currency: { type: String, default: "DZD" },
+      paymentMethod: { type: String, trim: true },
+      paymentSchedule: { type: String, trim: true },
     },
 
     timeline: {
@@ -132,7 +140,7 @@ attachments: [{
 
     isReadByRecipient: { type: Boolean, default: false },
 
-    // Internal agency workflow
+    
     internalStatus: {
       type: String,
       enum: ["draft", "with_chef_de_projet", "approved", "sent"],

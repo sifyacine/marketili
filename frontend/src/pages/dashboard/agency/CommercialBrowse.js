@@ -39,7 +39,7 @@ const PostDetailModal = ({ post, onClose }) => {
               textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Médias</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {post.media.map((m, i) => (
-                m.mimeType?.startsWith("image/") ? (
+                (m.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(m.filename || "")) ? (
                   <img key={i} src={uploadService.resolveUrl(m.url)} alt={m.filename}
                     onError={e => { e.target.style.display = "none"; }}
                     style={{ width: 120, height: 90, objectFit: "cover",

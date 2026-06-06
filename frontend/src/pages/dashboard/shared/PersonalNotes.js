@@ -21,7 +21,7 @@ const NoteCard = ({ note, onToggleDone, onTogglePin, onDelete, busy }) => (
       marginBottom: 10,
     }}>
     <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-      {/* Done toggle */}
+      {}
       <button
         onClick={() => onToggleDone(note)}
         style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginTop: 2,
@@ -36,7 +36,7 @@ const NoteCard = ({ note, onToggleDone, onTogglePin, onDelete, busy }) => (
         )}
       </button>
 
-      {/* Text */}
+      {}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: "0.85rem", lineHeight: 1.5, wordBreak: "break-word",
@@ -54,7 +54,7 @@ const NoteCard = ({ note, onToggleDone, onTogglePin, onDelete, busy }) => (
         )}
       </div>
 
-      {/* Actions */}
+      {}
       <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
         <button onClick={() => onTogglePin(note)} title={note.isPinned ? "Désépingler" : "Épingler"}
           style={{ width: 24, height: 24, border: "none", background: "none", cursor: "pointer",
@@ -154,7 +154,7 @@ const PersonalNotes = () => {
         </div>
       </div>
 
-      {/* Add form */}
+      {}
       <div className="card" style={{ padding: "18px 20px", marginBottom: 24 }}>
         <form onSubmit={handleAdd}>
           <textarea

@@ -190,7 +190,7 @@ const sendPitch = async (req, res) => {
         type: "pitch_received", category: "pitches",
         title: "Nouvelle convention de collaboration",
         body: `Une agence vous a envoyé une convention de collaboration.`,
-        link: `/dashboard/freelancer/pitches`,
+        link: `/dashboard/freelancer/conventions`,
         metadata: { pitchId: pitch._id },
       });
     }

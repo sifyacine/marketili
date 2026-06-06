@@ -1,11 +1,11 @@
-// frontend/src/pages/dashboard/NotificationsPage.js
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import notificationService from "../../services/notificationService";
 import { IconBell } from "../../components/ui/Icons";
 
-// ── Constants ──────────────────────────────────────────────────────────────────
+
 const CATEGORY_TABS = [
   { v: "all",       l: "Tous"      },
   { v: "pitches",   l: "Offres"    },
@@ -59,7 +59,7 @@ const relativeTime = (date) => {
   return new Date(date).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" });
 };
 
-// ── NotifCard ─────────────────────────────────────────────────────────────────
+
 const NotifCard = ({ n, onRead, onDelete }) => {
   const navigate   = useNavigate();
   const catColor   = CATEGORY_COLORS[n.category] || "#6b7280";
@@ -85,7 +85,7 @@ const NotifCard = ({ n, onRead, onDelete }) => {
         transition: "background 0.2s",
       }}
       onClick={handleClick}>
-      {/* Icon */}
+      {}
       <div style={{
         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
         background: catColor + "18", color: catColor,
@@ -95,7 +95,7 @@ const NotifCard = ({ n, onRead, onDelete }) => {
         {icon}
       </div>
 
-      {/* Content */}
+      {}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <div style={{ fontWeight: n.isRead ? 500 : 700, fontSize: "0.88rem",
@@ -139,9 +139,9 @@ const NotifCard = ({ n, onRead, onDelete }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
+
+
+
 const NotificationsPage = () => {
   const [notifs,      setNotifs]      = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -177,7 +177,7 @@ const NotificationsPage = () => {
     finally { setLoading(false); }
   }, [category]);
 
-  useEffect(() => { load(1, category); }, [category]); // eslint-disable-line
+  useEffect(() => { load(1, category); }, [category]); 
 
   const handleRead = async (id) => {
     try {
@@ -223,7 +223,7 @@ const NotificationsPage = () => {
         )}
       </div>
 
-      {/* Search + category tabs */}
+      {}
       <div style={{ position: "relative", marginBottom: 12 }}>
         <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
           color: "var(--d-muted)", pointerEvents: "none", fontSize: "0.8rem" }}>🔍</span>
@@ -243,7 +243,7 @@ const NotificationsPage = () => {
         ))}
       </div>
 
-      {/* List */}
+      {}
       <div className="card" style={{ overflow: "hidden", padding: 0 }}>
         {loading ? (
           <div className="spinner-wrap" style={{ padding: 48 }}><div className="spinner" /></div>
@@ -278,7 +278,7 @@ const NotificationsPage = () => {
         )}
       </div>
 
-      {/* Pagination */}
+      {}
       {pages > 1 && (
         <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 16 }}>
           {Array.from({ length: pages }, (_, i) => i + 1).map(p => (

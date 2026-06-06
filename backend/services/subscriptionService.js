@@ -1,10 +1,10 @@
-// backend/services/subscriptionService.js
-//
-// Business logic around the Subscription model: lazy creation/backfill of the
-// initial (unpaid) subscription, computing the *effective* status (handling
-// lazy expiry without a cron), and activating a paid period after a successful
-// Chargily checkout. There is no free trial — a new account starts unpaid and
-// must subscribe before it can use value actions.
+
+
+
+
+
+
+
 
 const Subscription = require("../models/Subscription");
 const { TRIAL_DAYS, CURRENCY, PLANS, ROLE_TO_MODEL } = require("../config/plans");
@@ -28,10 +28,10 @@ function isBilledRole(role) {
   return Boolean(PLANS[role]);
 }
 
-// Create the initial subscription record for a user. Idempotent. With no free
-// trial (TRIAL_DAYS = 0) the account starts as "expired" — i.e. it must
-// subscribe before it can use value actions. If a trial is ever reintroduced
-// (TRIAL_DAYS > 0) this anchors it to the account's creation date.
+
+
+
+
 async function createInitialSubscription(userId, role, email, accountCreatedAt) {
   if (!isBilledRole(role)) return null;
   const existing = await Subscription.findOne({ user: userId, role });
@@ -54,7 +54,7 @@ async function createInitialSubscription(userId, role, email, accountCreatedAt) 
     });
   }
 
-  // No free trial: the account is unpaid and gated until it subscribes.
+  
   return Subscription.create({
     user: userId,
     userModel: ROLE_TO_MODEL[role],
@@ -67,13 +67,13 @@ async function createInitialSubscription(userId, role, email, accountCreatedAt) 
   });
 }
 
-// Find the user's subscription, creating the initial record on the fly if
-// missing (backfills accounts that existed before subscriptions were introduced).
+
+
 async function ensureSubscription(userId, role, email, accountCreatedAt) {
   if (!isBilledRole(role)) return null;
   let sub = await Subscription.findOne({ user: userId, role });
   if (!sub) {
-    // Best-effort email / signup date if not supplied (only on first creation).
+    
     if (!email || !accountCreatedAt) {
       const Model = MODEL_BY_ROLE[role];
       const u = Model ? await Model.findById(userId).select("email createdAt") : null;
@@ -85,14 +85,14 @@ async function ensureSubscription(userId, role, email, accountCreatedAt) {
   return sub;
 }
 
-// Pure computation of the *effective* status (does not write to DB). Handles
-// trials/periods that have lapsed since the stored status was last saved.
+
+
 function getEffectiveStatus(sub) {
   if (!sub) return { status: "none", allowed: false, daysLeft: 0, periodEnd: null };
 
   const now = Date.now();
 
-  // An active (or cancel-at-period-end) paid period still valid.
+  
   if (sub.status === "active" || (sub.cancelAtPeriodEnd && sub.currentPeriodEnd)) {
     if (sub.currentPeriodEnd && new Date(sub.currentPeriodEnd).getTime() > now) {
       return {
@@ -103,11 +103,11 @@ function getEffectiveStatus(sub) {
         cancelAtPeriodEnd: !!sub.cancelAtPeriodEnd,
       };
     }
-    // Paid period lapsed.
+    
     return { status: "expired", allowed: false, daysLeft: 0, periodEnd: sub.currentPeriodEnd };
   }
 
-  // Trial.
+  
   if (sub.status === "trialing") {
     if (sub.trialEndsAt && new Date(sub.trialEndsAt).getTime() > now) {
       return {
@@ -120,12 +120,12 @@ function getEffectiveStatus(sub) {
     return { status: "expired", allowed: false, daysLeft: 0, periodEnd: sub.trialEndsAt, trialEnded: true };
   }
 
-  // canceled / past_due / expired with no valid future period.
+  
   return { status: sub.status, allowed: false, daysLeft: 0, periodEnd: sub.currentPeriodEnd };
 }
 
-// Persist a lapsed status if it drifted (called from read endpoints, not the
-// hot gate path). Returns the (possibly updated) effective status.
+
+
 async function reconcile(sub) {
   const eff = getEffectiveStatus(sub);
   if (!eff.allowed && sub.status !== "expired" && sub.status !== "canceled" && eff.status === "expired") {
@@ -136,10 +136,10 @@ async function reconcile(sub) {
   return eff;
 }
 
-// Mark a paid checkout as fulfilled: extend the period by one interval.
+
 async function activatePaid(sub, { interval, amount, checkoutId, paymentId }) {
   const now = new Date();
-  // If a paid period is still running, stack the new one on top of it.
+  
   const base =
     sub.currentPeriodEnd && new Date(sub.currentPeriodEnd).getTime() > now.getTime()
       ? new Date(sub.currentPeriodEnd)
@@ -163,7 +163,7 @@ async function activatePaid(sub, { interval, amount, checkoutId, paymentId }) {
   return sub;
 }
 
-// Serialize a subscription + its plan + effective status for the frontend.
+
 function toPublic(sub) {
   const eff = getEffectiveStatus(sub);
   const plan = PLANS[sub.role] || null;

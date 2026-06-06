@@ -501,7 +501,7 @@ const DirectorPitches = ({ user }) => {
       </div>
 
       {mainTab === "conventions" && (
-        <SentConventionsView agencyId={user?._id} />
+        <SentConventionsView agencyId={user?.agency || user?._id} />
       )}
 
       {mainTab === "pitches" && <>

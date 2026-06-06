@@ -1,8 +1,8 @@
-/**
- * Marketili icon set — clean stroke SVGs, Feather-style.
- * Usage: <IconHome size={18} />
- * All icons: 24×24 viewBox, 1.75 stroke, round caps, no fill.
- */
+
+
+
+
+
 import React from "react";
 
 const Icon = ({ size = 18, children, ...rest }) => (

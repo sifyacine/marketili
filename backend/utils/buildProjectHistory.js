@@ -1,15 +1,15 @@
-// backend/utils/buildProjectHistory.js
-//
-// Assembles a unified, chronological history for a single project by
-// DERIVING events from data already captured on the Project, its embedded
-// tasks, and the linked Contract. Read-only — no schema changes, no
-// migration, and it works on existing/past projects immediately.
-//
-// Each event has the shape:
-//   { id, type, category, at, actorId, actorName, actorRole, title, description, meta }
-//
-// Categories drive the timeline's filtering/colouring on the frontend:
-//   status | deliverable | task | decision | contract | note | member
+
+
+
+
+
+
+
+
+
+
+
+
 
 const STATUS_LABELS = {
   pending:          "Projet en attente",
@@ -25,7 +25,7 @@ function buildProjectHistory(project, contract) {
   const pid = project._id.toString();
 
   const push = (e) => {
-    if (!e.at) return; // skip events with no timestamp
+    if (!e.at) return; 
     events.push({
       id:          e.id,
       type:        e.type,
@@ -40,7 +40,7 @@ function buildProjectHistory(project, contract) {
     });
   };
 
-  // ── Project creation ──
+  
   push({
     id: `proj-created-${pid}`,
     type: "project_created", category: "status",
@@ -49,7 +49,7 @@ function buildProjectHistory(project, contract) {
     description: project.title || "",
   });
 
-  // ── Status transitions ──
+  
   (project.statusHistory || []).forEach((h, i) => {
     push({
       id: `proj-status-${pid}-${i}`,
@@ -61,7 +61,7 @@ function buildProjectHistory(project, contract) {
     });
   });
 
-  // ── Member assignments ──
+  
   (project.assignedMembers || []).forEach((m, i) => {
     push({
       id: `proj-member-${pid}-${i}`,
@@ -73,7 +73,7 @@ function buildProjectHistory(project, contract) {
     });
   });
 
-  // ── Project-level deliverables ──
+  
   (project.deliverables || []).forEach((d, i) => {
     push({
       id: `proj-deliv-${pid}-${i}`,
@@ -85,7 +85,7 @@ function buildProjectHistory(project, contract) {
     });
   });
 
-  // ── Project notes (client ↔ provider communication / decisions) ──
+  
   (project.notes || []).forEach((n, i) => {
     push({
       id: `proj-note-${pid}-${i}`,
@@ -96,7 +96,7 @@ function buildProjectHistory(project, contract) {
     });
   });
 
-  // ── Tasks and their decisions ──
+  
   (project.tasks || []).forEach((t, ti) => {
     const tid = (t._id || `t${ti}`).toString();
 
@@ -143,7 +143,7 @@ function buildProjectHistory(project, contract) {
     });
   });
 
-  // ── Contract milestones & documents ──
+  
   if (contract) {
     const cid = contract._id.toString();
 
@@ -205,7 +205,7 @@ function buildProjectHistory(project, contract) {
     }
   }
 
-  // Newest first
+  
   events.sort((a, b) => new Date(b.at) - new Date(a.at));
   return events;
 }

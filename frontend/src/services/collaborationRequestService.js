@@ -1,4 +1,4 @@
-// frontend/src/services/collaborationRequestService.js
+
 
 import api from "./api";
 

@@ -47,7 +47,7 @@ const teamMemberSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ FIXED
+
 teamMemberSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(12);

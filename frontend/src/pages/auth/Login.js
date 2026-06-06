@@ -23,10 +23,33 @@ const Login = () => {
 
   useEffect(() => { document.title = "Connexion — Marketili"; }, []);
 
-  const [form,    setForm]    = useState({ email: "", password: "" });
-  const [showPw,  setShowPw]  = useState(false);
-  const [error,   setError]   = useState("");
-  const [loading, setLoading] = useState(false);
+  const [form,        setForm]        = useState({ email: "", password: "" });
+  const [showPw,      setShowPw]      = useState(false);
+  const [error,       setError]       = useState("");
+  const [loading,     setLoading]     = useState(false);
+  const [forgotOpen,  setForgotOpen]  = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotState, setForgotState] = useState("idle"); // idle | loading | done | error
+  const [forgotMsg,   setForgotMsg]   = useState("");
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setForgotState("loading");
+    try {
+      await authService.forgotPassword(forgotEmail);
+      setForgotState("done");
+      setForgotMsg("Si cet email est associé à un compte, un lien de réinitialisation vous a été envoyé. Vérifiez votre boîte de réception.");
+    } catch (err) {
+      const msg = err.response?.data?.message;
+      if (err.response?.data?.code === "MAIL_NOT_CONFIGURED") {
+        setForgotState("error");
+        setForgotMsg(msg || "L'envoi d'emails n'est pas configuré sur ce serveur.");
+      } else {
+        setForgotState("done");
+        setForgotMsg("Si cet email est associé à un compte, un lien de réinitialisation vous a été envoyé.");
+      }
+    }
+  };
 
   const handleChange = (e) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -133,8 +156,13 @@ const Login = () => {
                 </div>
               </div>
 
-              {}
-              <a href="#" className="auth-forgot">Mot de passe oublié ?</a>
+              <button
+                type="button"
+                className="auth-forgot"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}
+                onClick={() => { setForgotOpen(true); setForgotEmail(form.email); setForgotState("idle"); setForgotMsg(""); }}>
+                Mot de passe oublié ?
+              </button>
 
               {error && (
                 <div className="form-error">
@@ -161,6 +189,81 @@ const Login = () => {
           </motion.div>
         </div>
       </div>
+      {forgotOpen && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9000,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+        }}
+          onClick={e => { if (e.target === e.currentTarget) setForgotOpen(false); }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              background: "#fff", borderRadius: 16, padding: "32px 28px",
+              width: "100%", maxWidth: 400, boxShadow: "0 20px 60px rgba(0,0,0,0.22)",
+            }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h2 style={{ margin: 0, fontWeight: 800, fontSize: "1.15rem", color: "#111" }}>
+                Mot de passe oublié
+              </h2>
+              <button onClick={() => setForgotOpen(false)} style={{
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: "1rem", color: "#999", padding: "2px 6px",
+              }}>✕</button>
+            </div>
+
+            {forgotState === "done" || forgotState === "error" ? (
+              <div>
+                <div style={{
+                  padding: "14px 16px", borderRadius: 10,
+                  background: forgotState === "error" ? "#fef2f2" : "#f0fdf4",
+                  border: forgotState === "error" ? "1px solid #fecaca" : "1px solid #bbf7d0",
+                  color: forgotState === "error" ? "#dc2626" : "#166534",
+                  fontSize: "0.88rem", lineHeight: 1.6, marginBottom: 20,
+                }}>
+                  {forgotMsg}
+                </div>
+                <button onClick={() => setForgotOpen(false)} style={{
+                  width: "100%", padding: "12px", borderRadius: 9, border: "none",
+                  background: "#c0152a", color: "#fff", fontWeight: 700,
+                  fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  Fermer
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotSubmit}>
+                <p style={{ margin: "0 0 18px", fontSize: "0.86rem", color: "#555", lineHeight: 1.6 }}>
+                  Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+                </p>
+                <div className="form-group" style={{ marginBottom: 20 }}>
+                  <label className="form-label">Adresse email</label>
+                  <input
+                    className="form-input"
+                    type="email"
+                    required
+                    placeholder="vous@exemple.com"
+                    value={forgotEmail}
+                    onChange={e => setForgotEmail(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <button type="submit" disabled={forgotState === "loading"} style={{
+                  width: "100%", padding: "12px", borderRadius: 9, border: "none",
+                  background: forgotState === "loading" ? "#e5e7eb" : "#c0152a",
+                  color: forgotState === "loading" ? "#9ca3af" : "#fff",
+                  fontWeight: 700, fontSize: "0.9rem",
+                  cursor: forgotState === "loading" ? "default" : "pointer",
+                  fontFamily: "inherit",
+                }}>
+                  {forgotState === "loading" ? "Envoi en cours…" : "Envoyer le lien"}
+                </button>
+              </form>
+            )}
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

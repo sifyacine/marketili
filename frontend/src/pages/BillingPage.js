@@ -1,13 +1,14 @@
-// frontend/src/pages/BillingPage.js
-//
-// Subscription & billing screen. Shows the user's current status (active /
-// expired), their per-role monthly plan, and a "subscribe" button that opens a
-// Chargily Pay V2 checkout. On return from the hosted payment page
-// (?payment=success) it verifies the checkout and reflects the new active period.
+
+
+
+
+
+
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import subscriptionService from "../services/subscriptionService";
+import useAuth from "../hooks/useAuth";
 
 const ACCENT = "#c0152a";
 
@@ -22,15 +23,23 @@ const STATUS_META = {
   canceled: { label: "Annulé",           color: "#b45309", bg: "#fffbeb" },
 };
 
+const DASHBOARD_PATH = {
+  client:     "/dashboard/client",
+  freelancer: "/dashboard/freelancer",
+  team:       "/dashboard/team",
+  agency:     "/dashboard/agency",
+};
+
 const BillingPage = () => {
   const navigate = useNavigate();
+  const { user }  = useAuth();
   const [params, setParams] = useSearchParams();
 
   const [sub, setSub] = useState(null);
   const [billed, setBilled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [notice, setNotice] = useState(null); // { tone, text }
+  const [notice, setNotice] = useState(null); 
 
   const load = useCallback(() => {
     setLoading(true);
@@ -45,28 +54,34 @@ const BillingPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Handle return from the Chargily hosted checkout.
+  
   useEffect(() => {
     const payment = params.get("payment");
     if (payment === "success") {
       setLoading(true);
+      const cleanup = () => {
+        params.delete("payment");
+        setParams(params, { replace: true });
+      };
       subscriptionService
         .verify()
         .then((res) => {
           setBilled(res.billed ?? true);
           setSub(res.subscription);
-          const ok = res.subscription?.status === "active";
-          setNotice(
-            ok
-              ? { tone: "success", text: "Paiement confirmé — votre abonnement est actif. Merci !" }
-              : { tone: "warn", text: "Paiement reçu. Activation en cours, actualisez dans un instant." }
-          );
+          const role = res.subscription?.role || user?.role;
+          const dest = DASHBOARD_PATH[role] || "/dashboard/client";
+          setNotice({ tone: "success", text: "Paiement confirmé — redirection vers votre espace…" });
+          setTimeout(() => navigate(dest, { replace: true }), 1800);
         })
-        .catch(() => setNotice({ tone: "warn", text: "Paiement en cours de vérification…" }))
+        .catch(() => {
+          const role = user?.role;
+          const dest = DASHBOARD_PATH[role] || "/dashboard/client";
+          setNotice({ tone: "warn", text: "Paiement reçu. Redirection en cours…" });
+          setTimeout(() => navigate(dest, { replace: true }), 1800);
+        })
         .finally(() => {
           setLoading(false);
-          params.delete("payment");
-          setParams(params, { replace: true });
+          cleanup();
         });
     } else if (payment === "failed") {
       setNotice({ tone: "danger", text: "Le paiement a échoué ou a été annulé. Réessayez." });
@@ -76,7 +91,7 @@ const BillingPage = () => {
     } else {
       load();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   const handleSubscribe = () => {
@@ -86,7 +101,7 @@ const BillingPage = () => {
       .createCheckout("month")
       .then((res) => {
         if (res.checkout_url) {
-          window.location.href = res.checkout_url; // off to Chargily
+          window.location.href = res.checkout_url; 
         } else {
           setNotice({ tone: "danger", text: "Réponse de paiement invalide." });
           setProcessing(false);
@@ -116,7 +131,7 @@ const BillingPage = () => {
       .catch(() => setNotice({ tone: "danger", text: "Annulation impossible." }));
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  
   if (loading) {
     return (
       <Shell onBack={() => navigate(-1)}>
@@ -158,7 +173,7 @@ const BillingPage = () => {
     <Shell onBack={() => navigate(-1)}>
       {notice && <Notice {...notice} />}
 
-      {/* Current status */}
+      {}
       <div className="card" style={{ ...cardStyle, borderLeft: `4px solid ${meta.color}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div>
@@ -182,7 +197,7 @@ const BillingPage = () => {
         </div>
       </div>
 
-      {/* Plan + checkout */}
+      {}
       {plan && (
         <div className="card" style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
@@ -194,13 +209,13 @@ const BillingPage = () => {
             </div>
           </div>
 
-          {/* Price */}
+          {}
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "18px 0" }}>
             <span style={{ fontSize: "2rem", fontWeight: 800, color: "#1a0a0a" }}>{fmtDZD(price)}</span>
             <span style={{ color: "#6b7280", fontSize: "0.9rem" }}>/ mois</span>
           </div>
 
-          {/* Features */}
+          {}
           {plan.features?.length > 0 && (
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "grid", gap: 8 }}>
               {plan.features.map((f, i) => (
@@ -230,7 +245,7 @@ const BillingPage = () => {
   );
 };
 
-// ── Layout + small UI bits ─────────────────────────────────────────────────────
+
 const cardStyle = {
   background: "#fff", border: "1px solid #f0e0e0", borderRadius: 14,
   padding: "20px 22px", marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.04)",

@@ -1,4 +1,4 @@
-// backend/routes/notificationRoutes.js
+
 
 const express = require("express");
 const router  = express.Router();
@@ -6,10 +6,10 @@ const { protect } = require("../middleware/auth");
 const Notification = require("../models/Notification");
 const Project      = require("../models/Project");
 
-// All notification routes require auth
+
 router.use(protect);
 
-// GET /api/notifications — get my notifications (paginated, filterable)
+
 router.get("/", async (req, res) => {
   try {
     const { page = 1, limit = 20, unreadOnly = false, category } = req.query;
@@ -37,7 +37,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /api/notifications/check-deadlines — create deadline_approaching notifs for items due within 3 days
+
 router.get("/check-deadlines", async (req, res) => {
   try {
     const userId   = req.user._id;
@@ -46,7 +46,7 @@ router.get("/check-deadlines", async (req, res) => {
     const in3Days  = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     const ago24h   = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    // Build project filter based on role
+    
     let projectFilter = {};
     if (role === "client")           projectFilter = { client: userId };
     else if (role === "agency")      projectFilter = { providerAgency: userId };
@@ -62,7 +62,7 @@ router.get("/check-deadlines", async (req, res) => {
     let created = 0;
 
     for (const proj of projects) {
-      // Check project deadline
+      
       if (proj.deadline && proj.deadline > now && proj.deadline <= in3Days) {
         const already = await Notification.findOne({
           recipient: userId, type: "deadline_approaching",
@@ -82,7 +82,7 @@ router.get("/check-deadlines", async (req, res) => {
         }
       }
 
-      // Check task due dates
+      
       for (const task of (proj.tasks || [])) {
         if (!task.dueDate || task.status === "done") continue;
         const due = new Date(task.dueDate);
@@ -106,7 +106,7 @@ router.get("/check-deadlines", async (req, res) => {
             created++;
           }
         } else if (due < now) {
-          // Task is overdue
+          
           const alreadyOverdue = await Notification.findOne({
             recipient: userId, type: "task_overdue",
             "metadata.projectId": proj._id, title: { $regex: task.title, $options: "i" },
@@ -150,7 +150,7 @@ function rolePath(role) {
   return map[role] || "client";
 }
 
-// GET /api/notifications/unread-count — quick badge count
+
 router.get("/unread-count", async (req, res) => {
   try {
     const count = await Notification.countDocuments({ recipient: req.user._id, isRead: false });
@@ -160,7 +160,7 @@ router.get("/unread-count", async (req, res) => {
   }
 });
 
-// PATCH /api/notifications/:id/read — mark one as read
+
 router.patch("/:id/read", async (req, res) => {
   try {
     const notif = await Notification.findOneAndUpdate(
@@ -175,7 +175,7 @@ router.patch("/:id/read", async (req, res) => {
   }
 });
 
-// PATCH /api/notifications/mark-all-read — mark all as read
+
 router.patch("/mark-all-read", async (req, res) => {
   try {
     await Notification.markAllRead(req.user._id);
@@ -185,7 +185,7 @@ router.patch("/mark-all-read", async (req, res) => {
   }
 });
 
-// DELETE /api/notifications/:id — delete one notification
+
 router.delete("/:id", async (req, res) => {
   try {
     await Notification.findOneAndDelete({ _id: req.params.id, recipient: req.user._id });

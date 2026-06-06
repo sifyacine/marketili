@@ -1,29 +1,29 @@
 const mongoose = require("mongoose");
 
-/**
- * POST MODEL
- *
- * Created by a Client to describe a marketing need.
- * Visible to all providers (agencies, teams, freelancers).
- *
- * Status flow:
- *   open → in_progress (when at least one pitch accepted)
- *        → closed (manually by client, rejects remaining pitches)
- *        → reactivated (client can reopen a closed post)
- *
- * A client CAN accept multiple pitches before closing.
- * When they close, all remaining pending pitches are auto-rejected.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const postSchema = new mongoose.Schema(
   {
-    // ── Who created it ──
+    
     client: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Client",
       required: true,
     },
 
-    // ── Content ──
+    
     title: {
       type: String,
       required: [true, "Post title is required"],
@@ -36,14 +36,14 @@ const postSchema = new mongoose.Schema(
       trim: true,
     },
     objectives: { type: String, trim: true, maxlength: 500 },
-    // File URLs / GridFS IDs — added in Phase file-upload
+    
     pictures: [
       {
         type: String,
       },
     ],
 
-    // ── Requirements ──
+    
     budget: {
       min: { type: Number },
       max: { type: Number },
@@ -54,18 +54,18 @@ const postSchema = new mongoose.Schema(
       required: [true, "Deadline is required"],
     },
 
-    // ── Location (for filtering) ──
+    
     location: {
       city:    String,
       region:  String,
       country: String,
     },
 
-    // ── Categories / tags (for filtering) ──
+    
     categories: [String],
-    // e.g. ["Social Media", "Content Creation", "SEO"]
+    
 
-    // ── Skills & marketing classification ──
+    
     requiredSkills: [String],
 
     marketingType: {
@@ -78,36 +78,36 @@ const postSchema = new mongoose.Schema(
       enum: ["service", "partnership", "sponsorship", "exposure"],
     },
 
-    // ── Compensation ──
+    
     compensationType: {
       type: String,
       enum: ["monetary", "benefits", "mixed"],
       default: "monetary",
     },
 
-    // Free-text benefits description — used when compensationType is "benefits" or "mixed"
+    
     benefits: { type: String, trim: true },
 
-    // ── Media attachments (images / videos uploaded via GridFS) ──
+    
     media: [
       {
-        fileId:   String, // GridFS ObjectId as string
+        fileId:   String, 
         filename: String,
-        mimeType: String, // "image/jpeg", "video/mp4", etc.
-        size:     Number, // bytes
-        url:      String, // /api/upload/:fileId
+        mimeType: String, 
+        size:     Number, 
+        url:      String, 
       },
     ],
 
-    // ── Who is this post targeting? ──
-    // Client can target specific provider types or leave it open to all
+    
+    
     targetProviders: {
       type: [String],
       enum: ["agency", "team", "freelancer", "all"],
       default: ["all"],
     },
 
-    // ── Status ──
+    
     status: {
       type: String,
       enum: ["open", "in_progress", "closed", "reactivated"],
@@ -115,9 +115,9 @@ const postSchema = new mongoose.Schema(
     },
     adminNote: { type: String, trim: true },
 
-    // ── Pitches received ──
-    // Only pitch IDs are stored here — populated when needed.
-    // This lets us count pitches quickly without loading all data.
+    
+    
+    
     pitches: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -125,7 +125,7 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    // ── Accepted pitches (can be multiple) ──
+    
     acceptedPitches: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -133,7 +133,7 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    // ── Projects spawned from this post ──
+    
     projects: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -141,9 +141,9 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    // ── Direct sends ──
-    // Client can send this post directly to specific providers
-    // (it's also public, but this notifies/highlights for them)
+    
+    
+    
     sentTo: [
       {
         providerType: {
@@ -155,7 +155,7 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    // ── Saved by providers ──
+    
     savedBy: [
       {
         providerType: {
@@ -166,29 +166,29 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    // ── Visibility ──
+    
     isPublic: { type: Boolean, default: true },
 
-    // "public" = visible to all providers; "private" = only targeted provider sees it
+    
     visibility: {
       type: String,
       enum: ["public", "private"],
       default: "public",
     },
 
-    // Single targeted provider when visibility === "private"
+    
     targetProvider: {
       providerType: { type: String, enum: ["Agency", "Team", "Freelancer"] },
       providerId:   { type: mongoose.Schema.Types.ObjectId },
     },
 
-    // ── Provider-initiated post (provider sends proposal to a specific client) ──
+    
     initiatedBy: {
       initiatorType: { type: String, enum: ["Agency", "Team", "Freelancer"] },
       initiatorId:   { type: mongoose.Schema.Types.ObjectId },
     },
 
-    // Track reactivation history
+    
     statusHistory: [
       {
         status:    String,
@@ -200,13 +200,13 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ── Indexes for fast filtering ──
+
 postSchema.index({ status: 1 });
 postSchema.index({ deadline: 1 });
 postSchema.index({ "location.region": 1 });
 postSchema.index({ categories: 1 });
 postSchema.index({ createdAt: -1 });
-// Compound index for the most common query: open posts sorted by date
+
 postSchema.index({ status: 1, createdAt: -1 });
 postSchema.index({ marketingType: 1 });
 postSchema.index({ collaborationType: 1 });

@@ -292,6 +292,100 @@ const resendVerification = async (req, res) => {
   }
 };
 
+const ALL_MODELS = [
+  { model: Client,       role: "client"        },
+  { model: Agency,       role: "agency"        },
+  { model: AgencyMember, role: "agency_member" },
+  { model: Team,         role: "team"          },
+  { model: TeamMember,   role: "team_member"   },
+  { model: Freelancer,   role: "freelancer"    },
+];
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: "Email requis." });
+
+    let user = null;
+    let role = null;
+    for (const entry of ALL_MODELS) {
+      const found = await entry.model.findOne({ email: email.toLowerCase().trim() });
+      if (found) { user = found; role = entry.role; break; }
+    }
+
+    // Always return success to not leak whether email exists
+    if (!user) {
+      return res.status(200).json({ success: true, message: "Si cet email existe, un lien de réinitialisation vous a été envoyé." });
+    }
+
+    if (!mailer.isConfigured()) {
+      return res.status(503).json({
+        success: false,
+        code: "MAIL_NOT_CONFIGURED",
+        message: "L'envoi d'emails n'est pas encore configuré côté serveur. Contactez l'administrateur.",
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role, email: user.email, purpose: "password_reset" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    const link = `${FRONTEND_URL}/reset-password?token=${token}`;
+    mailer.sendPasswordResetEmail({ to: user.email, name: deriveName(role, user), link })
+      .catch(err => console.error("⚠️ password reset email failed:", err.message));
+
+    return res.status(200).json({ success: true, message: "Si cet email existe, un lien de réinitialisation vous a été envoyé." });
+  } catch (err) {
+    console.error("❌ forgotPassword error:", err);
+    return res.status(500).json({ success: false, message: "Erreur serveur." });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ success: false, message: "Token et mot de passe requis." });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: "Le mot de passe doit contenir au moins 6 caractères." });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      const expired = err.name === "TokenExpiredError";
+      return res.status(400).json({
+        success: false,
+        code: expired ? "TOKEN_EXPIRED" : "TOKEN_INVALID",
+        message: expired
+          ? "Ce lien a expiré. Demandez un nouveau lien de réinitialisation."
+          : "Lien invalide.",
+      });
+    }
+
+    if (decoded.purpose !== "password_reset") {
+      return res.status(400).json({ success: false, message: "Lien invalide." });
+    }
+
+    const entry = ALL_MODELS.find(e => e.role === decoded.role);
+    if (!entry) return res.status(400).json({ success: false, message: "Lien invalide." });
+
+    const user = await entry.model.findById(decoded.id).select("+password");
+    if (!user) return res.status(404).json({ success: false, message: "Compte introuvable." });
+
+    user.password = password;
+    await user.save();
+
+    return res.status(200).json({ success: true, message: "Mot de passe réinitialisé avec succès. Vous pouvez vous connecter." });
+  } catch (err) {
+    console.error("❌ resetPassword error:", err);
+    return res.status(500).json({ success: false, message: "Erreur serveur." });
+  }
+};
+
 const logout = async (req, res) => {
   try {
     const isProd = process.env.NODE_ENV === "production";
@@ -307,4 +401,4 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, logout, verifyEmail, resendVerification };
+module.exports = { register, login, getMe, logout, verifyEmail, resendVerification, forgotPassword, resetPassword };

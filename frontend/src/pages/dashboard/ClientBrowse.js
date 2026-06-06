@@ -308,7 +308,7 @@ const BrowseCard = ({ post, index, onClick }) => {
         {post.media?.length > 0 && (
           <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
             {post.media.slice(0, 3).map((m, i) => (
-              m.mimeType?.startsWith("image/") ? (
+              (m.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(m.filename || "")) ? (
                 <img key={i} src={uploadService.resolveUrl(m.url)} alt={m.filename}
                   onError={e => { e.target.style.display = "none"; }}
                   style={{ width: 64, height: 48, objectFit: "cover",

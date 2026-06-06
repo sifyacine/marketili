@@ -32,7 +32,7 @@ const adminSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ ONLY hashing point (schema owns it)
+
 adminSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 

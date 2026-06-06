@@ -1,7 +1,7 @@
 const Ad = require("../models/Ad");
 const logActivity = require("../utils/logActivity");
 
-// GET /api/ads  — public, filtered by placement + role
+
 exports.getAds = async (req, res) => {
   try {
     const { placement, role } = req.query;
@@ -33,7 +33,7 @@ exports.getAds = async (req, res) => {
   }
 };
 
-// GET /api/admin/ads  — admin list all
+
 exports.getAdminAds = async (req, res) => {
   try {
     const ads = await Ad.find().sort({ createdAt: -1 }).lean();
@@ -43,7 +43,7 @@ exports.getAdminAds = async (req, res) => {
   }
 };
 
-// POST /api/admin/ads
+
 exports.createAd = async (req, res) => {
   try {
     const { title, imageUrl, linkUrl, targetRoles, placement, isActive, startDate, endDate } = req.body;
@@ -68,7 +68,7 @@ exports.createAd = async (req, res) => {
   }
 };
 
-// PATCH /api/admin/ads/:id
+
 exports.updateAd = async (req, res) => {
   try {
     const ad = await Ad.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -79,7 +79,7 @@ exports.updateAd = async (req, res) => {
   }
 };
 
-// PATCH /api/admin/ads/:id/toggle
+
 exports.toggleAd = async (req, res) => {
   try {
     const ad = await Ad.findById(req.params.id);
@@ -92,7 +92,7 @@ exports.toggleAd = async (req, res) => {
   }
 };
 
-// DELETE /api/admin/ads/:id
+
 exports.deleteAd = async (req, res) => {
   try {
     await Ad.findByIdAndDelete(req.params.id);

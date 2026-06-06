@@ -7,9 +7,9 @@ const TeamMember   = require("../models/TeamMember");
 const Freelancer   = require("../models/Freelancer");
 const Admin        = require("../models/Admin");
 
-/**
- * Map role strings to their Mongoose models.
- */
+
+
+
 const MODEL_MAP = {
   client:        Client,
   agency:        Agency,
@@ -20,12 +20,12 @@ const MODEL_MAP = {
   admin:         Admin,
 };
 
-/**
- * protect — verifies JWT from HTTP-only cookie
- */
+
+
+
 const protect = async (req, res, next) => {
   try {
-    // ✅ FIX: read token from cookies instead of header
+    
     const token = req.cookies?.token;
 
     if (!token) {
@@ -35,10 +35,10 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // 2. Verify token
+    
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 3. Find correct model
+    
     const Model = MODEL_MAP[decoded.role];
     if (!Model) {
       return res.status(401).json({
@@ -77,9 +77,9 @@ const protect = async (req, res, next) => {
   }
 };
 
-/**
- * authorize — unchanged
- */
+
+
+
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.userRole)) {
@@ -92,9 +92,9 @@ const authorize = (...roles) => {
   };
 };
 
-/**
- * optionalAuth — now also uses cookies
- */
+
+
+
 const optionalAuth = async (req, res, next) => {
   try {
     const token = req.cookies?.token;
@@ -121,9 +121,9 @@ const optionalAuth = async (req, res, next) => {
   }
 };
 
-/**
- * adminOnly — unchanged
- */
+
+
+
 const adminOnly = (req, res, next) => {
   if (!req.user || req.userRole !== "admin") {
     return res.status(403).json({

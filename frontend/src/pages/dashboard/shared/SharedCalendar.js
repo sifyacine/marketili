@@ -101,7 +101,7 @@ const SharedCalendar = ({ user, role }) => {
       ) : (
         <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
 
-          {/* Calendar grid */}
+          {}
           <div className="card" style={{ flex: 1, minWidth: 0 }}>
             <div style={{ padding: "16px 20px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)",
@@ -167,7 +167,7 @@ const SharedCalendar = ({ user, role }) => {
               </div>
             </div>
 
-            {/* Legend */}
+            {}
             <div style={{ padding: "12px 20px 16px", borderTop: "1px solid #faeaea",
               display: "flex", gap: 16, flexWrap: "wrap" }}>
               {Object.entries(TYPE_COLOR).map(([t, c]) => (
@@ -187,7 +187,7 @@ const SharedCalendar = ({ user, role }) => {
             </div>
           </div>
 
-          {/* Day sidebar */}
+          {}
           {selected && (
             <div className="card" style={{ width: 280, flexShrink: 0 }}>
               <div style={{ padding: "16px 18px" }}>

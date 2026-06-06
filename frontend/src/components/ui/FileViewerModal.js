@@ -5,8 +5,8 @@ import useFileBlob from "../../hooks/useFileBlob";
 const FileViewerModal = ({ url, filename, onClose }) => {
   const { blobUrl, type, loading, error } = useFileBlob(url);
 
-  // Decide how to render: prefer the real Content-Type from the blob,
-  // fall back to the filename extension if the server didn't send one.
+  
+  
   const nameIsImage = /\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(filename || "");
   const nameIsPdf = /\.pdf$/i.test(filename || "");
   const isImage = type ? type.startsWith("image/") : nameIsImage;
@@ -52,7 +52,7 @@ const FileViewerModal = ({ url, filename, onClose }) => {
           boxShadow: "0 24px 72px rgba(0,0,0,0.55)",
         }}
       >
-        {/* Toolbar */}
+        {}
         <div style={{
           display: "flex", alignItems: "center",
           justifyContent: "space-between",
@@ -114,7 +114,7 @@ const FileViewerModal = ({ url, filename, onClose }) => {
           </div>
         </div>
 
-        {/* Content */}
+        {}
         <div style={{
           flex: 1, overflow: "hidden",
           background: "#0f0f23",
