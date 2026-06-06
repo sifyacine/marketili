@@ -37,7 +37,7 @@ const agencyMemberSchema = new mongoose.Schema(
         "production_director",
         "senior",
         "junior",
-        // legacy values kept for existing data
+        
         "director", "commercial", "chef_de_projet", "designer", "editor", "smm", "community_manager",
       ],
       trim: true,
