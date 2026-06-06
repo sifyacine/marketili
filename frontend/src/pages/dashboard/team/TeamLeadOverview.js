@@ -101,7 +101,7 @@ const TeamLeadOverview = ({ user }) => {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
 
-          {/* Recent projects */}
+          {}
           <div className="card" style={{ padding: 0 }}>
             <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
               display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -143,7 +143,7 @@ const TeamLeadOverview = ({ user }) => {
             })}
           </div>
 
-          {/* Recent pitches */}
+          {}
           <div className="card" style={{ padding: 0 }}>
             <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
               display: "flex", justifyContent: "space-between", alignItems: "center" }}>

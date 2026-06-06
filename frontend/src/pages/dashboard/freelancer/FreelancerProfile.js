@@ -118,7 +118,7 @@ const FreelancerProfile = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
 
-      {/* Page header */}
+      {}
       <div className="section-head" style={{ marginBottom: 20 }}>
         <div>
           <div className="section-head-title">Mon profil</div>
@@ -135,14 +135,14 @@ const FreelancerProfile = () => {
         <SuccessBanner show={saved} />
       </AnimatePresence>
 
-      {/* ── Hero card ─────────────────────────────────────────────────────── */}
+      {}
       <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
         <div style={{ height: 5, background: ACCENT }} />
 
         <div style={{ padding: "22px 24px 0" }}>
           <div style={{ display: "flex", gap: 18, alignItems: "flex-start", flexWrap: "wrap" }}>
 
-            {/* Avatar */}
+            {}
             <div style={{ position: "relative", flexShrink: 0 }}>
               <input ref={photoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarChange} />
               <AvatarCircle
@@ -152,7 +152,7 @@ const FreelancerProfile = () => {
               {editing && <AvatarEditBtn onClick={() => photoRef.current?.click()} loading={avatarUploading} accentColor={ACCENT} />}
             </div>
 
-            {/* Identity */}
+            {}
             <div style={{ flex: 1, minWidth: 190 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                 <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800, color: "var(--d-ink)", letterSpacing: "-0.03em" }}>
@@ -197,7 +197,7 @@ const FreelancerProfile = () => {
             </div>
           </div>
 
-          {/* Edit form */}
+          {}
           {editing && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -257,7 +257,7 @@ const FreelancerProfile = () => {
           )}
         </div>
 
-        {/* Stat bar */}
+        {}
         {!editing && (
           <div style={{ marginTop: 22 }}>
             <StatBar
@@ -271,10 +271,10 @@ const FreelancerProfile = () => {
         )}
       </div>
 
-      {/* ── Info section ──────────────────────────────────────────────────── */}
+      {}
       <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 20, marginBottom: 20 }}>
 
-        {/* Left: contact + collaborations */}
+        {}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div className="card">
             <div className="card-header">
@@ -337,7 +337,7 @@ const FreelancerProfile = () => {
           )}
         </div>
 
-        {/* Right: skills card */}
+        {}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div className="card">
             <div className="card-header">

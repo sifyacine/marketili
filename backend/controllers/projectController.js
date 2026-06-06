@@ -7,7 +7,7 @@ const Notification = require("../models/Notification");
 const logActivity  = require("../utils/logActivity");
 const buildProjectHistory = require("../utils/buildProjectHistory");
 
-// ── Helper ──
+
 const calculateProgress = (project) => {
   const total = project.tasks.length;
   if (total === 0) return 0;
@@ -15,9 +15,9 @@ const calculateProgress = (project) => {
   return Math.round((done / total) * 100);
 };
 
-// ── Authorization helper ──
-// True when `user` (with role `role`) is a party to `project` — i.e. the
-// client, the owning provider, or an assigned/parent member. Admins always pass.
+
+
+
 const idEq = (a, b) => !!a && !!b && a.toString() === b.toString();
 
 const isProjectParty = (project, user, role) => {
@@ -39,9 +39,9 @@ const isProjectParty = (project, user, role) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// CREATE PROJECT  POST /api/projects
-// ─────────────────────────────────────────────
+
+
+
 exports.createProject = async (req, res) => {
   try {
     const { postId, pitchId, clientId, providerType, providerId, title, deadline } = req.body;
@@ -70,9 +70,9 @@ exports.createProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET AGENCY PROJECTS  GET /api/projects/agency/:agencyId
-// ─────────────────────────────────────────────
+
+
+
 exports.getAgencyProjects = async (req, res) => {
   try {
     const { agencyId } = req.params;
@@ -99,9 +99,9 @@ exports.getAgencyProjects = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET SINGLE PROJECT  GET /api/projects/:projectId
-// ─────────────────────────────────────────────
+
+
+
 exports.getProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.projectId)
@@ -114,7 +114,7 @@ exports.getProject = async (req, res) => {
     projectObj.taskProgress      = calculateProgress(project);
     projectObj.deliverableCount  = project.deliverables.length;
 
-    // Clients see progress and deliverables only — not internal task list
+    
     if (req.user?.role === "client") {
       const { tasks, ...rest } = projectObj;
       return res.json({ success: true, project: rest });
@@ -126,13 +126,13 @@ exports.getProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET PROJECT HISTORY  GET /api/projects/:projectId/history
-// Unified, chronological timeline of everything that happened on a project:
-// status changes, deliverables, decisions, team changes, and contract
-// milestones — derived from existing data. Accessible to both parties
-// (client + provider) and the project's members.
-// ─────────────────────────────────────────────
+
+
+
+
+
+
+
 exports.getProjectHistory = async (req, res) => {
   try {
     const project = await Project.findById(req.params.projectId);
@@ -145,9 +145,9 @@ exports.getProjectHistory = async (req, res) => {
     const contract = await Contract.findOne({ project: project._id }).lean();
     let events = buildProjectHistory(project.toObject(), contract);
 
-    // Clients get the client-facing story (status, deliverables, contract, notes)
-    // but not the provider's internal workflow — consistent with getProject,
-    // which hides the internal task list from clients.
+    
+    
+    
     if (req.userRole === "client") {
       const HIDDEN_FROM_CLIENT = new Set(["task", "decision", "member"]);
       events = events.filter(e => !HIDDEN_FROM_CLIENT.has(e.category));
@@ -160,9 +160,9 @@ exports.getProjectHistory = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ASSIGN MEMBER  POST /api/projects/:projectId/assign
-// ─────────────────────────────────────────────
+
+
+
 exports.assignMember = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -171,7 +171,7 @@ exports.assignMember = async (req, res) => {
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ message: "Project not found" });
 
-    // Avoid duplicates
+    
     const alreadyAssigned = project.assignedMembers.some(
       m => m.memberId.toString() === memberId
     );
@@ -186,9 +186,9 @@ exports.assignMember = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// CREATE TASK  POST /api/projects/:projectId/tasks
-// ─────────────────────────────────────────────
+
+
+
 exports.createTask = async (req, res) => {
   if (req.user?.role === "client")
     return res.status(403).json({ message: "Accès refusé" });
@@ -203,7 +203,7 @@ exports.createTask = async (req, res) => {
     project.progress = calculateProgress(project);
     await project.save();
 
-    // Notify each assigned member
+    
     if (Array.isArray(assignedTo) && assignedTo.length > 0) {
       assignedTo.forEach(a => {
         const isTeam     = a.memberType === "TeamMember";
@@ -227,15 +227,15 @@ exports.createTask = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// UPDATE TASK  PATCH /api/projects/:projectId/tasks/:taskId
-// ─────────────────────────────────────────────
+
+
+
 exports.updateTask = async (req, res) => {
   if (req.user?.role === "client")
     return res.status(403).json({ message: "Accès refusé" });
   try {
     const { projectId, taskId } = req.params;
-    const updates = req.body; // status, priority, dueDate, assignedTo, etc.
+    const updates = req.body; 
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ message: "Project not found" });
@@ -245,7 +245,7 @@ exports.updateTask = async (req, res) => {
 
     const wasNotDone = task.status !== "done";
 
-    // Track handover when assignedTo changes
+    
     if (updates.assignedTo !== undefined) {
       const oldIds = task.assignedTo.map(a => String(a.memberId));
       const newIds = (updates.assignedTo || []).map(a => String(a.memberId));
@@ -265,7 +265,7 @@ exports.updateTask = async (req, res) => {
         }
       });
 
-      // Notify newly added assignees
+      
       const added = (updates.assignedTo || []).filter(a => !oldIds.includes(String(a.memberId)));
       added.forEach(a => {
         const isTeam  = a.memberType === "TeamMember";
@@ -287,7 +287,7 @@ exports.updateTask = async (req, res) => {
     project.progress = calculateProgress(project);
     await project.save();
 
-    // Notify agency director when a task is marked done
+    
     if (wasNotDone && updates.status === "done" && project.providerAgency) {
       Notification.notify({
         recipient: project.providerAgency, recipientRole: "agency", recipientModel: "Agency",
@@ -299,7 +299,7 @@ exports.updateTask = async (req, res) => {
       });
     }
 
-    // Notify client if all tasks done and project is now 100%
+    
     if (project.progress === 100 && project.client) {
       Notification.notify({
         recipient: project.client, recipientRole: "client", recipientModel: "Client",
@@ -317,9 +317,9 @@ exports.updateTask = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET PROJECT TASKS  GET /api/projects/:projectId/tasks
-// ─────────────────────────────────────────────
+
+
+
 exports.getProjectTasks = async (req, res) => {
   if (req.user?.role === "client")
     return res.status(403).json({ message: "Accès refusé" });
@@ -340,9 +340,9 @@ exports.getProjectTasks = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ADD TASK COMMENT  POST /api/projects/:projectId/tasks/:taskId/comments
-// ─────────────────────────────────────────────
+
+
+
 exports.addTaskComment = async (req, res) => {
   try {
     const { projectId, taskId } = req.params;
@@ -365,9 +365,9 @@ exports.addTaskComment = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET AGENCY MEMBERS  GET /api/projects/agency/:agencyId/members
-// ─────────────────────────────────────────────
+
+
+
 exports.getAgencyMembers = async (req, res) => {
   try {
     const { agencyId } = req.params;
@@ -379,9 +379,9 @@ exports.getAgencyMembers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// FLAG POST (commercial)  POST /api/projects/flag-post
-// ─────────────────────────────────────────────
+
+
+
 exports.flagPost = async (req, res) => {
   try {
     const { agencyId, postId, memberId, memberName, note } = req.body;
@@ -389,7 +389,7 @@ exports.flagPost = async (req, res) => {
     const agency = await Agency.findById(agencyId);
     if (!agency) return res.status(404).json({ message: "Agency not found" });
 
-    // Avoid duplicate flags of same post
+    
     const alreadyFlagged = agency.flaggedPosts.some(
       f => f.post.toString() === postId
     );
@@ -409,9 +409,9 @@ exports.flagPost = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET FLAGGED POSTS  GET /api/projects/agency/:agencyId/flagged-posts
-// ─────────────────────────────────────────────
+
+
+
 exports.getFlaggedPosts = async (req, res) => {
   if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial")
     return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
@@ -429,9 +429,9 @@ exports.getFlaggedPosts = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET DELIVERABLES  GET /api/projects/:projectId/deliverables
-// ─────────────────────────────────────────────
+
+
+
 exports.getDeliverables = async (req, res) => {
   try {
     const project = await Project.findById(req.params.projectId)
@@ -443,9 +443,9 @@ exports.getDeliverables = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// UPDATE DELIVERABLE  PATCH /api/projects/:projectId/deliverables/:deliverableId
-// ─────────────────────────────────────────────
+
+
+
 exports.updateDeliverable = async (req, res) => {
   try {
     const { projectId, deliverableId } = req.params;
@@ -483,9 +483,9 @@ exports.updateDeliverable = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// MARK FLAGGED POST AS PITCHED  PATCH /api/projects/agency/:agencyId/flagged-posts/:postId/pitched
-// ─────────────────────────────────────────────
+
+
+
 exports.markFlaggedAsPitched = async (req, res) => {
   if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial") {
     return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
@@ -507,9 +507,9 @@ exports.markFlaggedAsPitched = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// SEND FLAGGED POST TO STRATEGIST  PATCH /api/projects/agency/:agencyId/flagged-posts/:postId/send-to-strategist
-// ─────────────────────────────────────────────
+
+
+
 exports.sendToStrategist = async (req, res) => {
   if (req.userRole === "agency_member" && req.user?.jobTitle === "commercial") {
     return res.status(403).json({ success: false, message: "Accès refusé — rôle commercial" });
@@ -539,9 +539,9 @@ exports.sendToStrategist = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET WORKER TASKS  GET /api/projects/member/:memberId/tasks
-// ─────────────────────────────────────────────
+
+
+
 exports.getMemberTasks = async (req, res) => {
   try {
     const { memberId } = req.params;
@@ -550,7 +550,7 @@ exports.getMemberTasks = async (req, res) => {
       "tasks.assignedTo.memberId": memberId,
     }).select("title tasks deadline projectStatus");
 
-    // Flatten tasks assigned to this member with their project context
+    
     const tasks = [];
     projects.forEach(proj => {
       proj.tasks.forEach(task => {
@@ -567,7 +567,7 @@ exports.getMemberTasks = async (req, res) => {
       });
     });
 
-    // Sort by dueDate ascending — no dueDate goes last
+    
     tasks.sort((a, b) => {
       if (!a.dueDate && !b.dueDate) return 0;
       if (!a.dueDate) return 1;
@@ -581,9 +581,9 @@ exports.getMemberTasks = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// UPDATE PROJECT  PATCH /api/projects/:projectId
-// ─────────────────────────────────────────────
+
+
+
 exports.updateProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -627,9 +627,9 @@ exports.updateProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ADD DELIVERABLE  POST /api/projects/:projectId/deliverables
-// ─────────────────────────────────────────────
+
+
+
 exports.addDeliverable = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -644,7 +644,7 @@ exports.addDeliverable = async (req, res) => {
 
     project.deliverables.push({ fileUrl, fileName, description, submittedBy });
 
-    // Auto-move to in_review on first deliverable
+    
     if (project.projectStatus === "active") {
       project.projectStatus = "in_review";
       project.statusHistory.push({
@@ -662,10 +662,10 @@ exports.addDeliverable = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ADD NOTE  POST /api/projects/:projectId/notes
-// Client-to-provider communication, distinct from internal task comments
-// ─────────────────────────────────────────────
+
+
+
+
 exports.addNote = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -698,9 +698,9 @@ exports.addNote = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET MEMBER PROJECTS  GET /api/projects/member/:memberId/projects
-// ─────────────────────────────────────────────
+
+
+
 exports.getMemberProjects = async (req, res) => {
   try {
     const { memberId } = req.params;
@@ -715,9 +715,9 @@ exports.getMemberProjects = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET TEAM PROJECTS  GET /api/projects/team/:teamId
-// ─────────────────────────────────────────────
+
+
+
 exports.getTeamProjects = async (req, res) => {
   try {
     const { teamId } = req.params;
@@ -737,9 +737,9 @@ exports.getTeamProjects = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET TEAM MEMBERS  GET /api/projects/team/:teamId/members
-// ─────────────────────────────────────────────
+
+
+
 exports.getTeamMembers = async (req, res) => {
   try {
     const { teamId } = req.params;
@@ -751,9 +751,9 @@ exports.getTeamMembers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET CLIENT PROJECTS   GET /api/projects/client/:clientId
-// ─────────────────────────────────────────────
+
+
+
 exports.getClientProjects = async (req, res) => {
   try {
     const { clientId } = req.params;
@@ -770,7 +770,7 @@ exports.getClientProjects = async (req, res) => {
       .sort({ deadline: 1 })
       .lean();
 
-    // Strip internal task list from client-facing responses
+    
     const safeProjects = projects.map(({ tasks, ...rest }) => rest);
     res.json({ success: true, projects: safeProjects });
   } catch (err) {

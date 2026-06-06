@@ -1,4 +1,4 @@
-// backend/controllers/contractController.js
+
 
 const mongoose     = require("mongoose");
 const Contract     = require("../models/Contract");
@@ -11,14 +11,14 @@ const generateContractPdf = require("../utils/generateContractPdf");
 const findDirectorId      = require("../utils/findDirector");
 const logActivity         = require("../utils/logActivity");
 
-// ── Helpers ──
+
 const ok   = (res, data, code = 200) => res.status(code).json({ success: true,  ...data });
 const fail = (res, msg,  code = 400) => res.status(code).json({ success: false, message: msg });
 
-// ─────────────────────────────────────────────────────────────
-// CREATE CONTRACT   POST /api/contracts
-// Called by the agency (director) after a project is created.
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 exports.createContract = async (req, res) => {
   try {
     const {
@@ -35,11 +35,11 @@ exports.createContract = async (req, res) => {
       notes,
     } = req.body;
 
-    // Validate project exists
+    
     const project = await Project.findById(projectId);
     if (!project) return fail(res, "Projet introuvable", 404);
 
-    // Only one active contract per project (draft or sent)
+    
     const existing = await Contract.findOne({
       project: projectId,
       status: { $in: ["draft", "sent", "acknowledged"] },
@@ -77,11 +77,11 @@ exports.createContract = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET CONTRACTS FOR A PARTY
-// GET /api/contracts?partyId=xxx&partyType=Agency&status=sent
-// Used by agency director, client, freelancer, team
-// ─────────────────────────────────────────────────────────────
+
+
+
+
+
 exports.getContracts = async (req, res) => {
   try {
     const { partyId, partyType, status, page = 1, limit = 20, fromDate, toDate } = req.query;
@@ -90,7 +90,7 @@ exports.getContracts = async (req, res) => {
       return fail(res, "partyId et partyType requis");
     }
 
-    // A party can appear as partyA or partyB
+    
     const filter = {
       $or: [
         { partyAId: partyId, partyAType: partyType },
@@ -126,9 +126,9 @@ exports.getContracts = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET SINGLE CONTRACT   GET /api/contracts/:id
-// ─────────────────────────────────────────────────────────────
+
+
+
 exports.getContract = async (req, res) => {
   try {
     const contract = await Contract.findById(req.params.id)
@@ -142,26 +142,26 @@ exports.getContract = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET CONTRACT FOR A PROJECT   GET /api/contracts/project/:projectId
-// ─────────────────────────────────────────────────────────────
+
+
+
 exports.getContractByProject = async (req, res) => {
   try {
     const contract = await Contract.findOne({ project: req.params.projectId })
       .populate("project", "title projectStatus deadline")
       .lean();
 
-    // Not having a contract is valid — return null not a 404
+    
     return ok(res, { contract: contract || null });
   } catch (err) {
     return fail(res, "Erreur serveur", 500);
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// SEND CONTRACT (agency → client)   PATCH /api/contracts/:id/send
-// Moves status from draft → sent
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 exports.sendContract = async (req, res) => {
   try {
     const { sentBy } = req.body;
@@ -178,7 +178,7 @@ exports.sendContract = async (req, res) => {
     });
     await contract.save();
 
-    // Notify client (partyB when type is client)
+    
     if (contract.partyBType === "Client" && contract.partyBId) {
       Notification.notify({
         recipient: contract.partyBId, recipientRole: "client", recipientModel: "Client",
@@ -196,10 +196,10 @@ exports.sendContract = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// UPLOAD RECEIPT (client)   PATCH /api/contracts/:id/receipt
-// Client uploads proof of payment → status: acknowledged
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 exports.uploadReceipt = async (req, res) => {
   try {
     const { uploadedBy, filename, url, fileId } = req.body;
@@ -217,7 +217,7 @@ exports.uploadReceipt = async (req, res) => {
     });
     await contract.save();
 
-    // Notify provider (Agency, Freelancer, or Team)
+    
     if (contract.partyAId) {
       if (contract.partyAType === "Agency") {
         const notifPayload = {
@@ -259,10 +259,10 @@ exports.uploadReceipt = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// SEND BON DE COMMANDE (agency)   PATCH /api/contracts/:id/bon-de-commande
-// Agency sends BDC after receipt → status: signed (complete)
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 exports.sendBonDeCommande = async (req, res) => {
   try {
     const { sentBy, filename, url, fileId } = req.body;
@@ -279,14 +279,14 @@ exports.sendBonDeCommande = async (req, res) => {
       note: "Bon de commande envoyé — contrat finalisé",
     });
 
-    // Also update the project status to active if still pending
+    
     await Project.findByIdAndUpdate(contract.project, {
       $set: { projectStatus: "active" },
     });
 
     await contract.save();
 
-    // Notify both parties
+    
     if (contract.partyBType === "Client" && contract.partyBId) {
       Notification.notify({
         recipient: contract.partyBId, recipientRole: "client", recipientModel: "Client",
@@ -318,11 +318,11 @@ exports.sendBonDeCommande = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// CONFIRM & START   PATCH /api/contracts/:id/confirm-start
-// Provider confirms client receipt → contract signed, project active
-// Used in the contract-first flow after client uploads receipt
-// ─────────────────────────────────────────────────────────────
+
+
+
+
+
 exports.confirmAndStart = async (req, res) => {
   try {
     const { confirmedBy } = req.body;
@@ -339,7 +339,7 @@ exports.confirmAndStart = async (req, res) => {
     });
     await contract.save();
 
-    // Activate the project
+    
     await Project.findByIdAndUpdate(contract.project, {
       projectStatus: "active",
       $push: {
@@ -351,7 +351,7 @@ exports.confirmAndStart = async (req, res) => {
       },
     });
 
-    // Notify client
+    
     if (contract.partyBType === "Client" && contract.partyBId) {
       Notification.notify({
         recipient: contract.partyBId, recipientRole: "client", recipientModel: "Client",
@@ -379,10 +379,10 @@ exports.confirmAndStart = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// SKIP CONTRACT   PATCH /api/contracts/:id/skip
-// Provider skips the contract step → project activated directly
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 exports.skipContract = async (req, res) => {
   try {
     const { skippedBy } = req.body;
@@ -401,7 +401,7 @@ exports.skipContract = async (req, res) => {
     });
     await contract.save();
 
-    // Activate the project
+    
     await Project.findByIdAndUpdate(contract.project, {
       projectStatus: "active",
       $push: {
@@ -413,7 +413,7 @@ exports.skipContract = async (req, res) => {
       },
     });
 
-    // Notify client
+    
     if (contract.partyBType === "Client" && contract.partyBId) {
       Notification.notify({
         recipient: contract.partyBId, recipientRole: "client", recipientModel: "Client",
@@ -432,10 +432,10 @@ exports.skipContract = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// RESILIATION   PATCH /api/contracts/:id/resiliation
-// Either party can trigger resiliation with a reason
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 exports.resiliate = async (req, res) => {
   try {
     const { initiatedBy, reason } = req.body;
@@ -460,22 +460,22 @@ exports.resiliate = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// UPDATE DRAFT   PATCH /api/contracts/:id
-// Edit a contract still in draft state
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 exports.updateContract = async (req, res) => {
   try {
     const contract = await Contract.findById(req.params.id);
     if (!contract) return fail(res, "Contrat introuvable", 404);
 
-    // Non-draft contracts can only update sections (proforma content)
+    
     const isSectionsOnly = req.body.sections && Object.keys(req.body).length === 1;
     if (contract.status !== "draft" && !isSectionsOnly) {
       return fail(res, "Seul un brouillon peut être modifié");
     }
 
-    // Only allow updating content fields, never parties or project
+    
     const allowed = [
       "title", "objet", "prestations", "livrables", "financialTerms",
       "duration", "confidentialityClause", "exclusivityClause",
@@ -495,10 +495,10 @@ exports.updateContract = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GENERATE & SEND PDF   POST /api/contracts/:id/generate-pdf
-// Agency director fills form → PDF created → sent to chat → status: sent
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 exports.generateAndSendPdf = async (req, res) => {
   try {
     const contract = await Contract.findById(req.params.id)
@@ -508,7 +508,7 @@ exports.generateAndSendPdf = async (req, res) => {
       return fail(res, "Seul un contrat en brouillon peut être généré");
     }
 
-    // Update content fields from form submission
+    
     const editable = [
       "title", "objet", "prestations", "livrables", "financialTerms",
       "duration", "confidentialityClause", "exclusivityClause",
@@ -521,10 +521,10 @@ exports.generateAndSendPdf = async (req, res) => {
       contract.sections = { ...(contract.sections?.toObject?.() || contract.sections || {}), ...req.body.sections };
     }
 
-    // Generate PDF buffer
+    
     const pdfBuffer = await generateContractPdf(contract);
 
-    // Upload buffer directly to GridFS
+    
     const bucket = new mongoose.mongo.GridFSBucket(conn().db, { bucketName: "uploads" });
     const filename = `contrat-${contract._id}-${Date.now()}.pdf`;
     const uploadStream = bucket.openUploadStream(filename, {
@@ -540,7 +540,7 @@ exports.generateAndSendPdf = async (req, res) => {
     const fileId = uploadStream.id;
     const fileUrl = `/api/upload/${fileId}`;
 
-    // Save PDF ref + advance status
+    
     contract.contractPdf = { fileId: fileId.toString(), filename, url: fileUrl, generatedAt: new Date() };
     contract.status = "sent";
     contract.statusHistory.push({
@@ -549,7 +549,7 @@ exports.generateAndSendPdf = async (req, res) => {
     });
     await contract.save();
 
-    // Find or create conversation for the project
+    
     let conversation = await Conversation.findOne({ project: contract.project._id });
     if (!conversation) {
       const participants = [];
@@ -562,7 +562,7 @@ exports.generateAndSendPdf = async (req, res) => {
       conversation = await Conversation.create({ project: contract.project._id, participants });
     }
 
-    // Sender info
+    
     const senderTypeMap = {
       agency: "Agency", agency_member: "AgencyMember",
       client: "Client", freelancer: "Freelancer",
@@ -575,7 +575,7 @@ exports.generateAndSendPdf = async (req, res) => {
       `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim() ||
       "Prestataire";
 
-    // Post contract_pdf message
+    
     await Message.create({
       conversation: conversation._id,
       sender: req.user._id, senderRole: req.userRole, senderName, senderType,
@@ -588,7 +588,7 @@ exports.generateAndSendPdf = async (req, res) => {
       metadata: { contractId: contract._id },
     });
 
-    // Notify client
+    
     if (contract.partyBType === "Client" && contract.partyBId) {
       Notification.notify({
         recipient: contract.partyBId, recipientRole: "client", recipientModel: "Client",

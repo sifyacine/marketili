@@ -1,4 +1,4 @@
-// frontend/src/components/contracts/ContratProformaForm.jsx
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import contractService from "../../services/contractService";
@@ -60,7 +60,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState("");
 
-  // Pre-populate form from existing contract
+  
   const [form, setForm] = useState({
     title:                initial.title || "",
     objet:                initial.objet || "",
@@ -123,7 +123,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}>
 
-      {/* Back */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
         <button type="button" onClick={onCancel}
           style={{ background: "none", border: "1.5px solid #f0dede", borderRadius: 8,
@@ -141,7 +141,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
         </div>
       </div>
 
-      {/* Error banner */}
+      {}
       {error && (
         <div style={{ padding: "10px 14px", borderRadius: 8, background: "#fef2f2",
           border: "1px solid #fecaca", color: "#dc2626", fontSize: "0.83rem",
@@ -152,7 +152,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
 
       <form onSubmit={handleSubmit}>
 
-        {/* ── Parties (read-only) ── */}
+        {}
         <Section title="Parties contractantes">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div style={{ padding: "10px 14px", borderRadius: 8, background: "#faeaea",
@@ -179,7 +179,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
           </Field>
         </Section>
 
-        {/* ── Objet & Prestations ── */}
+        {}
         <Section title="Art. 01–03 — Objet, Prestations & Livrables">
           <Field label="Art. 01 — Objet du contrat" required>
             <textarea style={textareaStyle} rows={3} required
@@ -198,7 +198,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
           </Field>
         </Section>
 
-        {/* ── Financial ── */}
+        {}
         <Section title="Art. 05 & 07 — Dispositions financières">
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12 }}>
             <Field label="Montant">
@@ -231,7 +231,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
           </Field>
         </Section>
 
-        {/* ── Duration ── */}
+        {}
         <Section title="Art. 08 — Durée du contrat">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Field label="Date de début">
@@ -250,7 +250,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
           </Field>
         </Section>
 
-        {/* ── Clauses ── */}
+        {}
         <Section title="Art. 09–14 — Clauses">
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button type="button" onClick={() => set("confidentialityClause", !form.confidentialityClause)}
@@ -274,7 +274,7 @@ const ContratProformaForm = ({ contract: initial, onSuccess, onCancel }) => {
           </Field>
         </Section>
 
-        {/* ── Actions ── */}
+        {}
         <div className="card" style={{ padding: "18px 22px", background: "#fffbeb",
           borderLeft: "4px solid #f59e0b", marginBottom: 16 }}>
           <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#92400e", marginBottom: 6 }}>

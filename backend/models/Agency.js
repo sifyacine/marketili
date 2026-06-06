@@ -37,15 +37,15 @@ const agencySchema = new mongoose.Schema(
     pitchesSent:[{ type: mongoose.Schema.Types.ObjectId, ref: "Pitch" }],
     savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
 
-    // ✅ NEW: posts flagged by commercial members for the director to review
+    
     flaggedPosts: [
       {
         post:       { type: mongoose.Schema.Types.ObjectId, ref: "Post", required: true },
         flaggedBy:  { type: mongoose.Schema.Types.ObjectId, ref: "AgencyMember", required: true },
-        flaggedByName: String,   // denormalized for display
+        flaggedByName: String,   
         flaggedAt:  { type: Date, default: Date.now },
-        note:       String,      // optional comment from commercial
-        pitched:    { type: Boolean, default: false }, // true once director pitches on it
+        note:       String,      
+        pitched:    { type: Boolean, default: false }, 
         assignedStrategist:     { type: mongoose.Schema.Types.ObjectId, ref: "AgencyMember" },
         assignedStrategistName: String,
         assignedAt:             Date,

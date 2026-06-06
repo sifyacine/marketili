@@ -1,4 +1,4 @@
-// frontend/src/pages/dashboard/agency/WorkerProjects.js
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ProgressBar } from "./shared";
@@ -33,7 +33,7 @@ const WorkerProjects = ({ user }) => {
       .finally(() => setLoading(false));
   }, [user._id]);
 
-  // Active projects first sorted by deadline, completed/cancelled last
+  
   const sorted = [...projects].sort((a, b) => {
     const aDone = ["completed", "cancelled"].includes(a.projectStatus);
     const bDone = ["completed", "cancelled"].includes(b.projectStatus);
@@ -74,7 +74,7 @@ const WorkerProjects = ({ user }) => {
             const dlColor = isDone ? "#9e9e9e" : getDeadlineColor(p.deadline);
             const dlLabel = isDone ? null       : getDeadlineLabel(p.deadline);
 
-            // Count tasks assigned to this worker
+            
             const myTasks = (p.tasks || []).filter(t =>
               t.assignedTo?.some(a => a.memberId?.toString() === user._id?.toString())
             );
@@ -128,9 +128,9 @@ const WorkerProjects = ({ user }) => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Worker project detail — read-only overview of tasks assigned to this worker
-// ─────────────────────────────────────────────────────────────────────────────
+
+
+
 const TASK_STATUS = {
   todo:        { label: "À faire",     color: "#6b7280" },
   in_progress: { label: "En cours",    color: "#f59e0b" },
@@ -180,7 +180,7 @@ const WorkerProjectDetail = ({ project: initial, user, onBack }) => {
         </div>
       </div>
 
-      {/* Progress + deadline */}
+      {}
       <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--d-muted)",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
@@ -198,7 +198,7 @@ const WorkerProjectDetail = ({ project: initial, user, onBack }) => {
         </div>
       </div>
 
-      {/* Worker's tasks */}
+      {}
       <div className="card">
         <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--d-border-soft)" }}>
           <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--d-ink)" }}>

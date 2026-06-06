@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import postService from "../../services/postService";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
-import { IconSearch, IconClipboard } from "../ui/Icons";
+import { IconSearch, IconFilter, IconClipboard } from "../ui/Icons";
 
 const STATUS_META = {
   open:        { label: "Ouvert",   cls: "open"        },
@@ -20,6 +20,15 @@ const COLLAB_FR = {
 
 const fmt = (d) =>
   new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" });
+
+const deadlineClass = (d) => {
+  if (!d) return "";
+  const days = Math.ceil((new Date(d) - new Date()) / 86400000);
+  if (days < 0 || days <= 7) return "deadline-red";
+  if (days <= 14) return "deadline-orange";
+  if (days <= 30) return "deadline-yellow";
+  return "deadline-green";
+};
 
 const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions = true, onRowClick }) => {
   const [search,    setSearch]    = useState("");
@@ -90,9 +99,9 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
 
   return (
     <div>
-      {/* ── Filter row ── */}
+      {}
       <div className="filters-bar">
-        {/* Search */}
+        {}
         <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
           <span style={{
             position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
@@ -109,7 +118,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
           />
         </div>
 
-        {/* Status tabs */}
+        {}
         <div style={{ display: "flex", gap: 4 }}>
           {[
             { v: "all",        l: "Tous" },
@@ -131,7 +140,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
         </span>
       </div>
 
-      {/* ── Table ── */}
+      {}
       {loading ? (
         <div className="spinner-wrap"><div className="spinner" /></div>
       ) : filtered.length === 0 ? (
@@ -184,7 +193,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                         borderLeft: `3px solid ${dlColor}`,
                       }}
                     >
-                      {/* Title + location */}
+                      {}
                       <td data-label="Titre">
                         <div className="td-title">{post.title}</div>
                         {post.location?.region && (
@@ -195,14 +204,14 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                         )}
                       </td>
 
-                      {/* Status badge */}
+                      {}
                       <td data-label="Statut">
                         <span className={`status-badge ${meta.cls || post.status}`}>
                           {meta.label || post.status}
                         </span>
                       </td>
 
-                      {/* Marketing type + collab type */}
+                      {}
                       <td data-label="Type">
                         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                           {post.marketingType && (
@@ -222,7 +231,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                         </div>
                       </td>
 
-                      {/* Offer count */}
+                      {}
                       <td data-label="Offres">
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>
@@ -240,7 +249,7 @@ const PostsDataGrid = ({ posts = [], loading, onRefetch, clientId, showActions =
                         </div>
                       </td>
 
-                      {/* Deadline with urgency */}
+                      {}
                       <td data-label="Échéance">
                         <div style={{ fontWeight: 600, fontSize: "0.8rem", color: dlColor }}>
                           {post.deadline ? fmt(post.deadline) : "—"}

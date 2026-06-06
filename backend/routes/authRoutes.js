@@ -5,10 +5,10 @@ const router    = express.Router();
 const { register, login, getMe, logout, verifyEmail, resendVerification } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
 
-// Strict limiter for auth endpoints — only counts failed attempts
-// (skipSuccessfulRequests: true) so legitimate users are never blocked
+
+
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
+  windowMs: 15 * 60 * 1000,  
   max: 10,
   skipSuccessfulRequests: true,
   standardHeaders: true,
@@ -16,12 +16,12 @@ const authLimiter = rateLimit({
   message: { success: false, message: "Trop de tentatives. Réessayez dans 15 minutes." },
 });
 
-// Public routes
+
 router.post("/register",     authLimiter, register);
 router.post("/login",        authLimiter, login);
 router.post("/verify-email", authLimiter, verifyEmail);
 
-// Protected routes (require valid JWT)
+
 router.get("/me",                   protect, getMe);
 router.post("/logout",              protect, logout);
 router.post("/resend-verification", authLimiter, protect, resendVerification);

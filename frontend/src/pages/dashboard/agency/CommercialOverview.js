@@ -1,4 +1,4 @@
-// src/pages/dashboard/agency/CommercialOverview.js
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { StatCard } from "./shared";
@@ -77,7 +77,7 @@ const CommercialOverview = ({ user }) => {
         />
       </div>
 
-      {/* Recent flagged posts */}
+      {}
       <div className="card" style={{ marginTop: 8 }}>
         <div className="card-header">
           <div className="section-head" style={{ marginBottom: 0 }}>

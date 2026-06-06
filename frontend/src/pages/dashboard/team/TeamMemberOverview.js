@@ -87,7 +87,7 @@ const TeamMemberOverview = ({ user }) => {
         <div className="spinner-wrap"><div className="spinner" /></div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-          {/* Upcoming tasks */}
+          {}
           <div className="card" style={{ padding: 0 }}>
             <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
               display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -140,7 +140,7 @@ const TeamMemberOverview = ({ user }) => {
             })}
           </div>
 
-          {/* Calendar hint */}
+          {}
           <motion.div
             className="card"
             whileHover={{ y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}

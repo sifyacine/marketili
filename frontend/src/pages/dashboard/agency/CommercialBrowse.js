@@ -1,10 +1,11 @@
-// src/pages/dashboard/agency/CommercialBrowse.js
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PostCard } from "./shared";
 import { usePosts } from "../../../hooks/usePosts";
 import projectService from "../../../services/projectService";
 import { IconSearch } from "../../../components/ui/Icons";
+import BrowseBanner  from "../../../components/ui/BrowseBanner";
 
 const MARKETING_TYPES = [
   { value: "",               label: "Tous les types"    },
@@ -24,7 +25,7 @@ const STATUS_OPTIONS = [
 ];
 
 const CommercialBrowse = ({ user }) => {
-  const { posts, loading, applyFilters } = usePosts({ status: "open", limit: 12 });
+  const { posts, loading, applyFilters, filters } = usePosts({ status: "open", limit: 12 });
 
   const [search,       setSearch]       = useState("");
   const [category,     setCategory]     = useState("");
@@ -85,7 +86,9 @@ const CommercialBrowse = ({ user }) => {
         </div>
       </div>
 
-      {/* Search + filter toggle row */}
+      <BrowseBanner />
+
+      {}
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <input className="dash-form-input" placeholder="Rechercher..."
           value={search} onChange={e => setSearch(e.target.value)}
@@ -106,7 +109,7 @@ const CommercialBrowse = ({ user }) => {
         </button>
       </div>
 
-      {/* Filter panel */}
+      {}
       <AnimatePresence>
         {showFilters && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
@@ -120,7 +123,7 @@ const CommercialBrowse = ({ user }) => {
                     onChange={e => setCategory(e.target.value)} />
                 </div>
                 <div className="dash-form-group" style={{ flex: "1 1 140px" }}>
-                  <label className="dash-form-label">Région</label>
+                  <label className="dash-form-label">Wilaya</label>
                   <input className="dash-form-input" value={region}
                     placeholder="Alger, Oran..."
                     onChange={e => setRegion(e.target.value)} />
@@ -173,7 +176,7 @@ const CommercialBrowse = ({ user }) => {
         )}
       </AnimatePresence>
 
-      {/* Posts grid */}
+      {}
       {loading ? (
         <div className="spinner-wrap" style={{ padding: 60 }}><div className="spinner" /></div>
       ) : posts.length === 0 ? (
@@ -196,7 +199,7 @@ const CommercialBrowse = ({ user }) => {
         </div>
       )}
 
-      {/* Flag modal */}
+      {}
       <AnimatePresence>
         {flagging && (
           <motion.div className="modal-overlay"

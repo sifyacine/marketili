@@ -5,7 +5,7 @@ import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
 import "../../styles/auth.css";
 
-/* ── Reference data ─────────────────────────────────────────────── */
+
 
 const WILAYAS = [
   "Adrar","Chlef","Laghouat","Oum El Bouaghi","Batna","Béjaïa","Biskra","Béchar",
@@ -48,7 +48,7 @@ const ROLES = [
   { id: "freelancer", labelFR: "Freelancer / Influenceur", descFR: "Je propose mes compétences créatives"   },
 ];
 
-/* ── Password strength ─────────────────────────────────────────── */
+
 const pwStrength = (pw) => {
   if (!pw || pw.length < 8) return 0;
   let s = 1;
@@ -60,19 +60,19 @@ const pwStrength = (pw) => {
 const PW_LABELS = ["", "Faible", "Moyen", "Fort", "Très fort"];
 const PW_COLORS = ["", "#e0253f", "#f59e0b", "#3b82f6", "#22c55e"];
 
-/* ── Phone (Algeria) ───────────────────────────────────────────── */
-// Mobile: 0[5/6/7]xxxxxxxx (10 digits) or +213[5/6/7]xxxxxxxx
+
+
 const normalizePhone = (p) => (p || "").replace(/[\s.\-()]/g, "");
 const isValidAlgerianPhone = (p) => /^(?:\+213|0)(?:5|6|7)\d{8}$/.test(normalizePhone(p));
 
-/* ── Animation ─────────────────────────────────────────────────── */
+
 const slide = {
   hidden:  { opacity: 0, x: 32 },
   visible: { opacity: 1, x: 0,   transition: { duration: 0.28, ease: "easeOut" } },
   exit:    { opacity: 0, x: -22, transition: { duration: 0.2  } },
 };
 
-/* ── Small helpers ─────────────────────────────────────────────── */
+
 const Field = ({ label, optional, children }) => (
   <div className="form-group">
     <label className="form-label">
@@ -107,7 +107,7 @@ const Select = ({ name, value, onChange, options, placeholder }) => (
   </select>
 );
 
-/* ── Step indicator ────────────────────────────────────────────── */
+
 const STEPS_META = [
   { n: 1, label: "Rôle"   },
   { n: 2, label: "Type"   },
@@ -140,9 +140,9 @@ const StepBar = ({ step, role }) => {
   );
 };
 
-/* ══════════════════════════════════════════════════════════════════
-   MAIN COMPONENT
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 const Register = () => {
   const navigate       = useNavigate();
   const { login }      = useAuth();
@@ -211,7 +211,7 @@ const Register = () => {
     try {
       const data = await authService.register(role, payload);
       login(data.user, role);
-      navigate(`/dashboard/${role}`);
+      navigate('/pricing');
     } catch (err) {
       setError(err.response?.data?.message || "Une erreur est survenue");
     } finally {
@@ -219,7 +219,7 @@ const Register = () => {
     }
   };
 
-  /* ── Step subtitle ── */
+  
   const stepSubtitle = () => {
     if (!role) return null;
     const labels = {
@@ -236,7 +236,7 @@ const Register = () => {
   return (
     <div className="auth-page">
 
-      {/* ── Left panel ─────────────────────────────────────────────── */}
+      {}
       <div className="auth-left">
         <div className="auth-left-bg" />
         <div className="auth-left-decor">M</div>
@@ -259,7 +259,7 @@ const Register = () => {
 
       </div>
 
-      {/* ── Right panel ────────────────────────────────────────────── */}
+      {}
       <div className="auth-right">
         <div className="auth-form-wrap">
 
@@ -267,7 +267,7 @@ const Register = () => {
 
           <AnimatePresence mode="wait">
 
-            {/* ── STEP 1 : Role ──────────────────────────────────── */}
+            {}
             {step === 1 && (
               <motion.div key="s1" variants={slide} initial="hidden" animate="visible" exit="exit">
                 <div className="auth-form-header">
@@ -293,7 +293,7 @@ const Register = () => {
               </motion.div>
             )}
 
-            {/* ── STEP 2 : Account type (client only) ────────────── */}
+            {}
             {step === 2 && (
               <motion.div key="s2" variants={slide} initial="hidden" animate="visible" exit="exit">
                 <button className="auth-back-btn" type="button" onClick={() => setStep(1)}>
@@ -325,7 +325,7 @@ const Register = () => {
               </motion.div>
             )}
 
-            {/* ── STEP 3 : Profile form ──────────────────────────── */}
+            {}
             {step === 3 && (
               <motion.div key="s3" variants={slide} initial="hidden" animate="visible" exit="exit">
                 <button
@@ -342,7 +342,7 @@ const Register = () => {
 
                 <form onSubmit={handleSubmit} className="auth-form">
 
-                  {/* ── Client / Personne ── */}
+                  {}
                   {role === "client" && accountType === "person" && (<>
                     <div className="form-row-2">
                       <Field label="Prénom">
@@ -362,7 +362,7 @@ const Register = () => {
                     </div>
                   </>)}
 
-                  {/* ── Client / Entreprise ── */}
+                  {}
                   {role === "client" && accountType === "company" && (<>
                     <Field label="Nom de l'entreprise">
                       <Input name="companyName" value={formData.companyName} onChange={handleChange} required />
@@ -385,7 +385,7 @@ const Register = () => {
                     </div>
                   </>)}
 
-                  {/* ── Agence ── */}
+                  {}
                   {role === "agency" && (<>
                     <Field label="Nom de l'agence">
                       <Input name="agencyName" value={formData.agencyName} onChange={handleChange} required />
@@ -449,7 +449,7 @@ const Register = () => {
                     </Field>
                   </>)}
 
-                  {/* ── Équipe ── */}
+                  {}
                   {role === "team" && (<>
                     <Field label="Nom de l'équipe">
                       <Input name="teamName" value={formData.teamName} onChange={handleChange} required />
@@ -467,7 +467,7 @@ const Register = () => {
                     </Field>
                   </>)}
 
-                  {/* ── Freelancer ── */}
+                  {}
                   {role === "freelancer" && (<>
                     <div className="form-row-2">
                       <Field label="Prénom">
@@ -495,7 +495,7 @@ const Register = () => {
                     </Field>
                   </>)}
 
-                  {/* ── Credentials ── */}
+                  {}
                   <div className="form-divider"><span>Accès au compte</span></div>
 
                   <Field label="Adresse email">

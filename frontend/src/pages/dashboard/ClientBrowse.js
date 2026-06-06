@@ -4,6 +4,7 @@ import { usePosts } from "../../hooks/usePosts";
 import uploadService from "../../services/uploadService";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 import { IconSearch, IconCompass, IconFilter, IconMapPin } from "../../components/ui/Icons";
+import BrowseBanner from "../../components/ui/BrowseBanner";
 
 const WILAYAT = [
   "Adrar","Chlef","Laghouat","Oum El Bouaghi","Batna","Béjaïa","Biskra",
@@ -103,7 +104,7 @@ const ClientBrowse = () => {
 
   return (
     <div>
-      {/* Section header */}
+      {}
       <div className="section-header">
         <div className="section-header-left">
           <h2>Explorer les posts</h2>
@@ -116,9 +117,11 @@ const ClientBrowse = () => {
         )}
       </div>
 
-      {/* ── Filter panel ── */}
+      <BrowseBanner />
+
+      {}
       <div className="card" style={{ marginBottom: 20, overflow: "visible" }}>
-        {/* Status tabs — top bar */}
+        {}
         <div style={{
           display: "flex", gap: 0, borderBottom: "1px solid var(--d-border-soft)",
           overflow: "hidden",
@@ -144,9 +147,9 @@ const ClientBrowse = () => {
           ))}
         </div>
 
-        {/* Search + filters row */}
+        {}
         <div style={{ padding: "14px 16px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
-          {/* Search */}
+          {}
           <div style={{ position: "relative" }}>
             <span style={{
               position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)",
@@ -163,7 +166,7 @@ const ClientBrowse = () => {
             />
           </div>
 
-          {/* Filter dropdowns */}
+          {}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto auto", gap: 10 }}>
             <select className="dash-form-select" value={mktType}
               onChange={e => setMktType(e.target.value)}>
@@ -197,7 +200,7 @@ const ClientBrowse = () => {
         </div>
       </div>
 
-      {/* ── Results ── */}
+      {}
       {loading ? (
         <div className="spinner-wrap"><div className="spinner" /></div>
       ) : error ? (
@@ -246,7 +249,7 @@ const ClientBrowse = () => {
   );
 };
 
-/* ── Browse card ─────────────────────────────────────────────────── */
+
 const BrowseCard = ({ post, index, onClick }) => {
   const dlColor  = getDeadlineColor(post.deadline);
   const dlLabel  = getDeadlineLabel(post.deadline);
@@ -270,7 +273,7 @@ const BrowseCard = ({ post, index, onClick }) => {
       })}
     >
       <div style={{ padding: "16px 18px" }}>
-        {/* Status + deadline */}
+        {}
         <div style={{ display: "flex", justifyContent: "space-between",
           alignItems: "center", marginBottom: 10 }}>
           <span style={{
@@ -288,20 +291,20 @@ const BrowseCard = ({ post, index, onClick }) => {
           </span>
         </div>
 
-        {/* Title */}
+        {}
         <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--d-ink)",
           marginBottom: 5, lineHeight: 1.3 }}>
           {post.title}
         </div>
 
-        {/* Description */}
+        {}
         <div style={{ fontSize: "0.78rem", color: "var(--d-ink-muted)", lineHeight: 1.55,
           marginBottom: 12, overflow: "hidden", display: "-webkit-box",
           WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
           {post.description}
         </div>
 
-        {/* Media attachments */}
+        {}
         {post.media?.length > 0 && (
           <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
             {post.media.slice(0, 3).map((m, i) => (
@@ -309,6 +312,7 @@ const BrowseCard = ({ post, index, onClick }) => {
                 <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
                   style={{ display: "block", flexShrink: 0 }}>
                   <img src={uploadService.resolveUrl(m.url)} alt={m.filename}
+                    onError={e => { e.target.style.display = "none"; }}
                     style={{ width: 64, height: 48, objectFit: "cover",
                       borderRadius: 6, border: "1px solid #f0dede" }} />
                 </a>
@@ -331,7 +335,7 @@ const BrowseCard = ({ post, index, onClick }) => {
           </div>
         )}
 
-        {/* Tags */}
+        {}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
           {post.marketingType && (
             <span style={{ padding: "2px 8px", borderRadius: 20, fontSize: "0.67rem",
@@ -351,7 +355,7 @@ const BrowseCard = ({ post, index, onClick }) => {
           ))}
         </div>
 
-        {/* Footer */}
+        {}
         <div style={{ display: "flex", alignItems: "center",
           justifyContent: "space-between",
           paddingTop: 11, borderTop: "1px solid var(--d-border-soft)",
@@ -376,7 +380,7 @@ const BrowseCard = ({ post, index, onClick }) => {
   );
 };
 
-/* ── Post detail view ────────────────────────────────────────────── */
+
 const PostDetail = ({ post, onBack }) => {
   const dlColor = getDeadlineColor(post.deadline);
   const dlLabel = getDeadlineLabel(post.deadline);
@@ -387,7 +391,7 @@ const PostDetail = ({ post, onBack }) => {
     { label: "Type de marketing",      value: post.marketingType },
     { label: "Type de collaboration",  value: COLLAB_FR[post.collaborationType] },
     { label: "Compensation",           value: COMP_FR[post.compensationType] },
-    { label: "Région",                 value: post.location?.region },
+    { label: "Wilaya",                  value: post.location?.region },
     { label: "Date limite",            value: post.deadline
         ? new Date(post.deadline).toLocaleDateString("fr-DZ") : null },
     { label: "Budget",                 value: post.budget?.min || post.budget?.max
@@ -397,7 +401,7 @@ const PostDetail = ({ post, onBack }) => {
 
   return (
     <div>
-      {/* Back */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack} style={{
           background: "none", border: "1.5px solid var(--d-border)", borderRadius: 7,
@@ -415,7 +419,7 @@ const PostDetail = ({ post, onBack }) => {
         </div>
       </div>
 
-      {/* Description */}
+      {}
       <div className="card" style={{ padding: "20px 22px", marginBottom: 14 }}>
         <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--d-muted)",
           textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
@@ -426,7 +430,7 @@ const PostDetail = ({ post, onBack }) => {
         </p>
       </div>
 
-      {/* Facts grid */}
+      {}
       <div style={{ display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(190px,1fr))",
         gap: 10, marginBottom: 14 }}>
@@ -446,7 +450,7 @@ const PostDetail = ({ post, onBack }) => {
         ))}
       </div>
 
-      {/* Benefits */}
+      {}
       {post.benefits && (
         <div className="card" style={{ padding: "18px 22px", marginBottom: 14 }}>
           <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--d-muted)",
@@ -459,7 +463,7 @@ const PostDetail = ({ post, onBack }) => {
         </div>
       )}
 
-      {/* Skills */}
+      {}
       {post.requiredSkills?.length > 0 && (
         <div className="card" style={{ padding: "18px 22px" }}>
           <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--d-muted)",

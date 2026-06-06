@@ -46,7 +46,7 @@ const FreelancerBrowse = ({ onPitch }) => {
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <div className="card" style={{ padding: "16px 20px", marginBottom: 20 }}>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
@@ -72,7 +72,7 @@ const FreelancerBrowse = ({ onPitch }) => {
           </select>
           <input
             className="dash-form-input"
-            placeholder="Région..."
+            placeholder="Wilaya..."
             value={region}
             onChange={e => setRegion(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -83,7 +83,7 @@ const FreelancerBrowse = ({ onPitch }) => {
           </button>
         </div>
 
-        {/* Marketing type chips */}
+        {}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
           {MARKETING_TYPES.map(t => (
             <button

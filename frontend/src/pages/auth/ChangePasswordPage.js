@@ -66,7 +66,7 @@ const ChangePasswordPage = () => {
   return (
     <div className="auth-page">
 
-      {/* ── Left panel ── */}
+      {}
       <div className="auth-left">
         <div className="auth-left-bg" />
         <div className="auth-left-decor">M</div>
@@ -117,7 +117,7 @@ const ChangePasswordPage = () => {
         </div>
       </div>
 
-      {/* ── Right panel ── */}
+      {}
       <div className="auth-right">
         <div className="auth-form-wrap">
           <motion.div

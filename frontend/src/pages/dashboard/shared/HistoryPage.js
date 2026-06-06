@@ -1,5 +1,5 @@
-// frontend/src/pages/dashboard/shared/HistoryPage.js
-// Per-user activity history timeline — used in all dashboards
+
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -101,7 +101,7 @@ const HistoryPage = () => {
       ) : (
         <>
           <div style={{ position: "relative" }}>
-            {/* Vertical timeline line */}
+            {}
             <div style={{
               position: "absolute", left: 19, top: 0, bottom: 0,
               width: 2, background: "#f0eded", zIndex: 0,
@@ -119,7 +119,7 @@ const HistoryPage = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.03 }}
                       style={{ display: "flex", gap: 16, paddingBottom: 20, position: "relative" }}>
-                      {/* Dot */}
+                      {}
                       <div style={{
                         width: 40, height: 40, borderRadius: "50%",
                         background: meta.bg, border: `2px solid ${meta.color}`,
@@ -129,7 +129,7 @@ const HistoryPage = () => {
                         {meta.icon}
                       </div>
 
-                      {/* Content */}
+                      {}
                       <div className="card" style={{
                         flex: 1, padding: "12px 16px",
                         borderLeft: `3px solid ${meta.color}`,
@@ -159,7 +159,7 @@ const HistoryPage = () => {
             </div>
           </div>
 
-          {/* Pagination */}
+          {}
           {pages > 1 && (
             <div style={{ display: "flex", gap: 8, justifyContent: "center",
               alignItems: "center", marginTop: 8 }}>

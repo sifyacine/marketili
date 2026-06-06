@@ -144,7 +144,7 @@ const AgencyProfile = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
 
-      {/* Page header */}
+      {}
       <div className="section-head" style={{ marginBottom: 20 }}>
         <div>
           <div className="section-head-title">Mon profil</div>
@@ -163,21 +163,21 @@ const AgencyProfile = () => {
         <SuccessBanner show={saved} />
       </AnimatePresence>
 
-      {/* ── Hero card ─────────────────────────────────────────────────────── */}
+      {}
       <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
         <div style={{ height: 5, background: ACCENT }} />
 
         <div style={{ padding: "22px 24px 0" }}>
           <div style={{ display: "flex", gap: 18, alignItems: "flex-start", flexWrap: "wrap" }}>
 
-            {/* Avatar */}
+            {}
             <div style={{ position: "relative", flexShrink: 0 }}>
               <input ref={photoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarChange} />
               <AvatarCircle src={avatarSrc} name={displayName} size={88} accentColor={ACCENT} />
               {editing && <AvatarEditBtn onClick={() => photoRef.current?.click()} loading={avatarUploading} accentColor={ACCENT} />}
             </div>
 
-            {/* Identity */}
+            {}
             <div style={{ flex: 1, minWidth: 190 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                 <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800, color: "var(--d-ink)", letterSpacing: "-0.03em" }}>
@@ -233,7 +233,7 @@ const AgencyProfile = () => {
             </div>
           </div>
 
-          {/* Edit form */}
+          {}
           {editing && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -272,7 +272,7 @@ const AgencyProfile = () => {
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {[
                       { field: "street", p: "Rue, numéro..." },
-                      { field: "region", p: "Wilaya / Région" },
+                      { field: "region", p: "Wilaya" },
                     ].map(({ field, p }) => (
                       <input key={field} className="dash-form-input" value={form.address[field]}
                         placeholder={p} onChange={e => setAddr(field, e.target.value)} />
@@ -284,7 +284,7 @@ const AgencyProfile = () => {
           )}
         </div>
 
-        {/* Stat bar */}
+        {}
         {!editing && (
           <div style={{ marginTop: 22 }}>
             <StatBar
@@ -301,10 +301,10 @@ const AgencyProfile = () => {
         )}
       </div>
 
-      {/* ── Info section ──────────────────────────────────────────────────── */}
+      {}
       <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 20, marginBottom: 20 }}>
 
-        {/* Left: contact + address */}
+        {}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div className="card">
             <div className="card-header">
@@ -346,7 +346,7 @@ const AgencyProfile = () => {
           )}
         </div>
 
-        {/* Right: agency info */}
+        {}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {isDirector && (
             <div className="card">

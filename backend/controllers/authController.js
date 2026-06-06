@@ -13,7 +13,7 @@ const mailer = require("../utils/mailer");
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
 
-// Models for the self-registering (email-verifiable) roles.
+
 const VERIFIABLE_MODELS = {
   client:     Client,
   agency:     Agency,
@@ -29,7 +29,7 @@ const generateToken = (id, role) => {
   );
 };
 
-// Short-lived, stateless token carried in the verification link.
+
 const generateEmailToken = (id, role, email) =>
   jwt.sign(
     { id, role, email, purpose: "email_verification" },
@@ -37,7 +37,7 @@ const generateEmailToken = (id, role, email) =>
     { expiresIn: "2d" }
   );
 
-// Build the display name used in emails / activity log.
+
 const deriveName = (role, data = {}) => {
   if (role === "client") return data.firstName ? `${data.firstName} ${data.lastName || ""}`.trim() : data.companyName;
   if (role === "agency") return data.agencyName;
@@ -45,7 +45,7 @@ const deriveName = (role, data = {}) => {
   return `${data.firstName || ""} ${data.lastName || ""}`.trim();
 };
 
-// Fire-and-forget: send the verification email, never blocking the caller.
+
 const sendVerification = (user, role) => {
   try {
     const token = generateEmailToken(user._id, role, user.email);
@@ -99,16 +99,16 @@ const register = async (req, res) => {
       case "freelancer": user = await Freelancer.create(data); break;
     }
 
-    // Create the initial (unpaid) subscription record so the account is tracked
-    // and gated until it subscribes. Non-fatal: never block registration on it.
+    
+    
     try {
       await createInitialSubscription(user._id, role, user.email, user.createdAt);
     } catch (subErr) {
       console.error("⚠️ initial subscription creation failed:", subErr.message);
     }
 
-    // Send the email-verification link (non-blocking). Access is allowed
-    // immediately (soft gate); a banner prompts the user until they verify.
+    
+    
     sendVerification(user, role);
 
     const token = generateToken(user._id, role);
@@ -134,14 +134,14 @@ const register = async (req, res) => {
     return res.status(201).json({ success: true, user: formatUser(user, role) });
 
   } catch (error) {
-    // ✅ Log the real error so we can see it in the terminal
+    
     console.error("❌ Register error:", error.message, error.stack);
 
-    // Duplicate email
+    
     if (error.code === 11000) {
       return res.status(400).json({ success: false, message: "Cet email est déjà utilisé" });
     }
-    // Mongoose validation errors
+    
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map(e => e.message);
       return res.status(400).json({ success: false, message: messages.join(". ") });
@@ -214,8 +214,8 @@ const getMe = async (req, res) => {
   }
 };
 
-// ── POST /api/auth/verify-email  { token } ─────────────────────────────────────
-// Public. Decodes the signed link token and flips isVerified. Idempotent.
+
+
 const verifyEmail = async (req, res) => {
   try {
     const token = req.body.token || req.query.token;
@@ -265,8 +265,8 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-// ── POST /api/auth/resend-verification ─────────────────────────────────────────
-// Protected. Re-sends the verification email to the logged-in user.
+
+
 const resendVerification = async (req, res) => {
   try {
     const role = req.userRole;

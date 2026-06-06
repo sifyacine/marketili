@@ -27,7 +27,7 @@ const fmt = (d) => d
   ? new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" })
   : "—";
 
-// ── Convention card ────────────────────────────────────────────
+
 const ConventionCard = ({ p, index }) => {
   const [expanded, setExpanded] = useState(false);
   const meta      = STATUS_META[p.status] || STATUS_META.pending;
@@ -101,7 +101,7 @@ const ConventionCard = ({ p, index }) => {
   );
 };
 
-// ── Pitch card ─────────────────────────────────────────────────
+
 const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
   const [expanded, setExpanded] = useState(false);
   const meta = STATUS_META[p.status] || STATUS_META.pending;
@@ -181,9 +181,9 @@ const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════
+
+
+
 const FreelancerPitches = ({ user }) => {
   const [pitches,     setPitches]     = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -210,7 +210,7 @@ const FreelancerPitches = ({ user }) => {
 
   useEffect(() => { load(); }, [load]);
 
-  // Real-time: refetch when pitch status changes or a pitch notification arrives
+  
   useEffect(() => {
     const socket = getSocket();
     const onPitchUpdate = () => load();

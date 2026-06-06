@@ -1,4 +1,4 @@
-// frontend/src/pages/dashboard/ClientDashboard.jsx
+
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,14 +16,15 @@ import FileViewerModal   from "../../components/ui/FileViewerModal";
 import { getDeadlineColor, getDeadlineLabel } from "../../utils/deadlineColor";
 import NotificationsPage from "./NotificationsPage";
 import notificationService from "../../services/notificationService";
-import ClientCalendar  from "./client/ClientCalendar";
-import ClientProfile   from "./client/ClientProfile";
-import PersonalNotes   from "./shared/PersonalNotes";
+import ClientCalendar      from "./client/ClientCalendar";
+import ClientProfile       from "./client/ClientProfile";
+import PersonalNotes       from "./shared/PersonalNotes";
+import BrowseProvidersPage from "../BrowseProvidersPage";
 import HistoryPage     from "./shared/HistoryPage";
 import {
   IconHome, IconClipboard, IconCompass, IconInbox,
   IconBriefcase, IconFileText, IconZap, IconCheckSquare,
-  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail,
+  IconTrendingUp, IconPlus, IconBell, IconUser, IconCalendar, IconNote, IconClock, IconMail, IconUsers,
 } from "../../components/ui/Icons";
 import ChatWindow   from "../../components/chat/ChatWindow";
 import MessagesPage from "./shared/MessagesPage";
@@ -54,6 +55,7 @@ const ClientDashboard = () => {
     { label: "Offres reçues",   icon: <IconInbox      size={16} />, path: "/dashboard/client/pitches"        },
     { label: "Projets",         icon: <IconBriefcase  size={16} />, path: "/dashboard/client/projects"       },
     { label: "Contrats",        icon: <IconFileText   size={16} />, path: "/dashboard/client/contracts"      },
+    { label: "Prestataires",   icon: <IconUsers      size={16} />, path: "/dashboard/client/providers"      },
     { label: "Calendrier",      icon: <IconCalendar   size={16} />, path: "/dashboard/client/calendar"        },
     { label: "Notes",           icon: <IconNote       size={16} />, path: "/dashboard/client/notes"           },
     { label: "Historique",      icon: <IconClock      size={16} />, path: "/dashboard/client/history"          },
@@ -77,6 +79,7 @@ const ClientDashboard = () => {
           <Route path="pitches"       element={<ClientPitches     user={user} />} />
           <Route path="projects"      element={<ClientProjects    user={user} />} />
           <Route path="contracts"     element={<ClientContracts   user={user} />} />
+          <Route path="providers"     element={<BrowseProvidersPage />} />
           <Route path="calendar"      element={<ClientCalendar  user={user} />} />
           <Route path="notes"         element={<PersonalNotes />} />
           <Route path="history"       element={<HistoryPage />} />
@@ -100,9 +103,9 @@ const ClientDashboard = () => {
   );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// CLIENT OVERVIEW
-// ══════════════════════════════════════════════════════════════════════════════
+
+
+
 const ClientOverview = ({ user, onCreatePost }) => {
   const navigate = useNavigate();
   const { posts, loading } = useMyPosts(user._id);
@@ -175,12 +178,12 @@ const ClientOverview = ({ user, onCreatePost }) => {
   );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// CLIENT POSTS
-// ══════════════════════════════════════════════════════════════════════════════
+
+
+
 const ClientPosts = ({ user, onCreatePost, refetchKey }) => {
   const { posts, loading, refetch } = useMyPosts(user._id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => { refetch(); }, [refetchKey]);
 
   return (
@@ -200,9 +203,9 @@ const ClientPosts = ({ user, onCreatePost, refetchKey }) => {
   );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// CLIENT PROJECTS — REAL IMPLEMENTATION
-// ══════════════════════════════════════════════════════════════════════════════
+
+
+
 const STATUS_COLOR = {
   pending:   "#f59e0b",
   active:    "#7c3aed",
@@ -235,7 +238,7 @@ const ClientProjects = ({ user }) => {
     ? projects
     : projects.filter(p => p.projectStatus === filter);
 
-  // Completed/cancelled float to end, rest sorted by closest deadline
+  
   const filtered = [...base].sort((a, b) => {
     const aDone = ["completed", "cancelled"].includes(a.projectStatus);
     const bDone = ["completed", "cancelled"].includes(b.projectStatus);
@@ -251,7 +254,7 @@ const ClientProjects = ({ user }) => {
     { value: "cancelled", label: "Annulés"     },
   ];
 
-  // Helper: get provider display name from project
+  
   const providerName = (p) => {
     if (p.providerAgency)     return p.providerAgency.agencyName;
     if (p.providerTeam)       return p.providerTeam.teamName;
@@ -282,7 +285,7 @@ const ClientProjects = ({ user }) => {
         </div>
       </div>
 
-      {/* Status filter pills */}
+      {}
       <div className="filters-bar" style={{ marginBottom: 18 }}>
         {STATUS_OPTS.map(o => (
           <button key={o.value}
@@ -328,7 +331,7 @@ const ClientProjects = ({ user }) => {
                 </div>
               )}
               <div style={{ padding: "20px 22px" }}>
-                {/* Header row */}
+                {}
                 <div style={{ display: "flex", justifyContent: "space-between",
                   alignItems: "flex-start", marginBottom: 8 }}>
                   <div style={{ fontWeight: 700, fontSize: "0.95rem",
@@ -345,21 +348,21 @@ const ClientProjects = ({ user }) => {
                   </span>
                 </div>
 
-                {/* Provider */}
+                {}
                 <div style={{ fontSize: "0.78rem", color: "#9a6060", marginBottom: 12 }}>
                   Prestataire : <span style={{ color: "#4a2a2a", fontWeight: 600 }}>
                     {providerName(p)}
                   </span>
                 </div>
 
-                {/* Progress */}
+                {}
                 <div style={{ background: "#f0dede", borderRadius: 99,
                   height: 6, overflow: "hidden", marginBottom: 6 }}>
                   <div style={{ width: `${p.progress || 0}%`, height: "100%",
                     background: "#c0152a", borderRadius: 99, transition: "width 0.4s" }} />
                 </div>
 
-                {/* Footer */}
+                {}
                 <div style={{ display: "flex", justifyContent: "space-between",
                   fontSize: "0.72rem", color: "#9a6060" }}>
                   <span>{p.progress || 0}% avancement</span>
@@ -379,16 +382,16 @@ const ClientProjects = ({ user }) => {
   );
 };
 
-// ── Client project detail — read-only view ────────────────────────────────────
+
 const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
   const [activeTab,   setActiveTab]   = useState("detail");
-  const [project]                     = useState(initial);
+  const [project,     setProject]     = useState(initial);
   const [notes,       setNotes]       = useState(initial.notes || []);
   const [noteText,    setNoteText]    = useState("");
   const [noteLoading, setNoteLoading] = useState(false);
   const [noteError,   setNoteError]   = useState("");
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => { onRefresh && onRefresh(); }, []);
 
   const submitNote = async (e) => {
@@ -409,7 +412,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
 
   return (
     <div>
-      {/* Back button */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack}
           style={{ background: "none", border: "1.5px solid #f0dede", borderRadius: 8,
@@ -433,7 +436,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
         </div>
       </div>
 
-      {/* ── Tab bar ── */}
+      {}
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
@@ -459,10 +462,10 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
 
       {activeTab === "historique" && <ProjectHistory projectId={project._id} />}
 
-      {/* ── Notes tab ── */}
+      {}
       {activeTab === "notes" && (
         <div>
-          {/* Leave a note form */}
+          {}
           <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
             <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
               textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
@@ -503,7 +506,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
             </form>
           </div>
 
-          {/* Notes list */}
+          {}
           {notes.length === 0 ? (
             <div className="card">
               <div className="empty-state" style={{ padding: "40px 24px" }}>
@@ -546,7 +549,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
 
       {activeTab === "detail" && <>
 
-      {/* Progress card */}
+      {}
       <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
@@ -564,7 +567,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
             ? new Date(project.deadline).toLocaleDateString("fr-DZ") : "—"}</span>
         </div>
 
-        {/* Financial summary */}
+        {}
         {project.agreedPrice?.amount && (
           <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid #faeaea",
             display: "flex", justifyContent: "space-between",
@@ -577,7 +580,7 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
         )}
       </div>
 
-      {/* Deliverables — read-only for client */}
+      {}
       {!!project.deliverables?.length && (
         <div className="card" style={{ marginBottom: 16 }}>
           <div style={{ padding: "16px 22px", borderBottom: "1px solid #faeaea" }}>
@@ -614,14 +617,14 @@ const ClientProjectDetail = ({ project: initial, onBack, onRefresh }) => {
         </div>
       )}
 
-      </> /* end detail tab */}
+      </> }
     </div>
   );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// CLIENT CONTRACTS
-// ══════════════════════════════════════════════════════════════════════════════
+
+
+
 const CONTRACT_STATUS_META = {
   draft:        { label: "Brouillon",         color: "#6b7280", bg: "#f9fafb" },
   sent:         { label: "Envoyé",            color: "#f59e0b", bg: "#fffbeb" },
@@ -802,7 +805,7 @@ const ClientContracts = ({ user }) => {
   );
 };
 
-// ── Client contract detail — can upload receipt ───────────────────────────────
+
 const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   const [contract,      setContract]      = useState(initial);
   const [uploading,     setUploading]     = useState(false);
@@ -821,7 +824,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
     setUploading(true);
     setError("");
     try {
-      // Upload file first through the existing upload endpoint
+      
       const form = new FormData();
       form.append("file", receiptFile);
       const uploadRes = await fetch(
@@ -832,7 +835,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
       const fileId  = uploadData.fileId  || uploadData.id || "";
       const fileUrl = uploadData.url     || `/api/upload/${fileId}`;
 
-      // Then attach to contract
+      
       const updated = await contractService.uploadReceipt(contract._id, {
         uploadedBy: user._id,
         filename:   receiptFile.name,
@@ -867,7 +870,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
       {viewer && (
         <FileViewerModal url={viewer.url} filename={viewer.filename} onClose={() => setViewer(null)} />
       )}
-      {/* Back */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack}
           style={{ background: "none", border: "1.5px solid #f0dede", borderRadius: 8,
@@ -886,7 +889,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
         </div>
       </div>
 
-      {/* Status stepper */}
+      {}
       <div className="card" style={{ padding: "16px 22px", marginBottom: 16 }}>
         <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#9a6060",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
@@ -895,7 +898,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
         <ClientContractStepper status={contract.status} />
       </div>
 
-      {/* Contract details */}
+      {}
       <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 14 }}>
@@ -931,7 +934,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
         </div>
       </div>
 
-      {/* Contract PDF link */}
+      {}
       {contract.contractPdf?.url && (
         <div className="card" style={{ padding: "16px 22px", marginBottom: 16 }}>
           <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
@@ -963,7 +966,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
         </div>
       )}
 
-      {/* Bon de commande link */}
+      {}
       {contract.bonDeCommande?.url && (
         <div className="card" style={{ padding: "16px 22px", marginBottom: 16 }}>
           <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
@@ -995,7 +998,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
         </div>
       )}
 
-      {/* Receipt upload — only shown when contract is "sent" */}
+      {}
       {contract.status === "sent" && (
         <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
           <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#c0152a",
@@ -1034,7 +1037,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
         </div>
       )}
 
-      {/* Status: acknowledged — waiting for BDC */}
+      {}
       {contract.status === "acknowledged" && (
         <div style={{ padding: "14px 18px", borderRadius: 10,
           background: "#f0f9ff", border: "1px solid #bae6fd",
@@ -1043,7 +1046,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
         </div>
       )}
 
-      {/* Status: signed */}
+      {}
       {contract.status === "signed" && (
         <div style={{ padding: "14px 18px", borderRadius: 10,
           background: "#f0fdf4", border: "1px solid #bbf7d0",
@@ -1052,7 +1055,7 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
         </div>
       )}
 
-      {/* Resiliation zone */}
+      {}
       {!["resiliation", "signed"].includes(contract.status) && (
         <div className="card" style={{ padding: "18px 22px",
           borderTop: "3px solid #fecaca" }}>
@@ -1121,9 +1124,9 @@ const ClientContractDetail = ({ contract: initial, user, onBack, onRefresh }) =>
   );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// SHARED COMPONENTS
-// ══════════════════════════════════════════════════════════════════════════════
+
+
+
 const StatCard = ({ icon, label, value, sub, color, onClick }) => (
   <motion.div className="stat-card" style={{ "--stat-color": color, cursor: onClick ? "pointer" : "default" }}
     initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3 }}

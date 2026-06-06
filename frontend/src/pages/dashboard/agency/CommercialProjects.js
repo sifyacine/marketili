@@ -1,4 +1,4 @@
-// src/pages/dashboard/agency/CommercialProjects.js
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProgressBar } from "./shared";
@@ -23,7 +23,7 @@ const STATUS_COLOR = {
   cancelled:        "#6b7280",
 };
 
-// ── ProjectDetail ─────────────────────────────────────────────────────────────
+
 const ProjectDetail = ({ project: initial, user, onBack }) => {
   const [project,      setProject]      = useState(initial);
   const [deliverables, setDeliverables] = useState([]);
@@ -40,7 +40,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
     ])
       .catch(() => {})
       .finally(() => setDlLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [initial._id]);
 
   const showMsg = (text, ok = true) => {
@@ -97,7 +97,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
 
   return (
     <div>
-      {/* Back + title */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack}
           style={{ background: "none", border: "1.5px solid var(--d-border-soft)",
@@ -122,7 +122,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
         </div>
       </div>
 
-      {/* Flash message */}
+      {}
       <AnimatePresence>
         {msg.text && (
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -135,7 +135,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
         )}
       </AnimatePresence>
 
-      {/* Progress card */}
+      {}
       <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "var(--d-muted)",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
@@ -158,7 +158,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
         )}
       </div>
 
-      {/* Deliverables */}
+      {}
       <div className="card">
         <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--d-border-soft)" }}>
           <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--d-ink)" }}>
@@ -169,7 +169,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
           </div>
         </div>
 
-        {/* Add deliverable form */}
+        {}
         {!isDone && (
           <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--d-border-soft)",
             background: "var(--d-surface)" }}>
@@ -203,7 +203,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
           </div>
         )}
 
-        {/* Deliverables list */}
+        {}
         {dlLoading ? (
           <div className="spinner-wrap" style={{ padding: 24 }}><div className="spinner" /></div>
         ) : deliverables.length === 0 ? (
@@ -273,7 +273,7 @@ const ProjectDetail = ({ project: initial, user, onBack }) => {
   );
 };
 
-// ── Main CommercialProjects component ─────────────────────────────────────────
+
 const CommercialProjects = ({ user }) => {
   const [projects, setProjects] = useState([]);
   const [loading,  setLoading]  = useState(true);

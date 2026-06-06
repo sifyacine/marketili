@@ -13,7 +13,7 @@ const FADE_UP = {
 
 const EMAIL     = "contact@marketili.dz";
 
-// ── Navbar ────────────────────────────────────────────────────────────────────
+
 const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
   const [open,     setOpen]     = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -35,7 +35,7 @@ const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
 
   return (
     <nav className={`lp-nav${scrolled ? " lp-nav-scrolled" : ""}`}>
-      {/* Logo */}
+      {}
       <div className="lp-nav-logo" style={{ gap: 9 }}>
         <img src="/marketili_logo.svg" alt="Marketili"
           style={{ height: 30, objectFit: "contain", display: "block", flexShrink: 0 }} />
@@ -44,7 +44,7 @@ const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
         </span>
       </div>
 
-      {/* Center pill nav */}
+      {}
       <div className="lp-nav-pill">
         {NAV_LINKS.map(l => (
           <button key={l.label} className="lp-nav-link" onClick={() => scrollTo(l.ref)}>
@@ -54,13 +54,13 @@ const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
         <Link to="/pricing" className="lp-nav-link" style={{ textDecoration: "none" }}>Tarifs</Link>
       </div>
 
-      {/* Right actions */}
+      {}
       <div className="lp-nav-actions">
         <Link to="/login"    className="lp-nav-ghost">Se connecter</Link>
         <Link to="/register" className="lp-nav-cta">Commencer</Link>
       </div>
 
-      {/* Hamburger */}
+      {}
       <button className="lp-hamburger" onClick={() => setOpen(o => !o)} aria-label="menu" aria-expanded={open}>
         <span /><span /><span />
       </button>
@@ -82,7 +82,7 @@ const Navbar = ({ benefitsRef, howRef, rolesRef, contactRef }) => {
   );
 };
 
-// ── Contact form ──────────────────────────────────────────────────────────────
+
 const QUESTION_TYPES = [
   { v: "",                  l: "Choisir un sujet..."     },
   { v: "inscription",       l: "Inscription / Compte"    },
@@ -192,7 +192,7 @@ const ContactForm = () => {
   );
 };
 
-// ── Benefits data ─────────────────────────────────────────────────────────────
+
 const BENEFITS = [
   {
     num: "01", color: "#c0152a",
@@ -270,7 +270,7 @@ const BENEFITS = [
   },
 ];
 
-// ── Logo strip data ───────────────────────────────────────────────────────────
+
 const LOGOS = [
   { name: "Agences 360°", icon: "◈" },
   { name: "Freelancers", icon: "◎" },
@@ -279,9 +279,9 @@ const LOGOS = [
   { name: "Créateurs", icon: "○" },
 ];
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
+
+
+
 const LandingPage = () => {
   const navigate     = useNavigate();
   const benefitsRef  = useRef(null);
@@ -295,9 +295,9 @@ const LandingPage = () => {
     <div className="lp-root">
       <Navbar benefitsRef={benefitsRef} howRef={howRef} rolesRef={rolesRef} contactRef={contactRef} />
 
-      {/* ── Hero ──────────────────────────────────────────────────────── */}
+      {}
       <section className="lp-hero">
-        {/* Blob decorations */}
+        {}
         <div className="lp-hero-blob lp-hero-blob-1" />
         <div className="lp-hero-blob lp-hero-blob-2" />
         <div className="lp-hero-blob lp-hero-blob-3" />
@@ -332,7 +332,7 @@ const LandingPage = () => {
 
           </div>
 
-          {/* Brand "M" watermark — fills the empty right side of the hero */}
+          {}
           <motion.div className="lp-hero-decor" aria-hidden="true"
             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}>
@@ -341,7 +341,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── Logo strip ─────────────────────────────────────────────────── */}
+      {}
       <div className="lp-logos">
         <div className="lp-container">
           <div className="lp-logos-label">La plateforme pour tous les acteurs du marketing</div>
@@ -356,7 +356,7 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* ── Benefits ──────────────────────────────────────────────────── */}
+      {}
       <section ref={benefitsRef} className="lp-section lp-benefits">
         <div className="lp-container">
           <motion.div className="lp-section-head"
@@ -387,7 +387,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── How it works ──────────────────────────────────────────────── */}
+      {}
       <section ref={howRef} className="lp-section lp-how">
         <div className="lp-container">
           <motion.div className="lp-section-head"
@@ -417,7 +417,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── For whom ──────────────────────────────────────────────────── */}
+      {}
       <section ref={rolesRef} className="lp-section lp-roles">
         <div className="lp-container">
           <motion.div className="lp-section-head"
@@ -474,7 +474,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── Final CTA ──────────────────────────────────────────────────── */}
+      {}
       <section className="lp-section lp-cta">
         <div className="lp-cta-glow" />
         <motion.div className="lp-container lp-cta-inner"
@@ -497,7 +497,7 @@ const LandingPage = () => {
         </motion.div>
       </section>
 
-      {/* ── Contact ───────────────────────────────────────────────────── */}
+      {}
       <section ref={contactRef} className="lp-section lp-contact">
         <div className="lp-container">
           <motion.div className="lp-section-head"
@@ -527,7 +527,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── Footer ────────────────────────────────────────────────────── */}
+      {}
       <footer className="lp-footer">
         <div className="lp-container lp-footer-grid">
           <div className="lp-footer-brand">
@@ -540,9 +540,9 @@ const LandingPage = () => {
             </div>
             <p className="lp-footer-tagline">La collaboration marketing professionnelle en Algérie.</p>
             <div className="lp-footer-socials">
-              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              {}
               <a href="#" className="lp-social-link" aria-label="LinkedIn">in</a>
-              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              {}
               <a href="#" className="lp-social-link" aria-label="Instagram">ig</a>
             </div>
           </div>

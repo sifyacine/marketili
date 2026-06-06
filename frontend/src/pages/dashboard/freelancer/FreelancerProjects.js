@@ -42,7 +42,7 @@ const ProjectDetail = ({ project: p, userId, onBack }) => {
         Retour aux projets
       </button>
 
-      {/* ── Tab bar ── */}
+      {}
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
@@ -106,7 +106,7 @@ const ProjectDetail = ({ project: p, userId, onBack }) => {
         </div>
       </div>
 
-      {/* My tasks */}
+      {}
       {myTasks.length > 0 && (
         <div className="card" style={{ padding: 0, marginBottom: 20 }}>
           <div style={{ padding: "14px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
@@ -151,7 +151,7 @@ const ProjectDetail = ({ project: p, userId, onBack }) => {
         </div>
       )}
 
-      {/* All tasks */}
+      {}
       {allTasks.length > myTasks.length && (
         <div className="card" style={{ padding: 0 }}>
           <div style={{ padding: "14px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
@@ -190,7 +190,7 @@ const ProjectDetail = ({ project: p, userId, onBack }) => {
           Aucune tâche dans ce projet
         </div>
       )}
-      </> /* end detail tab */}
+      </> }
     </div>
   );
 };
@@ -298,7 +298,7 @@ const FreelancerProjects = ({ user, activeContext }) => {
         </div>
       </div>
 
-      {/* Filter tabs */}
+      {}
       <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
         {STATUS_TABS.map(tab => (
           <button

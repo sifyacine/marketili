@@ -25,6 +25,7 @@ const AdBanner = () => {
     }}>
       {ad.imageUrl && (
         <img src={uploadService.resolveUrl(ad.imageUrl)} alt={ad.title}
+          onError={e => { e.target.style.display = "none"; }}
           style={{ height: 36, objectFit: "contain", borderRadius: 4, flexShrink: 0 }} />
       )}
       <div style={{ flex: 1, minWidth: 0 }}>

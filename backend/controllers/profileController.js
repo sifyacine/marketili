@@ -1,4 +1,4 @@
-// backend/controllers/profileController.js
+
 
 const Agency      = require("../models/Agency");
 const AgencyMember = require("../models/AgencyMember");
@@ -20,7 +20,7 @@ const MODEL_MAP = {
   client:     Client,
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+
 const getCompletedProjects = async (role, id) => {
   const field = role === "agency"     ? "providerAgency"     :
                 role === "team"       ? "providerTeam"       :
@@ -29,9 +29,9 @@ const getCompletedProjects = async (role, id) => {
   return Project.countDocuments({ [field]: id, projectStatus: "completed" });
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET PUBLIC PROFILE  GET /api/profile/:role/:id
-// ─────────────────────────────────────────────────────────────
+
+
+
 exports.getProfile = async (req, res) => {
   try {
     const { role, id } = req.params;
@@ -47,7 +47,7 @@ exports.getProfile = async (req, res) => {
 
     const completedProjects = await getCompletedProjects(role, id);
 
-    // Flatten collaboration agency names for easy frontend use
+    
     let agencyCollaborations = doc.agencyCollaborations;
     if (role === "freelancer" && agencyCollaborations) {
       agencyCollaborations = agencyCollaborations.map(c => ({
@@ -57,7 +57,7 @@ exports.getProfile = async (req, res) => {
       }));
     }
 
-    // For agencies: populate member count from the members array
+    
     const membersCount = Array.isArray(doc.members) ? doc.members.length : undefined;
 
     return ok(res, { profile: { ...doc, completedProjects, membersCount, agencyCollaborations } });
@@ -67,10 +67,10 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// EDIT OWN PROFILE  PATCH /api/profile/me
-// Protected — req.user identifies who
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 const ALLOWED_FIELDS = {
   agency:        ["agencyName", "bio", "logo", "specialties", "portfolioItems", "website", "phone", "address", "region"],
   freelancer:    ["firstName", "lastName", "bio", "avatar", "skills", "categories", "socialLinks", "followersCount", "region"],
@@ -79,7 +79,7 @@ const ALLOWED_FIELDS = {
   agency_member: ["firstName", "lastName", "bio", "avatar", "skills", "phone"],
 };
 
-// Roles that store region under address.region vs location.region
+
 const REGION_PATH = {
   agency:     "address.region",
   team:       "address.region",
@@ -122,10 +122,10 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// BROWSE PROVIDERS  GET /api/providers
-// type=agency|team|freelancer|all, specialty, region, search, page, limit
-// ─────────────────────────────────────────────────────────────
+
+
+
+
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 exports.browseProviders = async (req, res) => {
@@ -187,7 +187,7 @@ exports.browseProviders = async (req, res) => {
       total += r.total;
     }
 
-    // Shuffle by updatedAt when type=all
+    
     results.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
     return ok(res, {
@@ -202,9 +202,9 @@ exports.browseProviders = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// CREATE PROFILE POST  POST /api/profile/posts
-// ─────────────────────────────────────────────────────────────
+
+
+
 exports.createProfilePost = async (req, res) => {
   try {
     const { content, media, postType } = req.body;
@@ -233,9 +233,9 @@ exports.createProfilePost = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET PROFILE POSTS  GET /api/profile/:role/:id/posts
-// ─────────────────────────────────────────────────────────────
+
+
+
 exports.getProfilePosts = async (req, res) => {
   try {
     const { id } = req.params;
@@ -258,9 +258,9 @@ exports.getProfilePosts = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// DELETE PROFILE POST  DELETE /api/profile/posts/:id
-// ─────────────────────────────────────────────────────────────
+
+
+
 exports.deleteProfilePost = async (req, res) => {
   try {
     const post = await ProfilePost.findById(req.params.id);

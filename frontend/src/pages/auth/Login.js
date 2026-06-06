@@ -63,7 +63,7 @@ const Login = () => {
   return (
     <div className="auth-page">
 
-      {/* ── Left panel ── */}
+      {}
       <div className="auth-left">
         <div className="auth-left-bg" />
         <div className="auth-left-decor">M</div>
@@ -86,7 +86,7 @@ const Login = () => {
 
       </div>
 
-      {/* ── Right panel ── */}
+      {}
       <div className="auth-right">
         <div className="auth-form-wrap">
           <motion.div
@@ -133,7 +133,7 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              {}
               <a href="#" className="auth-forgot">Mot de passe oublié ?</a>
 
               {error && (

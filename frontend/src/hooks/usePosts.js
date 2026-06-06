@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import postService from "../services/postService";
 
-/**
- * usePosts — fetches a paginated, filtered list of posts.
- *
- * @param {object} initialFilters  — initial query params
- * @param {boolean} autoFetch      — fetch immediately on mount (default true)
- *
- * Returns: { posts, pagination, loading, error, filters, setFilters, refetch }
- */
+
+
+
+
+
+
+
+
 export const usePosts = (initialFilters = {}, autoFetch = true) => {
   const [posts,      setPosts]      = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -32,10 +32,10 @@ export const usePosts = (initialFilters = {}, autoFetch = true) => {
 
   useEffect(() => {
     if (autoFetch) fetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [filters, autoFetch]);
 
-  // Call this to apply new filters and reset to page 1
+  
   const applyFilters = useCallback((newFilters) => {
     setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
   }, []);
@@ -48,9 +48,9 @@ export const usePosts = (initialFilters = {}, autoFetch = true) => {
   return { posts, pagination, loading, error, filters, setFilters, applyFilters, nextPage, prevPage, refetch: fetch };
 };
 
-/**
- * useMyPosts — fetches the current client's own posts.
- */
+
+
+
 export const useMyPosts = (clientId, initialFilters = {}) => {
   const [posts,      setPosts]      = useState([]);
   const [pagination, setPagination] = useState(null);

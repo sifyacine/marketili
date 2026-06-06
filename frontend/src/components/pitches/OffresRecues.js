@@ -1,10 +1,11 @@
-// frontend/src/components/pitches/OffresRecues.jsx
+
 
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { usePitchesForPost } from "../../hooks/usePitches";
 import { useMyPosts } from "../../hooks/usePosts";
 import pitchService from "../../services/pitchService";
+import uploadService from "../../services/uploadService";
 import { IconInbox, IconClipboard } from "../ui/Icons";
 import "../../styles/OffresRecues.css";
 
@@ -151,7 +152,7 @@ const PitchDetail = ({ post, clientId, onBack }) => {
         </div>
       </div>
 
-      {/* Brief du post */}
+      {}
       <div className="card offres-recues-brief-card">
         <div className="offres-brief-header">
           <h3 className="offres-brief-title">Votre brief</h3>
@@ -177,13 +178,26 @@ const PitchDetail = ({ post, clientId, onBack }) => {
         {postFiles.length > 0 && (
           <div className="offres-brief-files">
             <div className="offres-brief-files-label">Fichiers joints</div>
-            <div className="offres-brief-files-list">
-              {postFiles.map((item) => (
-                <a key={item.url} href={item.url} target="_blank" rel="noreferrer" download className="offres-brief-file-link">
-                  <span className="offres-brief-file-name">{item.name}</span>
-                  <span className="offres-brief-file-action">Télécharger</span>
-                </a>
-              ))}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 8 }}>
+              {postFiles.map((item) => {
+                const src = uploadService.resolveUrl(item.url);
+                const isImg = item.mimeType?.startsWith("image/") ||
+                  /\.(jpe?g|png|gif|webp|svg)$/i.test(item.name);
+                return isImg ? (
+                  <a key={item.url} href={src} target="_blank" rel="noreferrer"
+                    style={{ display: "block", flexShrink: 0 }}>
+                    <img src={src} alt={item.name}
+                      style={{ width: 120, height: 90, objectFit: "cover",
+                        borderRadius: 8, border: "1px solid #f0dede", display: "block" }} />
+                  </a>
+                ) : (
+                  <a key={item.url} href={src} target="_blank" rel="noreferrer" download
+                    className="offres-brief-file-link">
+                    <span className="offres-brief-file-name">{item.name}</span>
+                    <span className="offres-brief-file-action">Télécharger</span>
+                  </a>
+                );
+              })}
             </div>
           </div>
         )}
@@ -219,7 +233,7 @@ const PitchDetail = ({ post, clientId, onBack }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
               >
-                {/* Header */}
+                {}
                 <div className="offres-pitch-header">
                   <div className="offres-pitch-header-left">
                     <h3 className="offres-pitch-sender-name">{senderName}</h3>
@@ -251,7 +265,7 @@ const PitchDetail = ({ post, clientId, onBack }) => {
                   </div>
                 </div>
 
-                {/* Body */}
+                {}
                 <div className="offres-pitch-body">
                   {pitch.description && (
                     <div className="offres-pitch-section">
@@ -349,19 +363,32 @@ const PitchDetail = ({ post, clientId, onBack }) => {
                   {attachments.length > 0 && (
                     <div className="offres-pitch-section">
                       <div className="offres-pitch-section-label">Fichiers joints</div>
-                      <div className="offres-pitch-attachments">
-                        {attachments.map((item) => (
-                          <a key={item.url} href={item.url} target="_blank" rel="noreferrer" download className="offres-pitch-attachment">
-                            <span className="offres-pitch-attachment-name">{item.name}</span>
-                            <span className="offres-pitch-attachment-action">Télécharger</span>
-                          </a>
-                        ))}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
+                        {attachments.map((item) => {
+                          const src = uploadService.resolveUrl(item.url);
+                          const isImg = item.mimeType?.startsWith("image/") ||
+                            /\.(jpe?g|png|gif|webp|svg)$/i.test(item.name);
+                          return isImg ? (
+                            <a key={item.url} href={src} target="_blank" rel="noreferrer"
+                              style={{ display: "block", flexShrink: 0 }}>
+                              <img src={src} alt={item.name}
+                                style={{ width: 100, height: 75, objectFit: "cover",
+                                  borderRadius: 6, border: "1px solid #f0dede", display: "block" }} />
+                            </a>
+                          ) : (
+                            <a key={item.url} href={src} target="_blank" rel="noreferrer" download
+                              className="offres-pitch-attachment">
+                              <span className="offres-pitch-attachment-name">{item.name}</span>
+                              <span className="offres-pitch-attachment-action">Télécharger</span>
+                            </a>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Footer */}
+                {}
                 {pitch.status === "pending" ? (
                   <div className="offres-pitch-footer">
                     <button
@@ -405,10 +432,11 @@ const collectFiles = (source) => {
   return raw
     .map((item) => {
       if (!item) return null;
-      if (typeof item === "string") return { url: item, name: item.split("/").pop() || "fichier" };
+      if (typeof item === "string") return { url: item, name: item.split("/").pop() || "fichier", mimeType: "" };
       const url = item.url || item.fileUrl || item.link || "";
       const name = item.filename || item.name || item.title || url.split("/").pop() || "fichier";
-      return url ? { url, name } : null;
+      const mimeType = item.mimeType || item.contentType || "";
+      return url ? { url, name, mimeType } : null;
     })
     .filter(Boolean)
     .filter((item) => {

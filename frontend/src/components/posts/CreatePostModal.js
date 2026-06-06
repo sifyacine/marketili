@@ -170,9 +170,9 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
             m.id === item.id ? { ...m, progress: pct } : m
           ));
         });
-        // Normalize to the Post.media shape, ensuring mimeType is present
-        // (the local File.type is the reliable fallback) so the card can tell
-        // images from videos when rendering.
+        
+        
+        
         const media = {
           fileId:   res.fileId || res.id,
           url:      res.url,
@@ -196,6 +196,16 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
     setError("");
     if (form.visibility === "private" && !form.targetProvider.providerId) {
       return setError("Veuillez sélectionner un prestataire pour un post privé");
+    }
+    if (form.compensationType !== "benefits") {
+      const bMin = form.budget.min !== "" ? Number(form.budget.min) : null;
+      const bMax = form.budget.max !== "" ? Number(form.budget.max) : null;
+      if (bMin !== null && bMin < 0)
+        return setError("Le budget minimum ne peut pas être négatif");
+      if (bMax !== null && bMax < 0)
+        return setError("Le budget maximum ne peut pas être négatif");
+      if (bMin !== null && bMax !== null && bMin > bMax)
+        return setError("Le budget minimum ne peut pas dépasser le budget maximum");
     }
     setLoading(true);
     try {
@@ -247,13 +257,13 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
         exit={{    opacity: 0, scale: 0.96, y: 16 }}
         transition={{ duration: 0.25 }}
       >
-        {/* ── Header ── */}
+        {}
         <div className="modal-header">
           <h2 className="modal-title">
             {step === 1 ? "Nouveau post" : step === 2 ? "Médias" : "Termes & Ciblage"}
           </h2>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            {/* Step bar */}
+            {}
             <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
               {STEPS.map((s, i) => (
                 <React.Fragment key={s.num}>
@@ -286,7 +296,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
           <div className="modal-body">
             <AnimatePresence mode="wait">
 
-              {/* ── STEP 1: Brief ── */}
+              {}
               {step === 1 && (
                 <motion.div key="s1" initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-20 }} className="dash-form">
 
@@ -326,7 +336,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                       </select>
                     </div>
                     <div className="dash-form-group">
-                      <label className="dash-form-label">Région</label>
+                      <label className="dash-form-label">Wilaya</label>
                       <select className="dash-form-select" value={form.location.region}
                         onChange={e => setNested("location", "region", e.target.value)}>
                         <option value="">Toute l'Algérie</option>
@@ -335,7 +345,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   </div>
 
-                  {/* Date limite with urgency color */}
+                  {}
                   <div className="dash-form-group">
                     <label className="dash-form-label">Date limite *</label>
                     <div style={{ position: "relative" }}>
@@ -361,7 +371,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   </div>
 
-                  {/* Type de collaboration — radio cards */}
+                  {}
                   <div className="dash-form-group">
                     <label className="dash-form-label">Type de collaboration</label>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
@@ -382,7 +392,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   </div>
 
-                  {/* Catégories */}
+                  {}
                   <div className="dash-form-group">
                     <label className="dash-form-label">Catégories</label>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
@@ -398,7 +408,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   </div>
 
-                  {/* Compétences requises — tag input */}
+                  {}
                   <div className="dash-form-group">
                     <label className="dash-form-label">Compétences requises</label>
                     {form.requiredSkills.length > 0 && (
@@ -446,7 +456,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                 </motion.div>
               )}
 
-              {/* ── STEP 2: Media Upload ── */}
+              {}
               {step === 2 && (
                 <motion.div key="s2" initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-20 }} className="dash-form">
                   <div className="dash-form-group">
@@ -500,11 +510,11 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                 </motion.div>
               )}
 
-              {/* ── STEP 3: Termes & Ciblage ── */}
+              {}
               {step === 3 && (
                 <motion.div key="s3" initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-20 }} className="dash-form">
 
-                  {/* Type de compensation */}
+                  {}
                   <div className="dash-form-group">
                     <label className="dash-form-label">Type de compensation</label>
                     <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
@@ -525,7 +535,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   </div>
 
-                  {/* Budget — only when monetary or mixed */}
+                  {}
                   {showBudget && (
                     <div className="dash-form-group">
                       <label className="dash-form-label">Budget estimé (DZD)</label>
@@ -539,7 +549,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   )}
 
-                  {/* Avantages proposés — only when benefits or mixed */}
+                  {}
                   {showBenefits && (
                     <div className="dash-form-group">
                       <label className="dash-form-label">
@@ -558,7 +568,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   )}
 
-                  {/* Visibilité du post */}
+                  {}
                   <div className="dash-form-group">
                     <label className="dash-form-label">Visibilité</label>
                     <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
@@ -587,7 +597,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   </div>
 
-                  {/* Provider selector — only when "private" */}
+                  {}
                   {form.visibility === "private" && (
                     <div className="dash-form-group">
                       <label className="dash-form-label">Prestataire ciblé *</label>
@@ -635,7 +645,7 @@ const CreatePostModal = ({ clientId, onClose, onCreated }) => {
                     </div>
                   )}
 
-                  {/* Cibler des prestataires (type filter) — only when public */}
+                  {}
                   {form.visibility === "public" && (
                   <div className="dash-form-group">
                     <label className="dash-form-label">Cibler des prestataires</label>

@@ -104,7 +104,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
     return () => { clearInterval(interval); window.removeEventListener("focus", onFocus); };
   }, []);
 
-  // Real-time: join user room and listen for pushed notifications and chat messages
+  
   useEffect(() => {
     if (!user?._id) return;
     const socket = getSocket();
@@ -159,7 +159,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
-  // On mobile, always show labels regardless of collapsed state
+  
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 1024);
@@ -178,10 +178,10 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
     document.title = `${activeTitle} — Marketili`;
   }, [activeTitle]);
 
-  // Close mobile drawer on route change
+  
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
-  // Prevent body scroll when mobile drawer is open
+  
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -190,15 +190,15 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
   return (
     <div className={`dash-layout ${collapsed ? "sidebar-collapsed" : "sidebar-open"}`}>
 
-      {/* ── Mobile overlay backdrop ── */}
+      {}
       {mobileOpen && (
         <div className="dash-sidebar-overlay" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* ── SIDEBAR ── */}
+      {}
       <aside className={`dash-sidebar${mobileOpen ? " mobile-open" : ""}`}>
 
-        {/* Logo */}
+        {}
         <div className="dash-sidebar-logo">
           {showLabels ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -221,7 +221,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           </button>
         </div>
 
-        {/* Role tag */}
+        {}
         <div className="dash-role-tag" style={{ "--role-color": meta.color }}>
           <span className="dash-role-tag-icon" style={{ color: meta.color }}>
             <RoleIcon size={13} />
@@ -229,7 +229,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           {showLabels && <span>{meta.label}</span>}
         </div>
 
-        {/* Nav */}
+        {}
         <nav className="dash-nav">
           {navItems.map((item) => (
             <NavLink key={item.path} to={item.path}
@@ -247,7 +247,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           ))}
         </nav>
 
-        {/* Footer: user + logout */}
+        {}
         <div className="dash-sidebar-footer">
           <div className="dash-user-chip">
             <div className="dash-user-avatar">{initials}</div>
@@ -265,7 +265,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
         </div>
       </aside>
 
-      {/* ── MAIN ── */}
+      {}
       <div className="dash-main">
         <header className="dash-topbar">
           <div className="dash-topbar-left">
@@ -277,7 +277,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
           </div>
           <div className="dash-topbar-right">
 
-            {/* Subscription / billing */}
+            {}
             {role !== "admin" && (
               <button title="Abonnement" onClick={() => navigate("/billing")}
                 style={{ display: "inline-flex", alignItems: "center", gap: 6,
@@ -288,8 +288,8 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
               </button>
             )}
 
-            {/* Notification bell */}
-              {/* Chat unread badge */}
+            {}
+              {}
             {chatUnreadCount > 0 && (
               <div style={{ position: "relative" }}>
                 <button className="dash-topbar-icon-btn" title="Messagerie"
@@ -309,7 +309,7 @@ const DashboardLayout = ({ role, user, navItems = [], children, topbarTitle }) =
               </div>
             )}
 
-            {/* Notification bell */}
+            {}
             <div style={{ position: "relative" }} ref={notifRef}>
               <button className="dash-topbar-icon-btn" title="Notifications"
                 onClick={handleOpenNotifs}>

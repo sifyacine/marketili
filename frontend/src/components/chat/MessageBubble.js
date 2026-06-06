@@ -3,8 +3,8 @@ import FileViewerModal from "../ui/FileViewerModal";
 import uploadService from "../../services/uploadService";
 import useFileBlob from "../../hooks/useFileBlob";
 
-// Loads a chat image through the authenticated axios client (so it works
-// behind the dev proxy / cross-origin) and renders the resulting blob.
+
+
 const ChatImage = ({ url, alt, onClick }) => {
   const { blobUrl, loading, error } = useFileBlob(url);
 
@@ -65,7 +65,7 @@ const MessageBubble = ({ message, isMine }) => {
   const { messageType, content, file, senderName, createdAt } = message;
   const [viewer, setViewer] = useState(null);
 
-  // ── System message ──
+  
   if (messageType === "system") {
     return (
       <div style={{
@@ -77,7 +77,7 @@ const MessageBubble = ({ message, isMine }) => {
     );
   }
 
-  // ── Document-type messages ──
+  
   if (["contract_pdf", "receipt", "bon_de_commande"].includes(messageType)) {
     const meta = TYPE_META[messageType];
     const resolvedFileUrl = file ? uploadService.resolveUrl(file.url) : null;
@@ -133,7 +133,7 @@ const MessageBubble = ({ message, isMine }) => {
     );
   }
 
-  // ── File message ──
+  
   if (messageType === "file" && file) {
     const isPdf   = file.mimeType?.includes("pdf");
     const isImage = file.mimeType?.startsWith("image/");
@@ -206,7 +206,7 @@ const MessageBubble = ({ message, isMine }) => {
     );
   }
 
-  // ── Regular text message ──
+  
   return (
     <div style={{
       display: "flex", flexDirection: isMine ? "row-reverse" : "row",
