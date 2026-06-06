@@ -190,7 +190,7 @@ const sendPitch = async (req, res) => {
         type: "pitch_received", category: "pitches",
         title: "Nouvelle convention de collaboration",
         body: `Une agence vous a envoyé une convention de collaboration.`,
-        link: `/dashboard/freelancer/conventions`,
+        link: `/dashboard/freelancer/pitches`,
         metadata: { pitchId: pitch._id },
       });
     }
@@ -256,7 +256,7 @@ const getMyPitches = async (req, res) => {
         ? "senderTeam"
         : "senderFreelancer";
 
-    const filter = { [senderField]: senderId, pitchType: { $ne: "agency_to_freelancer" } };
+    const filter = { [senderField]: senderId };
     if (status && status !== "all") filter.status = status;
 
     const pageNum = Math.max(1, parseInt(page, 10));
@@ -377,7 +377,7 @@ const acceptPitch = async (req, res) => {
       const partyAType = pitch.senderType;
       const partyBType = "Client";
 
-      
+      // Resolve provider and client display names
       const Agency     = require("../models/Agency");
       const Team       = require("../models/Team");
       const Freelancer = require("../models/Freelancer");
@@ -695,113 +695,6 @@ const updateInternalStatus = async (req, res) => {
   }
 };
 
-const getReceivedConventions = async (req, res) => {
-  try {
-    const { freelancerId, status } = req.query;
-    if (!freelancerId) return fail(res, "freelancerId requis");
-
-    const filter = { freelancer: freelancerId, pitchType: "agency_to_freelancer" };
-    if (status && status !== "all") filter.status = status;
-
-    const pitches = await Pitch.find(filter)
-      .populate("senderAgency", "agencyName logo directorFirstName directorLastName")
-      .sort({ createdAt: -1 })
-      .lean();
-
-    return ok(res, { conventions: pitches });
-  } catch (err) {
-    console.error("getReceivedConventions:", err);
-    return fail(res, "Erreur serveur", 500);
-  }
-};
-
-const getSentConventions = async (req, res) => {
-  try {
-    const { agencyId, status } = req.query;
-    if (!agencyId) return fail(res, "agencyId requis");
-
-    const filter = { senderAgency: agencyId, pitchType: "agency_to_freelancer" };
-    if (status && status !== "all") filter.status = status;
-
-    const conventions = await Pitch.find(filter)
-      .populate("freelancer", "firstName lastName profilePicture")
-      .sort({ createdAt: -1 })
-      .lean();
-
-    return ok(res, { conventions });
-  } catch (err) {
-    console.error("getSentConventions:", err);
-    return fail(res, "Erreur serveur", 500);
-  }
-};
-
-const acceptConvention = async (req, res) => {
-  try {
-    const { freelancerId } = req.body;
-    const pitch = await Pitch.findById(req.params.id)
-      .populate("senderAgency", "agencyName");
-    if (!pitch) return fail(res, "Convention introuvable", 404);
-    if (pitch.pitchType !== "agency_to_freelancer") return fail(res, "Type invalide", 400);
-    if (!pitch.freelancer || pitch.freelancer.toString() !== freelancerId)
-      return fail(res, "Non autorisé", 403);
-    if (pitch.status !== "pending")
-      return fail(res, "Cette convention ne peut plus être acceptée");
-
-    pitch.status = "accepted";
-    pitch.respondedAt = new Date();
-    await pitch.save();
-
-    if (pitch.senderAgency?._id) {
-      Notification.notify({
-        recipient: pitch.senderAgency._id, recipientRole: "agency", recipientModel: "Agency",
-        type: "pitch_accepted", category: "pitches",
-        title: "Convention acceptée",
-        body: "Le freelancer a accepté votre convention de collaboration.",
-      }).catch(() => {});
-    }
-
-    emitPitchUpdate([pitch.senderAgency?._id, freelancerId]);
-    return ok(res, { pitch });
-  } catch (err) {
-    console.error("acceptConvention:", err);
-    return fail(res, "Erreur serveur", 500);
-  }
-};
-
-const rejectConvention = async (req, res) => {
-  try {
-    const { freelancerId, reason = "" } = req.body;
-    const pitch = await Pitch.findById(req.params.id)
-      .populate("senderAgency", "agencyName");
-    if (!pitch) return fail(res, "Convention introuvable", 404);
-    if (pitch.pitchType !== "agency_to_freelancer") return fail(res, "Type invalide", 400);
-    if (!pitch.freelancer || pitch.freelancer.toString() !== freelancerId)
-      return fail(res, "Non autorisé", 403);
-    if (pitch.status !== "pending")
-      return fail(res, "Cette convention ne peut plus être rejetée");
-
-    pitch.status = "rejected";
-    pitch.rejectionReason = reason;
-    pitch.respondedAt = new Date();
-    await pitch.save();
-
-    if (pitch.senderAgency?._id) {
-      Notification.notify({
-        recipient: pitch.senderAgency._id, recipientRole: "agency", recipientModel: "Agency",
-        type: "pitch_rejected", category: "pitches",
-        title: "Convention refusée",
-        body: `Le freelancer a refusé votre convention${reason ? ` : ${reason}` : "."}`,
-      }).catch(() => {});
-    }
-
-    emitPitchUpdate([pitch.senderAgency?._id, freelancerId]);
-    return ok(res, { pitch });
-  } catch (err) {
-    console.error("rejectConvention:", err);
-    return fail(res, "Erreur serveur", 500);
-  }
-};
-
 module.exports = {
   sendPitch,
   getPitchesForPost,
@@ -812,8 +705,4 @@ module.exports = {
   getPitchesForClient,
   getPitch,
   updateInternalStatus,
-  getReceivedConventions,
-  getSentConventions,
-  acceptConvention,
-  rejectConvention,
 };
