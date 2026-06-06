@@ -54,7 +54,7 @@ const agencyMemberSchema = new mongoose.Schema(
       default: "active",
     },
 
-    
+
     mustChangePassword: { type: Boolean, default: true },
 
     refreshToken: { type: String, select: false },
