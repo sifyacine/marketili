@@ -13,6 +13,7 @@ const connectDB = async () => {
       socketTimeoutMS:          45000,
     });
     console.log(`✅ MongoDB connected: ${_conn.connection.host}`);
+
     return _conn;
   } catch (error) {
     console.error(`❌ MongoDB connection error: ${error.message}`);
@@ -20,16 +21,16 @@ const connectDB = async () => {
   }
 };
 
-// Allowed MIME types for upload
+
 const ALLOWED_MIME = new Set([
   "image/jpeg", "image/png", "image/webp", "image/gif",
   "video/mp4", "video/quicktime", "video/webm",
   "application/pdf",
 ]);
 
-// Multer with memory storage — files land in req.file.buffer.
-// The route handler writes the buffer to GridFSBucket using the
-// existing mongoose connection (no second DB connection needed).
+
+
+
 const _upload = multer({
   storage: multer.memoryStorage(),
   limits:  { fileSize: 50 * 1024 * 1024 },

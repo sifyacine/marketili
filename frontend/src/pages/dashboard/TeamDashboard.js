@@ -10,13 +10,13 @@ import NotificationsPage   from "./NotificationsPage";
 import { PostCard }        from "./agency/shared";
 import { usePosts }        from "../../hooks/usePosts";
 
-// ── Lead views ──
+
 import TeamLeadOverview  from "./team/TeamLeadOverview";
 import TeamLeadMembers   from "./team/TeamLeadMembers";
 import TeamLeadProjects  from "./team/TeamLeadProjects";
 import TeamLeadPitches   from "./team/TeamLeadPitches";
 
-// ── Member views (reuse agency worker components — same endpoints) ──
+
 import WorkerTasks         from "./agency/WorkerTasks";
 import WorkerCalendar      from "./agency/WorkerCalendar";
 import TeamMemberOverview  from "./team/TeamMemberOverview";
@@ -33,7 +33,7 @@ import {
   IconBriefcase, IconFileText, IconBell, IconUser, IconCheckSquare, IconCalendar, IconNote, IconClock, IconMail,
 } from "../../components/ui/Icons";
 
-// ── Browse posts (team lead) ──────────────────────────────────────────────────
+
 const BrowsePosts = ({ onPitch }) => {
   const { posts, loading, applyFilters } = usePosts({ status: "open", limit: 12 });
   const [search, setSearch] = useState("");
@@ -74,9 +74,9 @@ const BrowsePosts = ({ onPitch }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
+
+
+
 const TeamDashboard = () => {
   const { user } = useAuth();
   const isLead   = user?.role === "team";
@@ -146,7 +146,7 @@ const TeamDashboard = () => {
         topbarTitle={topbarTitle}>
         <Routes>
 
-          {/* ── Lead routes ── */}
+          {}
           {isLead && <>
             <Route index element={<TeamLeadOverview user={user} />} />
             <Route path="browse"        element={<BrowsePosts onPitch={setPitchTarget} />} />
@@ -161,7 +161,7 @@ const TeamDashboard = () => {
             <Route path="profile"       element={<TeamProfile />} />
           </>}
 
-          {/* ── Member routes ── */}
+          {}
           {!isLead && <>
             <Route index              element={<TeamMemberOverview  user={user} />} />
             <Route path="tasks"       element={<WorkerTasks         user={user} />} />

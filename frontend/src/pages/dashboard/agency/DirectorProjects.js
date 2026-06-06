@@ -1,11 +1,11 @@
-// frontend/src/pages/dashboard/agency/DirectorProjects.jsx
+
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProgressBar, PriorityBadge } from "./shared";
 import projectService from "../../../services/projectService";
 import contractService from "../../../services/contractService";
 import { getDeadlineColor, getDeadlineLabel } from "../../../utils/deadlineColor";
-import { IconCheckSquare, IconZap } from "../../../components/ui/Icons";
+import { IconCheckSquare, IconZap, IconUsers, IconSend } from "../../../components/ui/Icons";
 import ChatWindow from "../../../components/chat/ChatWindow";
 import ProjectHistory from "../../../components/projects/ProjectHistory";
 
@@ -93,7 +93,7 @@ const TASK_STATUS = {
   done:        { label: "Terminé",     color: "#10b981" },
 };
 
-// ── Director task row: urgency color + reassign + comment thread ──────────────
+
 const DirectorTaskRow = ({ task, projectId, isLast, members, agencyUser, onStatusChange, onReassign }) => {
   const [showReassign, setShowReassign] = useState(false);
   const [reassignId,   setReassignId]   = useState(task.assignedTo?.[0]?.memberId || "");
@@ -137,7 +137,7 @@ const DirectorTaskRow = ({ task, projectId, isLast, members, agencyUser, onStatu
 
   return (
     <div style={{ borderBottom: isLast ? "none" : "1px solid var(--d-border-soft)" }}>
-      {/* Main row */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 12,
         padding: "12px 22px", borderLeft: `3px solid ${dlColor}` }}>
         <div style={{ width: 8, height: 8, borderRadius: "50%",
@@ -199,7 +199,7 @@ const DirectorTaskRow = ({ task, projectId, isLast, members, agencyUser, onStatu
         </div>
       </div>
 
-      {/* Reassign inline row */}
+      {}
       {showReassign && (
         <div style={{ display: "flex", gap: 8, padding: "8px 22px 10px",
           background: "var(--d-surface-alt)", borderTop: "1px solid var(--d-border-soft)",
@@ -229,7 +229,7 @@ const DirectorTaskRow = ({ task, projectId, isLast, members, agencyUser, onStatu
         </div>
       )}
 
-      {/* Comment thread */}
+      {}
       {open && (
         <div style={{ padding: "12px 22px 16px", background: "var(--d-surface-alt)",
           borderTop: "1px solid var(--d-border-soft)" }}>
@@ -305,8 +305,12 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
   const [delivForm,      setDelivForm]      = useState({ fileUrl: "", fileName: "", description: "" });
   const [newDeadline,    setNewDeadline]    = useState("");
   const [saving,         setSaving]         = useState(false);
+  const [notes,          setNotes]          = useState(initial.notes || []);
+  const [noteText,       setNoteText]       = useState("");
+  const [noteLoading,    setNoteLoading]    = useState(false);
+  const [noteError,      setNoteError]      = useState("");
 
-  // ── Contract state ──
+  
   const [showContractModal, setShowContractModal] = useState(false);
   const [contract,          setContract]          = useState(null);
   const [contractLoading,   setContractLoading]   = useState(true);
@@ -326,6 +330,22 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
       .catch(() => {})
       .finally(() => setContractLoading(false));
   }, [project._id]);
+
+  const refresh = () =>
+    projectService.getProject(project._id).then(d => setProject(d.project)).catch(() => {});
+
+  const submitNote = async (e) => {
+    e.preventDefault();
+    if (!noteText.trim()) return;
+    setNoteLoading(true); setNoteError("");
+    try {
+      const data = await projectService.addNote(project._id, { text: noteText.trim() });
+      setNotes(data.notes || []);
+      setNoteText("");
+    } catch (err) {
+      setNoteError(err.response?.data?.message || "Erreur lors de l'envoi");
+    } finally { setNoteLoading(false); }
+  };
 
   const handleAddTask = async (e) => {
     e.preventDefault();
@@ -430,11 +450,12 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
 
   return (
     <div>
-      {/* ── Tab bar ── */}
+      {}
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
           { id: "historique", label: "Historique" },
+          { id: "notes",      label: `Notes${notes.length ? ` (${notes.length})` : ""}` },
           { id: "messagerie", label: "Messagerie" },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -461,10 +482,79 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
         <ProjectHistory projectId={project._id} />
       )}
 
-      {/* ── Detail tab ── */}
+      {activeTab === "notes" && (
+        <div>
+          <div className="card" style={{ padding: "20px 22px", marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--d-muted)",
+              textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+              Laisser une note
+            </div>
+            <form onSubmit={submitNote}>
+              <textarea
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                placeholder="Note sur ce projet (feedback client, remarque, suivi)..."
+                rows={4}
+                style={{ width: "100%", borderRadius: 9, border: "1.5px solid var(--d-border-soft)",
+                  padding: "10px 14px", fontSize: "0.85rem", fontFamily: "inherit",
+                  resize: "vertical", boxSizing: "border-box", outline: "none",
+                  transition: "border-color 0.15s" }}
+                onFocus={e => e.target.style.borderColor = "#c0152a"}
+                onBlur={e => e.target.style.borderColor = "var(--d-border-soft)"}
+              />
+              {noteError && (
+                <div style={{ color: "#c0152a", fontSize: "0.78rem", marginTop: 6 }}>{noteError}</div>
+              )}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                <button type="submit" disabled={noteLoading || !noteText.trim()}
+                  style={{ padding: "9px 22px", borderRadius: 9, border: "none",
+                    background: noteText.trim() ? "#c0152a" : "var(--d-border-soft)",
+                    color: noteText.trim() ? "#fff" : "var(--d-muted)",
+                    fontWeight: 700, fontSize: "0.85rem",
+                    cursor: noteText.trim() ? "pointer" : "not-allowed",
+                    fontFamily: "inherit", transition: "all 0.15s" }}>
+                  {noteLoading ? "Envoi…" : "Envoyer la note"}
+                </button>
+              </div>
+            </form>
+          </div>
+          {notes.length === 0 ? (
+            <div className="card">
+              <div className="empty-state" style={{ padding: "40px 24px" }}>
+                <div className="empty-state-title">Aucune note pour l'instant</div>
+                <div className="empty-state-desc">Ajoutez des notes de suivi sur ce projet.</div>
+              </div>
+            </div>
+          ) : (
+            <div className="card">
+              {[...notes].reverse().map((n, i) => (
+                <div key={n._id || i} style={{ padding: "14px 22px",
+                  borderBottom: i < notes.length - 1 ? "1px solid var(--d-border-soft)" : "none" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "flex-start", marginBottom: 6 }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "var(--d-ink)" }}>
+                      {n.authorName}
+                      <span style={{ fontWeight: 400, color: "var(--d-muted)", marginLeft: 6,
+                        fontSize: "0.72rem" }}>{n.authorRole}</span>
+                    </div>
+                    <span style={{ fontSize: "0.7rem", color: "var(--d-muted)", whiteSpace: "nowrap" }}>
+                      {n.createdAt ? new Date(n.createdAt).toLocaleDateString("fr-DZ") : ""}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--d-ink)", lineHeight: 1.5 }}>
+                    {n.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {}
       {activeTab === "detail" && <>
 
-      {/* ── Header: title + status + deadline ── */}
+      {}
       <div className="card" style={{ marginBottom: 16, padding: "20px 22px" }}>
         <div style={{ display: "flex", justifyContent: "space-between",
           alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
@@ -485,7 +575,7 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
             </div>
           </div>
 
-          {/* Status selector */}
+          {}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
             <select
               value={project.projectStatus}
@@ -532,7 +622,7 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
         )}
       </div>
 
-      {/* ── Assigned members + assign form ── */}
+      {}
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-header">
           <div className="section-head" style={{ marginBottom: 0 }}>
@@ -605,7 +695,7 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
         </div>
       </div>
 
-      {/* ── Contract status card ── */}
+      {}
       <div className="card" style={{ marginBottom: 16, padding: "16px 22px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
@@ -636,7 +726,7 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
         </div>
       </div>
 
-      {/* ── Deliverables ── */}
+      {}
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-header">
           <div className="section-head" style={{ marginBottom: 0 }}>
@@ -718,7 +808,7 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
         </div>
       </div>
 
-      {/* ── Tasks card ── */}
+      {}
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-header">
           <div className="section-head" style={{ marginBottom: 0 }}>
@@ -829,7 +919,7 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
         </div>
       </div>
 
-      {/* ── Contract modal ── */}
+      {}
       <AnimatePresence>
         {showContractModal && (
           <ContractModal
@@ -846,14 +936,14 @@ const ProjectDetail = ({ project: initial, agencyId, agencyUser }) => {
         )}
       </AnimatePresence>
 
-      </> /* end detail tab */}
+      </> }
     </div>
   );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// CONTRACT MODAL — CREATE CONTRACT FORM
-// ══════════════════════════════════════════════════════════════════════════════
+
+
+
 const ContractModal = ({ project, user, onClose, onCreated }) => {
   const [form, setForm] = useState({
     contractType:    "service_agreement",
@@ -891,11 +981,11 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
         projectId:  project._id,
         pitchId:    project.pitch,
         contractType: form.contractType,
-        // Party A = agency (provider)
+        
         partyAType: "Agency",
         partyAId:   project.providerAgency || user._id,
         partyAName: user.agencyName || "Agence",
-        // Party B = client
+        
         partyBType: "Client",
         partyBId:   project.client?._id || project.client,
         partyBName: clientName,
@@ -949,7 +1039,7 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
         <div className="modal-body">
           <form onSubmit={handleSubmit} className="dash-form">
 
-            {/* Contract type */}
+            {}
             <div className="dash-form-group">
               <label className="dash-form-label">Type de contrat</label>
               <select className="dash-form-select" value={form.contractType} onChange={set("contractType")}>
@@ -966,7 +1056,7 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
               <input className="dash-form-input" value={form.title} onChange={set("title")} />
             </div>
 
-            {/* ARTICLE 01 */}
+            {}
             <div className="dash-form-group">
               <label className="dash-form-label">Art. 01 — Objet du contrat *</label>
               <textarea className="dash-form-textarea" rows={3}
@@ -974,7 +1064,7 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
                 value={form.objet} onChange={set("objet")} />
             </div>
 
-            {/* ARTICLE 02 */}
+            {}
             <div className="dash-form-group">
               <label className="dash-form-label">Art. 02 — Nature des prestations</label>
               <textarea className="dash-form-textarea" rows={3}
@@ -982,7 +1072,7 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
                 value={form.prestations} onChange={set("prestations")} />
             </div>
 
-            {/* ARTICLE 03 */}
+            {}
             <div className="dash-form-group">
               <label className="dash-form-label">Art. 03 — Périmètre & livrables</label>
               <textarea className="dash-form-textarea" rows={3}
@@ -990,7 +1080,7 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
                 value={form.livrables} onChange={set("livrables")} />
             </div>
 
-            {/* ARTICLE 05 — Financial */}
+            {}
             <div className="dash-form-row">
               <div className="dash-form-group">
                 <label className="dash-form-label">Art. 05 — Montant</label>
@@ -1022,7 +1112,7 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
                 value={form.paymentSchedule} onChange={set("paymentSchedule")} />
             </div>
 
-            {/* ARTICLE 08 — Duration */}
+            {}
             <div className="dash-form-row">
               <div className="dash-form-group">
                 <label className="dash-form-label">Art. 08 — Date de début</label>
@@ -1036,7 +1126,7 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
               </div>
             </div>
 
-            {/* Clauses */}
+            {}
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 16 }}>
               <label style={{ display: "flex", alignItems: "center", gap: 8,
                 fontSize: "0.85rem", color: "#4a2a2a", cursor: "pointer" }}>
@@ -1052,7 +1142,7 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
               </label>
             </div>
 
-            {/* ARTICLE 14 */}
+            {}
             <div className="dash-form-group">
               <label className="dash-form-label">Art. 14 — Conditions de résiliation</label>
               <textarea className="dash-form-textarea" rows={2}
@@ -1087,9 +1177,9 @@ const ContractModal = ({ project, user, onClose, onCreated }) => {
   );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// MAIN COMPONENT
-// ══════════════════════════════════════════════════════════════════════════════
+
+
+
 const DirectorProjects = ({ user }) => {
   const [projects, setProjects] = useState([]);
   const [loading,  setLoading]  = useState(true);

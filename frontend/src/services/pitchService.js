@@ -59,6 +59,18 @@ const pitchService = {
 
   setInternalStatus: (id, newStatus, actorJobTitle, internalNotes) =>
     api.patch(`/pitches/${id}/internal-status`, { newStatus, actorJobTitle, internalNotes }).then((r) => r.data),
+
+  getReceivedConventions: (freelancerId, status) =>
+    api.get("/pitches/received-conventions", { params: { freelancerId, status } }).then((r) => r.data),
+
+  getSentConventions: (agencyId, status) =>
+    api.get("/pitches/sent-conventions", { params: { agencyId, status } }).then((r) => r.data),
+
+  acceptConvention: (id, freelancerId) =>
+    api.patch(`/pitches/${id}/convention-accept`, { freelancerId }).then((r) => r.data),
+
+  rejectConvention: (id, freelancerId, reason = "") =>
+    api.patch(`/pitches/${id}/convention-reject`, { freelancerId, reason }).then((r) => r.data),
 };
 
 export default pitchService;

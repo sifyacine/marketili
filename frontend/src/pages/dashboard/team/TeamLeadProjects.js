@@ -32,7 +32,7 @@ const STATUS_TABS = [
   { v: "completed", l: "Terminés"   },
 ];
 
-// ── Project detail ────────────────────────────────────────────────────────────
+
 const ProjectDetail = ({ project: p, onBack }) => {
   const [activeTab, setActiveTab] = useState("detail");
   const st = STATUS_META[p.projectStatus] || STATUS_META.active;
@@ -51,7 +51,7 @@ const ProjectDetail = ({ project: p, onBack }) => {
         Retour aux projets
       </button>
 
-      {/* ── Tab bar ── */}
+      {}
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "detail",     label: "Détail du projet" },
@@ -109,7 +109,7 @@ const ProjectDetail = ({ project: p, onBack }) => {
         </div>
       </div>
 
-      {/* Assigned members */}
+      {}
       {(p.assignedMembers || []).length > 0 && (
         <div className="card" style={{ padding: 0, marginBottom: 20 }}>
           <div style={{ padding: "14px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
@@ -138,7 +138,7 @@ const ProjectDetail = ({ project: p, onBack }) => {
         </div>
       )}
 
-      {/* Tasks */}
+      {}
       {(p.tasks || []).length > 0 ? (
         <div className="card" style={{ padding: 0 }}>
           <div style={{ padding: "14px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
@@ -182,12 +182,12 @@ const ProjectDetail = ({ project: p, onBack }) => {
           Aucune tâche dans ce projet
         </div>
       )}
-      </> /* end detail tab */}
+      </> }
     </div>
   );
 };
 
-// ── Project card ──────────────────────────────────────────────────────────────
+
 const ProjectCard = ({ project: p, index, onClick }) => {
   const isDone  = ["completed", "cancelled"].includes(p.projectStatus);
   const dlColor = isDone ? "#9e9e9e" : getDeadlineColor(p.deadline);
@@ -233,7 +233,7 @@ const ProjectCard = ({ project: p, index, onClick }) => {
   );
 };
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+
 const TeamLeadProjects = ({ user }) => {
   const [projects, setProjects] = useState([]);
   const [loading,  setLoading]  = useState(true);

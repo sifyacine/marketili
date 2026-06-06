@@ -1,4 +1,4 @@
-// frontend/src/pages/dashboard/agency/DirectorContracts.js
+
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import contractService from "../../../services/contractService";
@@ -7,7 +7,7 @@ import { IconFileText, IconCheckSquare } from "../../../components/ui/Icons";
 import ContratProformaForm from "../../../components/contracts/ContratProformaForm";
 import FileViewerModal from "../../../components/ui/FileViewerModal";
 
-// ── Status system ─────────────────────────────────────────────────────────────
+
 const STATUS_META = {
   draft:        { label: "Brouillon",     color: "#6b7280", bg: "#f9fafb" },
   sent:         { label: "Envoyé",        color: "#f59e0b", bg: "#fffbeb" },
@@ -40,7 +40,7 @@ const CONTRACT_TYPE_LABEL = {
   project:           "Projet ponctuel",
 };
 
-// ── Status stepper ────────────────────────────────────────────────────────────
+
 const ContractStatusStepper = ({ status }) => {
   const isResiliation = status === "resiliation";
   const currentIdx = isResiliation ? -1 : STEPS.findIndex(s => s.key === status);
@@ -114,7 +114,7 @@ const ContractStatusStepper = ({ status }) => {
   );
 };
 
-// ── Director contracts page ───────────────────────────────────────────────────
+
 const DirectorContracts = ({ user }) => {
   const [contracts, setContracts] = useState([]);
   const [loading,   setLoading]   = useState(true);
@@ -137,7 +137,7 @@ const DirectorContracts = ({ user }) => {
       .finally(() => setLoading(false));
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => { load(); }, [user._id, filter]);
 
   const handleFilterApply = () => load();
@@ -181,7 +181,7 @@ const DirectorContracts = ({ user }) => {
         </div>
       </div>
 
-      {/* Status filter tabs */}
+      {}
       <div className="filters-bar" style={{ marginBottom: 14 }}>
         {STATUS_OPTS.map(o => (
           <button key={o.value}
@@ -192,7 +192,7 @@ const DirectorContracts = ({ user }) => {
         ))}
       </div>
 
-      {/* Date range filter */}
+      {}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap",
         alignItems: "flex-end" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -225,7 +225,7 @@ const DirectorContracts = ({ user }) => {
         )}
       </div>
 
-      {/* Search */}
+      {}
       <div style={{ marginBottom: 16 }}>
         <input className="dash-form-input"
           placeholder="Rechercher par nom de partie, projet..."
@@ -286,7 +286,7 @@ const DirectorContracts = ({ user }) => {
                       </span>
                     </div>
 
-                    {/* Mini stepper preview */}
+                    {}
                     {c.status !== "resiliation" && (
                       <div style={{ marginTop: 12, paddingTop: 10,
                         borderTop: "1px solid var(--d-border-soft)" }}>
@@ -304,7 +304,7 @@ const DirectorContracts = ({ user }) => {
   );
 };
 
-// ── Contract detail — director can manage workflow ────────────────────────────
+
 const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   const [contract,        setContract]        = useState(initial);
   const [saving,          setSaving]          = useState(false);
@@ -433,7 +433,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
     );
   };
 
-  // Show proforma form in place of detail view
+  
   if (showProformaForm) {
     return (
       <ContratProformaForm
@@ -454,7 +454,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
       {viewer && (
         <FileViewerModal url={viewer.url} filename={viewer.filename} onClose={() => setViewer(null)} />
       )}
-      {/* Back + title */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
         <button onClick={onBack}
           style={{ background: "none", border: "1.5px solid var(--d-border-soft)",
@@ -482,7 +482,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         </div>
       </div>
 
-      {/* Status stepper */}
+      {}
       <div className="card" style={{ padding: "18px 24px", marginBottom: 16 }}>
         <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--d-muted)",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 14 }}>
@@ -491,7 +491,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         <ContractStatusStepper status={contract.status} />
       </div>
 
-      {/* Feedback messages */}
+      {}
       <AnimatePresence>
         {msg && (
           <motion.div key="msg" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
@@ -513,7 +513,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         )}
       </AnimatePresence>
 
-      {/* Workflow action card */}
+      {}
       <WorkflowCard
         contract={contract}
         user={user}
@@ -529,7 +529,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         onSkip={handleSkip}
       />
 
-      {/* Parties */}
+      {}
       <div className="card" style={{ padding: "18px 22px", marginBottom: 16 }}>
         <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--d-muted)",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
@@ -542,7 +542,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         </div>
       </div>
 
-      {/* Contract content */}
+      {}
       <div className="card" style={{ padding: "18px 22px", marginBottom: 16 }}>
         <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--d-muted)",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
@@ -584,7 +584,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         )}
       </div>
 
-      {/* Financial terms */}
+      {}
       {contract.financialTerms?.amount && (
         <div className="card" style={{ padding: "18px 22px", marginBottom: 16 }}>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--d-muted)",
@@ -612,7 +612,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         </div>
       )}
 
-      {/* Duration */}
+      {}
       {(contract.duration?.startDate || contract.duration?.endDate) && (
         <div className="card" style={{ padding: "18px 22px", marginBottom: 16 }}>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--d-muted)",
@@ -629,7 +629,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         </div>
       )}
 
-      {/* Documents */}
+      {}
       {(contract.contractPdf?.url || contract.receipt?.url || contract.bonDeCommande?.url) && (
         <div className="card" style={{ padding: "18px 22px", marginBottom: 16 }}>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--d-muted)",
@@ -642,7 +642,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
         </div>
       )}
 
-      {/* Resiliation zone */}
+      {}
       {!["resiliation", "signed"].includes(contract.status) && (
         <div className="card" style={{ padding: "18px 22px", marginBottom: 16,
           borderTop: "3px solid #fecaca" }}>
@@ -704,7 +704,7 @@ const ContractDetail = ({ contract: initial, user, onBack, onRefresh }) => {
   );
 };
 
-// ── Workflow action card — changes per status ─────────────────────────────────
+
 const WorkflowCard = ({
   contract, user, saving, showBdc, setShowBdc,
   bdcForm, setBdcForm, onSend, onBdc, onOpenProforma,

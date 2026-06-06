@@ -1,14 +1,14 @@
-// backend/middleware/subscriptionGate.js
-//
-// Server-side enforcement of the trial/paywall for "value" actions
-// (e.g. creating a post, sending a pitch). Self-contained: it reads and
-// verifies the JWT cookie itself, so it can guard routes that don't run the
-// `protect` middleware (several create endpoints take the user id from the body
-// rather than the token). Token-less requests pass through unchanged, preserving
-// existing behaviour — enforcement applies to authenticated billed users.
-//
-// On a lapsed trial/period it responds 402 Payment Required with
-// { code: "SUBSCRIPTION_REQUIRED" } so the frontend can route to /billing.
+
+
+
+
+
+
+
+
+
+
+
 
 const jwt = require("jsonwebtoken");
 const { ensureSubscription, getEffectiveStatus, isBilledRole } = require("../services/subscriptionService");
@@ -16,17 +16,21 @@ const { ensureSubscription, getEffectiveStatus, isBilledRole } = require("../ser
 module.exports = async function subscriptionGate(req, res, next) {
   try {
     const token = req.cookies?.token;
-    if (!token) return next(); // unauthenticated — leave existing flow untouched
+    if (!token) return next(); 
 
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch {
-      return next(); // invalid/expired token — let the route's own logic handle it
+      return next(); 
     }
 
-    // Only billed roles are gated; members / admin are exempt.
+    
     if (!isBilledRole(decoded.role)) return next();
+
+    // Agency-to-freelancer conventions are a platform collaboration feature,
+    // not a marketplace action — exempt them from the subscription gate.
+    if (req.body?.pitchType === "agency_to_freelancer") return next();
 
     const sub = await ensureSubscription(decoded.id, decoded.role);
     const eff = getEffectiveStatus(sub);
@@ -44,7 +48,7 @@ module.exports = async function subscriptionGate(req, res, next) {
       currentPeriodEnd: sub?.currentPeriodEnd,
     });
   } catch (err) {
-    // Never block the app on a gate bug — log and let the request proceed.
+    
     console.error("⚠️ subscriptionGate error:", err.message);
     return next();
   }

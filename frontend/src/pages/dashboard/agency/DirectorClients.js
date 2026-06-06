@@ -1,4 +1,4 @@
-// src/pages/dashboard/agency/DirectorClients.jsx
+
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ import { IconTarget, IconSearch } from "../../../components/ui/Icons";
 const clientName = (c) =>
   c.accountType === "company" ? c.companyName : `${c.firstName} ${c.lastName}`;
 
-// ── Lightweight client profile modal ────────────────────────────────────────
+
 const ClientProfileModal = ({ clientId, onClose }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +55,7 @@ const ClientProfileModal = ({ clientId, onClose }) => {
           </div>
         ) : (
           <div>
-            {/* Avatar + name */}
+            {}
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
               <div style={{
                 width: 52, height: 52, borderRadius: "50%",
@@ -75,7 +75,7 @@ const ClientProfileModal = ({ clientId, onClose }) => {
               </div>
             </div>
 
-            {/* Fields */}
+            {}
             {[
               { label: "Email",      value: profile.email },
               { label: "Téléphone",  value: profile.phone },
@@ -105,7 +105,7 @@ const ClientProfileModal = ({ clientId, onClose }) => {
   );
 };
 
-// ── Client projects detail ────────────────────────────────────────────────────
+
 const ClientProjects = ({ client }) => {
   const STATUS_LABEL = {
     pending: "En attente", active: "Actif",
@@ -158,7 +158,7 @@ const ClientProjects = ({ client }) => {
   );
 };
 
-// ── Main component ────────────────────────────────────────────────────────────
+
 const DirectorClients = ({ user }) => {
   const navigate = useNavigate();
   const [projects,     setProjects]     = useState([]);
@@ -238,7 +238,7 @@ const DirectorClients = ({ user }) => {
                 fontFamily: "inherit", fontSize: "0.78rem", fontWeight: 700,
                 cursor: msgLoading === selected._id ? "not-allowed" : "pointer",
               }}>
-              {msgLoading === selected._id ? "…" : "✉ Message"}
+              {msgLoading === selected._id ? "…" : "Message"}
             </button>
             <button className="section-cta-btn"
               style={{ background: "transparent", color: "#9a6060",
@@ -261,7 +261,7 @@ const DirectorClients = ({ user }) => {
           </div>
         ) : (
           <>
-            {/* Search bar */}
+            {}
             <div style={{ position: "relative", marginBottom: 16, maxWidth: 380 }}>
               <IconSearch size={14} style={{ position: "absolute", left: 12, top: "50%",
                 transform: "translateY(-50%)", color: "#9a6060" }} />
@@ -274,9 +274,9 @@ const DirectorClients = ({ user }) => {
               />
             </div>
 
-            {/* List table */}
+            {}
             <div className="card" style={{ overflow: "hidden" }}>
-              {/* Header */}
+              {}
               <div style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 120px 160px 180px",
@@ -315,7 +315,7 @@ const DirectorClients = ({ user }) => {
                     onMouseEnter={e => e.currentTarget.style.background = "#fff8f8"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                   >
-                    {/* Name + avatar */}
+                    {}
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{
                         width: 36, height: 36, borderRadius: "50%",
@@ -335,7 +335,7 @@ const DirectorClients = ({ user }) => {
                       </div>
                     </div>
 
-                    {/* Type */}
+                    {}
                     <div>
                       <span style={{
                         padding: "2px 9px", borderRadius: 20, fontSize: "0.7rem", fontWeight: 700,
@@ -346,7 +346,7 @@ const DirectorClients = ({ user }) => {
                       </span>
                     </div>
 
-                    {/* Project stats */}
+                    {}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <span style={{ fontSize: "0.73rem", fontWeight: 700, color: "#1a0a0a" }}>
                         {c.projects.length} total
@@ -358,7 +358,7 @@ const DirectorClients = ({ user }) => {
                       )}
                     </div>
 
-                    {/* Actions */}
+                    {}
                     <div style={{ display: "flex", gap: 6 }} onClick={e => e.stopPropagation()}>
                       <button
                         onClick={() => setProfileModal(c._id)}
@@ -380,7 +380,7 @@ const DirectorClients = ({ user }) => {
                           fontWeight: 700, cursor: msgLoading === c._id ? "not-allowed" : "pointer",
                           opacity: msgLoading === c._id ? 0.6 : 1, whiteSpace: "nowrap",
                         }}>
-                        {msgLoading === c._id ? "…" : "✉ Message"}
+                        {msgLoading === c._id ? "…" : "Message"}
                       </button>
                     </div>
                   </motion.div>
@@ -393,7 +393,7 @@ const DirectorClients = ({ user }) => {
         <ClientProjects client={selected} />
       )}
 
-      {/* Profile modal */}
+      {}
       <AnimatePresence>
         {profileModal && (
           <ClientProfileModal

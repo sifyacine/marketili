@@ -15,7 +15,7 @@ const seedAdmin = async () => {
       process.exit();
     }
 
-    // ✅ plain password ONLY (schema will hash it)
+    
     const admin = await Admin.create({
       firstName: "Admin",
       lastName: "User",

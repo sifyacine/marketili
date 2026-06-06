@@ -1,51 +1,51 @@
-/* ═══════════════════════════════════════════════════════════════════
-   MARKETILI DASHBOARD — Design System
-   ═══════════════════════════════════════════════════════════════════ */
-/* Font loaded globally via public/index.html */
+
+
+
+
 
 :root {
-  /* Core ink */
+  
   --d-ink:         #0f0a0a;
   --d-ink-soft:    #3d2020;
   --d-ink-muted:   #7a5050;
 
-  /* Surfaces */
+  
   --d-surface:     #ffffff;
   --d-bg:          #f8f4f4;
   --d-card:        #ffffff;
 
-  /* Borders */
+  
   --d-border:      #ecdada;
   --d-border-soft: #f5eaea;
 
-  /* Brand accent */
+  
   --d-accent:      #c0152a;
   --d-accent-h:    #a01222;
   --d-accent-soft: #fff0f0;
   --d-accent-glow: rgba(192,21,42,0.12);
 
-  /* Muted text */
+  
   --d-muted: #9a6060;
 
-  /* Sidebar */
+  
   --d-sidebar-bg:    #111014;
   --d-sidebar-w:     240px;
   --d-sidebar-coll:  60px;
 
-  /* Topbar */
+  
   --d-topbar-h:    58px;
 
-  /* Radii */
+  
   --d-r:    12px;
   --d-r-sm:  7px;
   --d-r-xs:  5px;
 
-  /* Shadows */
+  
   --d-shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --d-shadow-md:  0 4px 16px rgba(0,0,0,0.08);
   --d-shadow-lg:  0 10px 40px rgba(0,0,0,0.12);
 
-  /* Status palette */
+  
   --s-green:  #10b981;
   --s-yellow: #f59e0b;
   --s-orange: #f97316;
@@ -53,14 +53,14 @@
   --s-red:    #ef4444;
   --s-grey:   #6b7280;
 
-  /* Priority */
+  
   --priority-low:    #10b981;
   --priority-medium: #f59e0b;
   --priority-high:   #f97316;
   --priority-urgent: #ef4444;
 }
 
-/* ── Global reset ── */
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -70,18 +70,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   LAYOUT SHELL
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .dash-layout {
   display: flex;
   min-height: 100vh;
   background: var(--d-bg);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   SIDEBAR
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .dash-sidebar {
   width: var(--d-sidebar-w);
   flex-shrink: 0;
@@ -100,7 +100,7 @@ body {
   width: var(--d-sidebar-coll);
 }
 
-/* Logo row */
+
 .dash-sidebar-logo {
   display: flex;
   align-items: center;
@@ -142,7 +142,7 @@ body {
   color: rgba(255,255,255,0.7);
 }
 
-/* Role badge */
+
 .dash-role-tag {
   display: flex;
   align-items: center;
@@ -169,7 +169,7 @@ body {
   align-items: center;
 }
 
-/* Nav */
+
 .dash-nav {
   flex: 1;
   padding: 8px 8px;
@@ -180,7 +180,7 @@ body {
 .dash-nav::-webkit-scrollbar { width: 2px; }
 .dash-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
-/* Optional nav section label */
+
 .dash-nav-section {
   font-size: 0.6rem;
   font-weight: 700;
@@ -252,7 +252,7 @@ body {
   margin-left: auto;
 }
 
-/* Sidebar footer */
+
 .dash-sidebar-footer {
   padding: 10px 8px 12px;
   border-top: 1px solid rgba(255,255,255,0.05);
@@ -302,7 +302,7 @@ body {
   margin-top: 1px;
 }
 
-/* Logout button */
+
 .dash-logout-btn {
   display: flex;
   align-items: center;
@@ -336,7 +336,7 @@ body {
   justify-content: center;
 }
 
-/* Collapsed sidebar adjustments */
+
 .dash-layout.sidebar-collapsed .dash-sidebar-logo {
   justify-content: center;
   flex-direction: column-reverse;
@@ -349,9 +349,9 @@ body {
 .dash-layout.sidebar-collapsed .dash-logout-btn { justify-content: center; padding: 8px 0; }
 .dash-layout.sidebar-collapsed .dash-nav-section { display: none; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   TOPBAR
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .dash-main {
   flex: 1;
   display: flex;
@@ -428,16 +428,16 @@ body {
   border: 1.5px solid #fff;
 }
 
-/* Page content */
+
 .dash-content {
   flex: 1;
   overflow-y: auto;
   padding: 26px 28px;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   CARDS
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .card {
   background: var(--d-card);
   border: 1px solid var(--d-border-soft);
@@ -449,9 +449,9 @@ body {
 .card-header { padding: 18px 22px 0; }
 .card-body   { padding: 18px 22px; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   STAT CARDS
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -526,9 +526,9 @@ body {
   color: var(--d-muted);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   SECTION HEADERS
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .section-head {
   display: flex;
   align-items: center;
@@ -605,9 +605,9 @@ body {
   transform: translateY(-1px);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   STATUS BADGES
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -637,9 +637,9 @@ body {
 .status-badge.accepted     { background: #d1fae5; color: #065f46; }
 .status-badge.rejected     { background: #fee2e2; color: #991b1b; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   DATA GRID / TABLE
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .data-grid {
   width: 100%;
   border-collapse: collapse;
@@ -688,9 +688,9 @@ body {
 
 .data-grid .td-muted { color: var(--d-muted); font-size: 0.75rem; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   FILTER BAR
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .filters-bar {
   display: flex;
   align-items: center;
@@ -767,17 +767,17 @@ body {
   color: var(--d-accent);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   DEADLINE URGENCY
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .deadline-green  { color: var(--priority-low);    font-weight: 600; }
 .deadline-yellow { color: var(--priority-medium); font-weight: 600; }
 .deadline-orange { color: var(--priority-high);   font-weight: 600; }
 .deadline-red    { color: var(--priority-urgent); font-weight: 600; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   EMPTY STATE
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -828,9 +828,9 @@ body {
 
 .empty-state-btn:hover { box-shadow: 0 4px 16px rgba(192,21,42,0.25); }
 
-/* ═══════════════════════════════════════════════════════════════════
-   SPINNER
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .spinner-wrap {
   display: flex;
   justify-content: center;
@@ -848,9 +848,9 @@ body {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ═══════════════════════════════════════════════════════════════════
-   MODAL
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -904,9 +904,9 @@ body {
 .modal-close:hover { background: #faeaea; border-color: #e0c0c0; }
 .modal-body { padding: 0 24px 24px; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   FORM STYLES
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .dash-form { display: flex; flex-direction: column; gap: 14px; }
 .dash-form-group { display: flex; flex-direction: column; gap: 5px; }
 
@@ -980,9 +980,9 @@ body {
 
 .dash-form-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   NOTIFICATION DROPDOWN
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .dash-notif-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -1081,9 +1081,9 @@ body {
   opacity: 0.75;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   MEDIA UPLOAD
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .media-upload-zone {
   border: 1.5px dashed var(--d-border);
   border-radius: var(--d-r);
@@ -1159,9 +1159,9 @@ body {
   transition: width 0.18s;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   PAGINATION
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .pagination {
   display: flex;
   align-items: center;
@@ -1193,9 +1193,9 @@ body {
 
 .pagination-btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   HAMBURGER BUTTON (hidden on desktop, visible on tablet/mobile)
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 .dash-hamburger {
   display: none;
   flex-direction: column;
@@ -1227,7 +1227,7 @@ body {
 }
 .dash-hamburger:hover span { background: var(--d-accent); }
 
-/* Overlay backdrop (injected by DashboardLayout when mobile drawer is open) */
+
 .dash-sidebar-overlay {
   display: none;
   position: fixed;
@@ -1238,26 +1238,26 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   RESPONSIVE — SMALL DESKTOP  (≤ 1280px)
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 @media (max-width: 1280px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   RESPONSIVE — TABLET / SMALL LAPTOP  (≤ 1023px)
-   Sidebar becomes an off-canvas drawer; hamburger reveals it.
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
+
 @media (max-width: 1023px) {
-  /* Show hamburger, hide the desktop collapse toggle */
+  
   .dash-hamburger        { display: flex; }
   .dash-sidebar-toggle   { display: none; }
   .dash-sidebar-overlay  { display: block; pointer-events: none; opacity: 0; transition: opacity 0.25s; }
-  /* When overlay is in DOM (React renders it conditionally), make it clickable */
+  
   .dash-sidebar-overlay  { pointer-events: auto; opacity: 1; }
 
-  /* Sidebar: fixed off-screen by default */
+  
   .dash-sidebar {
     position: fixed !important;
     top: 0;
@@ -1271,16 +1271,16 @@ body {
     overflow-x: hidden;
   }
 
-  /* Sidebar open state */
+  
   .dash-sidebar.mobile-open {
     transform: translateX(0);
     box-shadow: 4px 0 40px rgba(0,0,0,0.35);
   }
 
-  /* Content always takes full width */
+  
   .dash-main { width: 100%; }
 
-  /* Remove desktop collapse indentation — all nav items show labels */
+  
   .dash-layout.sidebar-collapsed .dash-nav-item  { justify-content: flex-start; padding: 9px 10px; }
   .dash-layout.sidebar-collapsed .dash-role-tag  { justify-content: flex-start; padding: 7px 10px; }
   .dash-layout.sidebar-collapsed .dash-user-chip { justify-content: flex-start; padding: 8px 8px; }
@@ -1293,9 +1293,9 @@ body {
   .stats-row    { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   RESPONSIVE — MOBILE  (≤ 767px)
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 @media (max-width: 767px) {
   .dash-content { padding: 14px; }
   .dash-topbar  { padding: 0 14px; }
@@ -1304,25 +1304,25 @@ body {
   .stats-row    { grid-template-columns: 1fr 1fr; }
   .dash-form-row { grid-template-columns: 1fr; }
 
-  /* Section headers: allow wrapping when title + CTA don't fit side-by-side */
+  
   .section-header { flex-wrap: wrap; gap: 10px; }
   .section-head   { flex-wrap: wrap; gap: 8px; }
 
-  /* Pagination: stack count text above buttons on narrow screens */
+  
   .pagination { flex-direction: column; align-items: flex-start; gap: 10px; }
   .pagination-btns { align-self: flex-end; }
 
-  /* Notification dropdown: full-width on mobile */
+  
   .dash-notif-dropdown {
     width: calc(100vw - 28px);
     right: -14px;
   }
 
-  /* Cards */
+  
   .card-header { padding: 14px 16px 0; }
   .card-body   { padding: 14px 16px; }
 
-  /* Modal full-screen on mobile */
+  
   .modal-overlay { padding: 0; align-items: flex-end; }
   .modal-box {
     border-radius: 18px 18px 0 0;
@@ -1330,13 +1330,13 @@ body {
     max-width: 100%;
   }
 
-  /* Data grid: hide lower-priority columns */
+  
   .data-grid .td-hide-mobile { display: none; }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   RESPONSIVE — SMALL MOBILE  (≤ 479px)
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
 @media (max-width: 479px) {
   .dash-content { padding: 10px; }
   .dash-topbar  { padding: 0 12px; }
@@ -1346,11 +1346,11 @@ body {
   .dash-sidebar { width: 100vw !important; }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   TABLE → CARD TRANSFORM  (≤ 639px)
-   Tables with .data-grid collapse into stacked cards.
-   Each <td> must carry a data-label attribute.
-   ═══════════════════════════════════════════════════════════════════ */
+
+
+
+
+
 @media (max-width: 639px) {
   .data-grid thead { display: none; }
 
@@ -1362,7 +1362,7 @@ body {
     margin-bottom: 12px;
     padding: 10px 12px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    /* preserve the left colour bar set via inline borderLeft */
+    
     border-left-width: 3px;
     border-left-style: solid;
   }
@@ -1380,7 +1380,7 @@ body {
 
   .data-grid tbody td:last-child { border-bottom: none; }
 
-  /* Label column (left side) */
+  
   .data-grid tbody td::before {
     content: attr(data-label);
     font-size: 0.72rem;
@@ -1392,7 +1392,7 @@ body {
     min-width: 90px;
   }
 
-  /* Action cells: no label, right-aligned */
+  
   .data-grid tbody td[data-label=""] {
     justify-content: flex-end;
     padding-top: 8px;

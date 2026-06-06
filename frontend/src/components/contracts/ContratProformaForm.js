@@ -1,9 +1,9 @@
-// frontend/src/components/contracts/ContratProformaForm.js
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import contractService from "../../services/contractService";
 
-// ── Default boilerplate for each section ─────────────────────
+
 const DEFAULTS = {
   preambule: "Entre les soussignés, il a été convenu ce qui suit concernant la prestation de services de marketing et communication.",
   article1:  "Le présent contrat a pour objet de définir les conditions dans lesquelles l'agence fournira ses services marketing au client, tels que décrits dans l'offre acceptée.",
@@ -31,7 +31,7 @@ const CONTRACT_TYPE_LABEL = {
   project:           "Projet ponctuel",
 };
 
-// ── Step definitions ──────────────────────────────────────────
+
 const STEPS = [
   { id: 1, title: "Parties & type",        short: "Parties"     },
   { id: 2, title: "Préambule & Art. 1–2",  short: "Préambule"   },
@@ -41,7 +41,7 @@ const STEPS = [
   { id: 6, title: "Articles 13–15 & Aperçu", short: "Aperçu"   },
 ];
 
-// ── Sub-components ────────────────────────────────────────────
+
 const ArticleField = ({ num, title, value, onChange }) => (
   <div style={{ marginBottom: 20 }}>
     <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700,
@@ -73,7 +73,7 @@ const PreviewSection = ({ num, title, content }) => (
   </div>
 );
 
-// ── Stepper ───────────────────────────────────────────────────
+
 const Stepper = ({ current }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 0,
     overflowX: "auto", paddingBottom: 4, marginBottom: 28 }}>
@@ -110,9 +110,9 @@ const Stepper = ({ current }) => (
   </div>
 );
 
-// ═════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════
+
+
+
 const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
   const [step,    setStep]    = useState(1);
   const [saving,  setSaving]  = useState(false);
@@ -155,7 +155,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
 
   return (
     <div>
-      {/* Header */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}>
         <button onClick={onCancel}
           style={{ background: "none", border: "1.5px solid var(--d-border-soft)",
@@ -174,10 +174,10 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
         </div>
       </div>
 
-      {/* Stepper */}
+      {}
       <Stepper current={step} />
 
-      {/* Error */}
+      {}
       <AnimatePresence>
         {error && (
           <motion.div key="err"
@@ -191,14 +191,14 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
         )}
       </AnimatePresence>
 
-      {/* Step content */}
+      {}
       <div className="card" style={{ padding: "24px 26px" }}>
         <AnimatePresence mode="wait">
           <motion.div key={step}
             initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.15 }}>
 
-            {/* ── Step 1: Parties (read-only) ── */}
+            {}
             {step === 1 && (
               <div>
                 <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 16,
@@ -235,7 +235,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
               </div>
             )}
 
-            {/* ── Step 2: Préambule + Art 1–2 ── */}
+            {}
             {step === 2 && (
               <div>
                 <div style={{ marginBottom: 20 }}>
@@ -256,7 +256,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
               </div>
             )}
 
-            {/* ── Step 3: Art 3–4 ── */}
+            {}
             {step === 3 && (
               <div>
                 <ArticleField num="03" title="Périmètre & livrables"
@@ -266,7 +266,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
               </div>
             )}
 
-            {/* ── Step 4: Art 5–7 ── */}
+            {}
             {step === 4 && (
               <div>
                 <ArticleField num="05" title="Dispositions financières"
@@ -278,7 +278,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
               </div>
             )}
 
-            {/* ── Step 5: Art 8–12 ── */}
+            {}
             {step === 5 && (
               <div>
                 <ArticleField num="08" title="Durée du contrat"
@@ -294,7 +294,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
               </div>
             )}
 
-            {/* ── Step 6: Art 13–15 + Preview ── */}
+            {}
             {step === 6 && (
               <div>
                 <ArticleField num="13" title="Règlement des litiges"
@@ -304,7 +304,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
                 <ArticleField num="15" title="Signatures & clôture"
                   value={sections.article15} onChange={set("article15")} />
 
-                {/* Preview */}
+                {}
                 <div style={{ marginTop: 28, borderTop: "2px solid var(--d-border-soft)",
                   paddingTop: 22 }}>
                   <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--d-muted)",
@@ -312,7 +312,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
                     Aperçu du contrat
                   </div>
 
-                  {/* Parties header */}
+                  {}
                   <div style={{ textAlign: "center", marginBottom: 20,
                     padding: "16px", background: "#f9fafb", borderRadius: 8,
                     border: "1px solid #e5e7eb" }}>
@@ -351,7 +351,7 @@ const ContratProformaForm = ({ contract, onSuccess, onCancel }) => {
         </AnimatePresence>
       </div>
 
-      {/* Navigation */}
+      {}
       <div style={{ display: "flex", justifyContent: "space-between",
         alignItems: "center", marginTop: 18 }}>
         <button

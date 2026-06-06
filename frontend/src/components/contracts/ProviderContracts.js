@@ -1,5 +1,5 @@
-// frontend/src/components/contracts/ProviderContracts.js
-// Shared contracts page for Freelancer and Team dashboards
+
+
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -85,7 +85,7 @@ const ProviderContracts = ({ user, partyType }) => {
       .finally(() => setLoading(false));
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => { load(); }, [user._id, partyType]);
 
   const filtered = filter === "all"
@@ -187,7 +187,7 @@ const ProviderContracts = ({ user, partyType }) => {
   );
 };
 
-// ── Detail view ───────────────────────────────────────────────────────────────
+
 const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
   const [contract,         setContract]         = useState(initial);
   const [saving,           setSaving]           = useState(false);
@@ -260,7 +260,7 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
         </div>
       </div>
 
-      {/* Progression */}
+      {}
       <div className="card" style={{ padding: "16px 20px", marginBottom: 14 }}>
         <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--d-muted)",
           textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
@@ -269,7 +269,7 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
         <Stepper status={contract.status} />
       </div>
 
-      {/* Feedback */}
+      {}
       <AnimatePresence>
         {msg && (
           <motion.div key="msg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -289,7 +289,7 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
         )}
       </AnimatePresence>
 
-      {/* Action card */}
+      {}
       {contract.status === "draft" && (
         <div className="card" style={{ padding: "16px 20px", marginBottom: 14,
           borderLeft: "4px solid #f59e0b", background: "#fffbeb" }}>
@@ -355,7 +355,7 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
         </div>
       )}
 
-      {/* Contract info */}
+      {}
       {(contract.partyBName || contract.objet) && (
         <div className="card" style={{ padding: "16px 20px", marginBottom: 14 }}>
           <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--d-muted)",
@@ -380,7 +380,7 @@ const ProviderContractDetail = ({ contract: initial, user, onBack }) => {
         </div>
       )}
 
-      {/* Document links */}
+      {}
       {contract.contractPdf?.url && (
         <div className="card" style={{ padding: "14px 20px", marginBottom: 14 }}>
           <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--d-muted)",

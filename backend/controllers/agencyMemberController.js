@@ -3,11 +3,11 @@ const Freelancer   = require("../models/Freelancer");
 const Agency       = require("../models/Agency");
 const logActivity  = require("../utils/logActivity");
 
-// ─────────────────────────────────────────────
-// CREATE MEMBER  POST /api/agency-members/create
-// Called by director — generates a temporary password
-// mustChangePassword is true by default on the model
-// ─────────────────────────────────────────────
+
+
+
+
+
 exports.createMember = async (req, res) => {
   try {
     const { firstName, lastName, email, password, jobTitle, phone } = req.body;
@@ -21,7 +21,7 @@ exports.createMember = async (req, res) => {
     const member = await AgencyMember.create({
       agency: agencyId,
       firstName, lastName, email, password, jobTitle, phone,
-      mustChangePassword: true, // always forced on creation
+      mustChangePassword: true, 
     });
 
     const safe = member.toObject();
@@ -37,9 +37,9 @@ exports.createMember = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET MEMBERS  GET /api/agency-members
-// ─────────────────────────────────────────────
+
+
+
 exports.getMembers = async (req, res) => {
   try {
     const agencyId = req.user._id;
@@ -53,11 +53,11 @@ exports.getMembers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// CHANGE PASSWORD  POST /api/agency-members/change-password
-// Called by member on first login
-// Clears mustChangePassword flag after success
-// ─────────────────────────────────────────────
+
+
+
+
+
 exports.changePassword = async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -70,13 +70,13 @@ exports.changePassword = async (req, res) => {
       });
     }
 
-    // Must use findById with +password to trigger the pre-save hook
+    
     const member = await AgencyMember.findById(memberId).select("+password");
     if (!member) {
       return res.status(404).json({ success: false, message: "Membre introuvable" });
     }
 
-    member.password          = newPassword; // pre-save hook will hash it
+    member.password          = newPassword; 
     member.mustChangePassword = false;
     await member.save();
 
@@ -88,10 +88,10 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// SET MEMBER STATUS  PATCH /api/agency-members/:id/status
-// Accepts target accountStatus instead of toggling
-// ─────────────────────────────────────────────
+
+
+
+
 const VALID_STATUSES = ["active", "inactive", "suspended", "archived"];
 
 exports.setMemberStatus = async (req, res) => {
@@ -108,7 +108,7 @@ exports.setMemberStatus = async (req, res) => {
     member.accountStatus = status;
     await member.save();
 
-    // Notify member when their account is restored to active
+    
     if (status === "active" && prevStatus && prevStatus !== "active") {
       const Notification = require("../models/Notification");
       Notification.notify({
@@ -133,10 +133,10 @@ exports.setMemberStatus = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ATTACH FREELANCER  PATCH /api/agency-members/attach-freelancer
-// Body: { agencyId, freelancerId, role, contractId }
-// ─────────────────────────────────────────────
+
+
+
+
 exports.attachFreelancer = async (req, res) => {
   try {
     const { agencyId, freelancerId, role, contractId } = req.body;
@@ -171,10 +171,10 @@ exports.attachFreelancer = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// DETACH FREELANCER  PATCH /api/agency-members/detach-freelancer
-// Body: { agencyId, freelancerId }
-// ─────────────────────────────────────────────
+
+
+
+
 exports.detachFreelancer = async (req, res) => {
   try {
     const { agencyId, freelancerId } = req.body;
@@ -203,14 +203,14 @@ exports.detachFreelancer = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET FREELANCERS FOR AGENCY  GET /api/agency-members/freelancers
-// Returns freelancers with active/all collaborations for this agency
-// ─────────────────────────────────────────────
+
+
+
+
 exports.getFreelancers = async (req, res) => {
   try {
-    // Works whether the requester is the agency account or one of its members
-    // (members store their parent agency on `agency`).
+    
+    
     const agencyId = req.userRole === "agency_member" ? req.user.agency : req.user._id;
     const freelancers = await Freelancer.find({
       "agencyCollaborations.agency": agencyId,
@@ -229,10 +229,10 @@ exports.getFreelancers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// RESTORE MEMBER  PATCH /api/agency-members/:id/restore
-// Sets accountStatus back to "active"
-// ─────────────────────────────────────────────
+
+
+
+
 exports.restoreMember = async (req, res) => {
   try {
     const member = await AgencyMember.findById(req.params.id);
@@ -246,10 +246,10 @@ exports.restoreMember = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// SEARCH FREELANCERS  GET /api/agency-members/search-freelancers?name=...
-// Case-insensitive partial match on firstName / lastName
-// ─────────────────────────────────────────────
+
+
+
+
 exports.searchFreelancers = async (req, res) => {
   try {
     const { name = "" } = req.query;
@@ -272,10 +272,10 @@ exports.searchFreelancers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET MEMBER HISTORY  GET /api/agency-members/:id/history
-// Returns projects + tasks the member worked on
-// ─────────────────────────────────────────────
+
+
+
+
 const Project = require("../models/Project");
 
 exports.getMemberHistory = async (req, res) => {

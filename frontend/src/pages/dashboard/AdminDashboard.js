@@ -15,7 +15,7 @@ import {
 } from "../../components/ui/Icons";
 import "../../styles/Dashboard.css";
 
-// ── Palette ──────────────────────────────────────────────────────────────────
+
 const C = {
   sidebar:     "#0d0b14",
   sidebarBdr:  "rgba(255,255,255,0.06)",
@@ -35,7 +35,7 @@ const C = {
   red:         "#ef4444",
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+
 const fmt = (d) =>
   d ? new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
@@ -80,7 +80,7 @@ const ACTION_META = {
   account_restored:  { icon: "🔓", color: C.green },
 };
 
-// ── Reusable micro-components ─────────────────────────────────────────────────
+
 const Spinner = () => (
   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "64px 0" }}>
     <div style={{ width: 32, height: 32, border: `3px solid ${C.border}`,
@@ -170,7 +170,7 @@ const EmptyState = ({ icon, text }) => (
   </div>
 );
 
-// ── Input / Select shared style ───────────────────────────────────────────────
+
 const inputStyle = {
   padding: "9px 13px", borderRadius: 9, border: `1.5px solid ${C.border}`,
   background: "#faf9fc", fontSize: "0.84rem", color: C.ink, fontFamily: "inherit",
@@ -190,7 +190,7 @@ const btnGhost = {
   fontSize: "0.78rem", color: C.inkMuted, fontWeight: 600,
 };
 
-// ── OVERVIEW PANEL ────────────────────────────────────────────────────────────
+
 const OverviewPanel = ({ onNav }) => {
   const [stats,    setStats]    = useState(null);
   const [activity, setActivity] = useState(null);
@@ -218,7 +218,7 @@ const OverviewPanel = ({ onNav }) => {
     <div>
       <SectionTitle title="Tableau de bord" sub="Vue d'ensemble de la plateforme Marketili" />
 
-      {/* KPI Row */}
+      {}
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 24 }}>
         <StatCard icon={<IconUsers size={15} />}    label="Utilisateurs" value={s.users?.total}
           color={C.purple} trend={s.activity?.newClientsThisMonth} />
@@ -228,10 +228,10 @@ const OverviewPanel = ({ onNav }) => {
           color={C.blue} sub={`${s.projects?.completed || 0} terminés`} />
       </div>
 
-      {/* Secondary row */}
+      {}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 24 }}>
 
-        {/* Recent Registrations */}
+        {}
         <Card pad="0">
           <div style={{ padding: "16px 20px 12px", borderBottom: `1px solid ${C.border}`,
             display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -269,7 +269,7 @@ const OverviewPanel = ({ onNav }) => {
           ))}
         </Card>
 
-        {/* Activity Log Feed */}
+        {}
         <Card pad="0">
           <div style={{ padding: "16px 20px 12px", borderBottom: `1px solid ${C.border}`,
             display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -303,7 +303,7 @@ const OverviewPanel = ({ onNav }) => {
         </Card>
       </div>
 
-      {/* Posts breakdown */}
+      {}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
         {[
           { label: "Posts Ouverts",   val: s.posts?.open,        color: C.green },
@@ -323,7 +323,7 @@ const OverviewPanel = ({ onNav }) => {
   );
 };
 
-// ── USERS PANEL ───────────────────────────────────────────────────────────────
+
 const UsersPanel = () => {
   const [users,   setUsers]   = useState([]);
   const [role,    setRole]    = useState("");
@@ -343,7 +343,7 @@ const UsersPanel = () => {
     } finally { setLoading(false); }
   }, [role, search]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => { fetchUsers(); }, [role]);
 
   const handleToggle = async (u) => {
@@ -461,7 +461,7 @@ const UsersPanel = () => {
   );
 };
 
-// ── STATS PANEL ───────────────────────────────────────────────────────────────
+
 const StatsPanel = () => {
   const [stats,   setStats]   = useState(null);
   const [loading, setLoading] = useState(true);
@@ -491,7 +491,7 @@ const StatsPanel = () => {
     <div>
       <SectionTitle title="Statistiques plateforme" sub="Métriques globales en temps réel" />
 
-      {/* KPI highlight row */}
+      {}
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 28 }}>
         <StatCard icon={<IconUsers size={15} />}    label="Utilisateurs total" value={stats.users?.total}
           color={C.purple} sub={`+${stats.activity?.newClientsThisMonth || 0} ce mois`} />
@@ -525,7 +525,7 @@ const StatsPanel = () => {
   );
 };
 
-// ── POSTS PANEL ───────────────────────────────────────────────────────────────
+
 const PostStatusBadge = ({ status }) => {
   const MAP = {
     open:        { label: "Ouvert",    color: C.green },
@@ -758,7 +758,7 @@ const PostsPanel = () => {
   );
 };
 
-// ── ACTIVITY PANEL ────────────────────────────────────────────────────────────
+
 const ActivityPanel = () => {
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
@@ -853,7 +853,7 @@ const ActivityPanel = () => {
   );
 };
 
-// ── ADS PANEL ─────────────────────────────────────────────────────────────────
+
 const TARGET_ROLES = ["all","client","agency","agency_member","team","team_member","freelancer"];
 const PLACEMENTS   = ["banner","sidebar","card"];
 
@@ -875,8 +875,8 @@ const AdsPanel = () => {
 
   useEffect(() => { load(); }, [load]);
 
-  // Upload an image file to GridFS and store its URL on the ad. Admins can still
-  // paste an external URL in the field instead.
+  
+  
   const handleImageFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -947,26 +947,40 @@ const AdsPanel = () => {
                   </div>
                   <div>
                     <label style={{ fontSize: "0.75rem", fontWeight: 700, color: C.inkMuted,
-                      display: "block", marginBottom: 5 }}>Image</label>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <input value={form.imageUrl} placeholder="https://... ou téléverser"
-                        onChange={e => setForm(p => ({ ...p, imageUrl: e.target.value }))}
-                        style={{ ...inputStyle, flex: 1 }} />
-                      <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }}
-                        onChange={handleImageFile} />
-                      <button type="button" onClick={() => fileRef.current?.click()} disabled={imgUploading}
-                        style={{ ...btnGhost, fontSize: "0.75rem", whiteSpace: "nowrap",
-                          opacity: imgUploading ? 0.6 : 1, cursor: imgUploading ? "wait" : "pointer" }}>
-                        {imgUploading ? "Téléversement…" : "Téléverser"}
-                      </button>
+                      display: "block", marginBottom: 5 }}>Image *</label>
+                    <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }}
+                      onChange={handleImageFile} />
+                    <div
+                      onClick={() => !imgUploading && fileRef.current?.click()}
+                      style={{
+                        border: `2px dashed ${imgError ? C.red : C.border}`,
+                        borderRadius: 8, padding: "14px 12px", textAlign: "center",
+                        cursor: imgUploading ? "default" : "pointer",
+                        background: C.mainBg, transition: "border-color 0.15s",
+                        minHeight: 72, display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center", gap: 6,
+                      }}>
+                      {imgUploading ? (
+                        <span style={{ fontSize: "0.78rem", color: C.inkMuted }}>Téléversement en cours…</span>
+                      ) : form.imageUrl ? (
+                        <>
+                          <img src={uploadService.resolveUrl(form.imageUrl)} alt="Aperçu"
+                            style={{ height: 48, maxWidth: 140, objectFit: "cover",
+                              borderRadius: 6, border: `1px solid ${C.border}` }} />
+                          <span style={{ fontSize: "0.7rem", color: C.inkMuted }}>Cliquer pour changer</span>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ fontSize: "1.3rem" }}>🖼️</span>
+                          <span style={{ fontSize: "0.78rem", color: C.inkMuted, fontWeight: 600 }}>
+                            Cliquer pour téléverser une image
+                          </span>
+                          <span style={{ fontSize: "0.68rem", color: C.inkMuted }}>JPG, PNG, WEBP…</span>
+                        </>
+                      )}
                     </div>
                     {imgError && (
                       <div style={{ fontSize: "0.7rem", color: C.red, marginTop: 5 }}>{imgError}</div>
-                    )}
-                    {form.imageUrl && (
-                      <img src={uploadService.resolveUrl(form.imageUrl)} alt="Aperçu"
-                        style={{ marginTop: 8, height: 44, maxWidth: 160, objectFit: "cover",
-                          borderRadius: 6, border: `1px solid ${C.border}` }} />
                     )}
                   </div>
                   <div>
@@ -1019,6 +1033,7 @@ const AdsPanel = () => {
                 opacity: ad.isActive ? 1 : 0.6, boxShadow: "0 2px 6px rgba(0,0,0,0.04)" }}>
               {ad.imageUrl ? (
                 <img src={uploadService.resolveUrl(ad.imageUrl)} alt={ad.title}
+                  onError={e => { e.target.style.display = "none"; }}
                   style={{ height: 48, width: 88, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
               ) : (
                 <div style={{ height: 48, width: 88, borderRadius: 8, background: C.mainBg,
@@ -1063,7 +1078,7 @@ const AdsPanel = () => {
   );
 };
 
-// ── ACTIVITY LOG PANEL ────────────────────────────────────────────────────────
+
 const ADMIN_LOG_TYPES = ["post_removed", "post_reactivated"];
 
 const ActivityLogPanel = () => {
@@ -1081,9 +1096,9 @@ const ActivityLogPanel = () => {
     adService.getActivityLog(params)
       .then(d => { setLogs(d.logs || []); setTotal(d.total || 0); setPage(p); })
       .catch(() => {}).finally(() => setLoading(false));
-  }, [filter]); // eslint-disable-line
+  }, [filter]); 
 
-  useEffect(() => { load(1, filter); }, [filter]); // eslint-disable-line
+  useEffect(() => { load(1, filter); }, [filter]); 
 
   return (
     <div>
@@ -1142,10 +1157,10 @@ const ActivityLogPanel = () => {
   );
 };
 
-// ── OPTIONS PANEL ─────────────────────────────────────────────────────────────
+
 const OPTIONS_KEYS = [
   { key: "specialties", label: "Spécialités" },
-  { key: "regions",     label: "Régions" },
+  { key: "regions",     label: "Wilayas" },
   { key: "categories",  label: "Catégories" },
 ];
 
@@ -1224,7 +1239,7 @@ const OptionsPanel = () => (
   </div>
 );
 
-// ── SUBSCRIPTIONS PANEL ───────────────────────────────────────────────────────
+
 const fmtDZD = (n) => `${Number(n || 0).toLocaleString("fr-DZ")} DZD`;
 
 const SUB_STATUS = {
@@ -1259,7 +1274,7 @@ const SubscriptionsPanel = () => {
       .finally(() => setLoading(false));
   }, [role, status, search]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   useEffect(() => { load(); }, [role, status]);
 
   useEffect(() => {
@@ -1306,7 +1321,7 @@ const SubscriptionsPanel = () => {
           </div>
         } />
 
-      {/* Summary cards */}
+      {}
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 22 }}>
         <StatCard icon={<IconUsers size={15} />}      label="Comptes facturables" value={summary.total}    color={C.purple} />
         <StatCard icon={<IconAward size={15} />}      label="Abonnés payants"     value={summary.active}   color={C.green} />
@@ -1315,7 +1330,7 @@ const SubscriptionsPanel = () => {
         <StatCard icon={<IconTrendingUp size={15} />} label="Total encaissé"      value={fmtDZD(summary.collected)} color={C.accent} />
       </div>
 
-      {/* Filters */}
+      {}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
         <select value={role} onChange={e => setRole(e.target.value)}
           style={{ ...inputStyle, flex: "0 0 160px" }}>
@@ -1372,7 +1387,7 @@ const SubscriptionsPanel = () => {
                       style={{ borderBottom: `1px solid ${C.border}` }}
                       onMouseEnter={e => e.currentTarget.style.background = "#faf9fc"}
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      {/* Account */}
+                      {}
                       <td style={{ padding: "12px 18px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div style={{ width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
@@ -1395,11 +1410,11 @@ const SubscriptionsPanel = () => {
                           </div>
                         </div>
                       </td>
-                      {/* Role */}
+                      {}
                       <td style={{ padding: "12px 18px" }}>
                         <Badge color={roleColor}>{ROLE_LABELS[u.role] || u.role}</Badge>
                       </td>
-                      {/* Status */}
+                      {}
                       <td style={{ padding: "12px 18px" }}>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 6,
                           padding: "3px 11px", borderRadius: 20, fontSize: "0.72rem", fontWeight: 700,
@@ -1414,17 +1429,17 @@ const SubscriptionsPanel = () => {
                           )}
                         </span>
                       </td>
-                      {/* Plan / formule */}
+                      {}
                       <td style={{ padding: "12px 18px", fontSize: "0.8rem", color: C.ink, whiteSpace: "nowrap" }}>
                         {u.status === "active"
                           ? `${INTERVAL_LABEL[u.interval] || "—"} · ${fmtDZD(u.amount)}`
                           : <span style={{ color: C.inkMuted }}>—</span>}
                       </td>
-                      {/* Échéance */}
+                      {}
                       <td style={{ padding: "12px 18px", fontSize: "0.8rem", color: C.inkMuted, whiteSpace: "nowrap" }}>
                         {echeance ? fmt(echeance) : "—"}
                       </td>
-                      {/* Last payment */}
+                      {}
                       <td style={{ padding: "12px 18px", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
                         {u.lastPaidAt ? (
                           <span style={{ color: C.ink }}>
@@ -1445,7 +1460,7 @@ const SubscriptionsPanel = () => {
   );
 };
 
-// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+
 const NAV_ITEMS = [
   { id: "overview",  label: "Tableau de bord", icon: <IconGrid size={16} />,       group: "general" },
   { id: "users",     label: "Utilisateurs",    icon: <IconUsers size={16} />,       group: "gestion" },
@@ -1485,7 +1500,7 @@ const AdminSidebar = ({ active, onNav, collapsed, onToggle, user }) => {
       transition: "width 0.22s cubic-bezier(0.4,0,0.2,1)",
       overflowX: "hidden", flexShrink: 0,
     }}>
-      {/* Logo + toggle */}
+      {}
       <div style={{ padding: collapsed ? "18px 0" : "18px 20px",
         display: "flex", alignItems: "center",
         justifyContent: collapsed ? "center" : "space-between",
@@ -1509,7 +1524,7 @@ const AdminSidebar = ({ active, onNav, collapsed, onToggle, user }) => {
         </button>
       </div>
 
-      {/* Admin badge */}
+      {}
       <div style={{ padding: collapsed ? "12px 0" : "12px 16px",
         borderBottom: `1px solid ${C.sidebarBdr}`,
         display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start",
@@ -1525,7 +1540,7 @@ const AdminSidebar = ({ active, onNav, collapsed, onToggle, user }) => {
         )}
       </div>
 
-      {/* Nav */}
+      {}
       <nav style={{ flex: 1, overflowY: "auto", overflowX: "hidden",
         padding: collapsed ? "10px 0" : "10px 0", scrollbarWidth: "none" }}>
         {GROUPS.map(group => {
@@ -1569,7 +1584,7 @@ const AdminSidebar = ({ active, onNav, collapsed, onToggle, user }) => {
         })}
       </nav>
 
-      {/* Footer: user + logout */}
+      {}
       <div style={{ borderTop: `1px solid ${C.sidebarBdr}`, padding: collapsed ? "14px 0" : "14px 16px" }}>
         {!collapsed && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -1605,7 +1620,7 @@ const AdminSidebar = ({ active, onNav, collapsed, onToggle, user }) => {
   );
 };
 
-// ── TOPBAR ────────────────────────────────────────────────────────────────────
+
 const PAGE_TITLES = {
   overview: "Tableau de bord",
   users:    "Utilisateurs",
@@ -1723,9 +1738,9 @@ const AdminTopbar = ({ active }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
+
+
+
 const PANEL_MAP = {
   overview: (props) => <OverviewPanel {...props} />,
   users:    () => <UsersPanel />,

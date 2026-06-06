@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMyPitches } from "../../../hooks/usePitches";
 import pitchService from "../../../services/pitchService";
+import uploadService from "../../../services/uploadService";
 import useAuth from "../../../hooks/useAuth";
 import { IconSend, IconSearch } from "../../../components/ui/Icons";
 
-// ── Pitch Detail Modal ────────────────────────────────────────────────────────
+
 const PitchDetailModal = ({ pitch, onClose }) => {
   if (!pitch) return null;
   const s = pitch.strategy || {};
@@ -106,6 +107,34 @@ const PitchDetailModal = ({ pitch, onClose }) => {
           </Section>
         )}
 
+        {pitch.attachments?.length > 0 && (
+          <Section title="Pièces jointes">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {pitch.attachments.map((att, i) => {
+                const src = uploadService.resolveUrl(att.url);
+                const isImg = att.mimeType?.startsWith("image/") ||
+                  /\.(jpe?g|png|gif|webp|svg)$/i.test(att.filename || "");
+                return isImg ? (
+                  <a key={i} href={src} target="_blank" rel="noreferrer"
+                    style={{ display: "block", flexShrink: 0 }}>
+                    <img src={src} alt={att.filename || `Image ${i + 1}`}
+                      style={{ width: 110, height: 80, objectFit: "cover",
+                        borderRadius: 8, border: "1px solid #eee", display: "block" }} />
+                  </a>
+                ) : (
+                  <a key={i} href={src} target="_blank" rel="noreferrer"
+                    style={{ display: "flex", alignItems: "center", gap: 8,
+                      padding: "8px 12px", borderRadius: 8, background: "#f5f5f5",
+                      border: "1px solid #eee", color: "#333",
+                      textDecoration: "none", fontSize: "0.82rem", fontWeight: 500 }}>
+                    📎 {att.filename || `Fichier ${i + 1}`}
+                  </a>
+                );
+              })}
+            </div>
+          </Section>
+        )}
+
         <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
           {pitch.proposedPrice?.amount && (
             <div style={{ padding: "10px 16px", borderRadius: 10, background: "#f8f8f8",
@@ -145,6 +174,131 @@ const INTERNAL_META = {
   sent:                { label: "Envoyée au client",     color: "#7c3aed", bg: "#f3f0ff" },
 };
 
+const CONV_STATUS_META = {
+  pending:  { label: "En attente", color: "#f59e0b", bg: "#fffbeb" },
+  accepted: { label: "Acceptée",   color: "#10b981", bg: "#f0fdf4" },
+  rejected: { label: "Refusée",    color: "#ef4444", bg: "#fef2f2" },
+};
+
+const SentConventionsView = ({ agencyId }) => {
+  const [conventions, setConventions] = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [statusF,     setStatusF]     = useState("all");
+
+  useEffect(() => {
+    if (!agencyId) return;
+    setLoading(true);
+    pitchService.getSentConventions(agencyId)
+      .then(d => setConventions(d.conventions || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [agencyId]);
+
+  const filtered = useMemo(() => {
+    if (statusF === "all") return conventions;
+    return conventions.filter(c => c.status === statusF);
+  }, [conventions, statusF]);
+
+  const TABS = [
+    { v: "all",      l: "Toutes"      },
+    { v: "pending",  l: "En attente"  },
+    { v: "accepted", l: "Acceptées"   },
+    { v: "rejected", l: "Refusées"    },
+  ];
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 4, marginBottom: 16, flexWrap: "wrap" }}>
+        {TABS.map(t => (
+          <button key={t.v}
+            className={`filter-btn${statusF === t.v ? " active" : ""}`}
+            onClick={() => setStatusF(t.v)}
+            style={{ padding: "7px 12px", fontSize: "0.78rem" }}>
+            {t.l}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="spinner-wrap"><div className="spinner" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-title">Aucune convention trouvée</div>
+            <div className="empty-state-desc">
+              {statusF !== "all"
+                ? "Essayez un autre filtre."
+                : "Vous n'avez encore envoyé aucune convention à un freelancer."}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="card" style={{ overflow: "auto" }}>
+          <table className="data-grid">
+            <thead>
+              <tr>
+                <th>Freelancer</th>
+                <th>Statut</th>
+                <th>Date d'envoi</th>
+                <th>Répondu le</th>
+                <th>Raison du refus</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {filtered.map((conv, i) => {
+                  const meta = CONV_STATUS_META[conv.status] || CONV_STATUS_META.pending;
+                  const freelancerName = conv.freelancer
+                    ? `${conv.freelancer.firstName || ""} ${conv.freelancer.lastName || ""}`.trim() || "Freelancer"
+                    : "—";
+                  return (
+                    <motion.tr key={conv._id}
+                      initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.025 }}
+                      style={{ borderLeft: `3px solid ${meta.color}` }}>
+                      <td data-label="Freelancer">
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {conv.freelancer?.profilePicture && (
+                            <img
+                              src={uploadService.resolveUrl(conv.freelancer.profilePicture)}
+                              alt=""
+                              onError={e => { e.target.style.display = "none"; }}
+                              style={{ width: 28, height: 28, borderRadius: "50%",
+                                objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }}
+                            />
+                          )}
+                          <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>{freelancerName}</span>
+                        </div>
+                      </td>
+                      <td data-label="Statut">
+                        <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: "0.72rem",
+                          fontWeight: 700, background: meta.bg, color: meta.color }}>
+                          {meta.label}
+                        </span>
+                      </td>
+                      <td data-label="Date d'envoi" className="td-muted">
+                        {fmt(conv.createdAt)}
+                      </td>
+                      <td data-label="Répondu le" className="td-muted">
+                        {conv.respondedAt ? fmt(conv.respondedAt) : "—"}
+                      </td>
+                      <td data-label="Raison du refus" className="td-muted">
+                        {conv.status === "rejected" && conv.rejectionReason
+                          ? <span style={{ fontStyle: "italic" }}>{conv.rejectionReason}</span>
+                          : "—"}
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FILTER_TABS = [
   { v: "all",       l: "Toutes"      },
   { v: "pending",   l: "En attente"  },
@@ -164,7 +318,7 @@ const INTERNAL_TABS = [
 const fmt = (d) =>
   new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" });
 
-// ── InternalWorkflowPanel ─────────────────────────────────────────────────────
+
 const InternalWorkflowPanel = ({ pitch, jobTitle, onUpdated }) => {
   const [busy,  setBusy]  = useState(false);
   const [notes, setNotes] = useState(pitch.internalNotes || "");
@@ -242,14 +396,16 @@ const InternalWorkflowPanel = ({ pitch, jobTitle, onUpdated }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
+
+
+
 const DirectorPitches = ({ user }) => {
   const { user: authUser } = useAuth();
   const jobTitle = authUser?.jobTitle || (authUser?.role === "agency" ? "director" : "");
+  const isDirector = jobTitle === "director" || authUser?.role === "agency";
 
   const { pitches, loading, refetch } = useMyPitches(user?._id, "Agency");
+  const [mainTab,       setMainTab]       = useState("pitches");
   const [statusF,      setStatusF]      = useState("all");
   const [internalF,    setInternalF]    = useState("all");
   const [search,       setSearch]       = useState("");
@@ -304,22 +460,52 @@ const DirectorPitches = ({ user }) => {
     <div>
       <div className="section-header">
         <div className="section-header-left">
-          <h2>Mes offres envoyées</h2>
-          <p>{pitches.length} offre{pitches.length !== 1 ? "s" : ""} au total</p>
+          <h2>{mainTab === "pitches" ? "Mes offres envoyées" : "Conventions envoyées"}</h2>
+          {mainTab === "pitches" && (
+            <p>{pitches.length} offre{pitches.length !== 1 ? "s" : ""} au total</p>
+          )}
         </div>
-        {/* Toggle internal workflow view */}
-        <button
-          onClick={() => setShowInternal(o => !o)}
-          style={{ padding: "7px 14px", borderRadius: 8, fontFamily: "inherit",
-            fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
-            border: "1.5px solid var(--d-border-soft)",
-            background: showInternal ? "var(--d-ink)" : "var(--d-surface)",
-            color: showInternal ? "var(--d-surface)" : "var(--d-ink)" }}>
-          {showInternal ? "Vue client" : "Workflow interne"}
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => setMainTab("pitches")}
+            style={{ padding: "7px 14px", borderRadius: 8, fontFamily: "inherit",
+              fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
+              border: "1.5px solid var(--d-border-soft)",
+              background: mainTab === "pitches" ? "var(--d-ink)" : "var(--d-surface)",
+              color: mainTab === "pitches" ? "var(--d-surface)" : "var(--d-ink)" }}>
+            Mes offres
+          </button>
+          {isDirector && (
+            <button
+              onClick={() => setMainTab("conventions")}
+              style={{ padding: "7px 14px", borderRadius: 8, fontFamily: "inherit",
+                fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
+                border: "1.5px solid var(--d-border-soft)",
+                background: mainTab === "conventions" ? "#c0152a" : "var(--d-surface)",
+                color: mainTab === "conventions" ? "#fff" : "var(--d-ink)" }}>
+              Conventions
+            </button>
+          )}
+          {mainTab === "pitches" && (
+            <button
+              onClick={() => setShowInternal(o => !o)}
+              style={{ padding: "7px 14px", borderRadius: 8, fontFamily: "inherit",
+                fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
+                border: "1.5px solid var(--d-border-soft)",
+                background: showInternal ? "var(--d-ink)" : "var(--d-surface)",
+                color: showInternal ? "var(--d-surface)" : "var(--d-ink)" }}>
+              {showInternal ? "Vue client" : "Workflow interne"}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Stats row */}
+      {mainTab === "conventions" && (
+        <SentConventionsView agencyId={user?.agency || user?._id} />
+      )}
+
+      {mainTab === "pitches" && <>
+      {}
       {!showInternal ? (
         <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
           {[
@@ -354,7 +540,7 @@ const DirectorPitches = ({ user }) => {
         </div>
       )}
 
-      {/* Filters */}
+      {}
       <div className="filters-bar">
         <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
           <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
@@ -384,7 +570,7 @@ const DirectorPitches = ({ user }) => {
         <PitchDetailModal pitch={selectedPitch} onClose={() => setSelectedPitch(null)} />
       )}
 
-      {/* Table */}
+      {}
       {loading ? (
         <div className="spinner-wrap"><div className="spinner" /></div>
       ) : filtered.length === 0 ? (
@@ -503,6 +689,7 @@ const DirectorPitches = ({ user }) => {
           </table>
         </div>
       )}
+      </>}
     </div>
   );
 };

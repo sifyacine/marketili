@@ -1,6 +1,6 @@
-/* ══════════════════════════════════════════════════════════════════
-   auth.css — dark glassmorphism, red accent (#c0152a), no purple
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 
 :root {
   --red:         #c0152a;
@@ -15,7 +15,7 @@
   --bg-subtle:   rgba(255, 255, 255, 0.05);
 }
 
-/* ── Page shell ─────────────────────────────────────────────────── */
+
 .auth-page {
   display: flex;
   min-height: 100vh;
@@ -24,9 +24,9 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   LEFT PANEL — brand side
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 .auth-left {
   width: 460px;
   flex-shrink: 0;
@@ -39,7 +39,7 @@
   overflow: hidden;
 }
 
-/* subtle dot grid */
+
 .auth-left::before {
   content: '';
   position: absolute;
@@ -49,7 +49,7 @@
   pointer-events: none;
 }
 
-/* warm red blob — no purple */
+
 .auth-left-bg {
   position: absolute;
   inset: 0;
@@ -61,7 +61,7 @@
   filter: blur(40px);
 }
 
-/* giant decorative letter */
+
 .auth-left-decor {
   position: absolute;
   right: -40px;
@@ -113,7 +113,7 @@
   max-width: 300px;
 }
 
-/* Stats bar */
+
 .auth-left-stats {
   position: relative;
   z-index: 1;
@@ -135,7 +135,7 @@
   color: rgba(244,244,246,0.3); text-transform: uppercase; letter-spacing: 0.06em;
 }
 
-/* Step list on left panel */
+
 .auth-left-steps { position: relative; z-index: 1; margin-top: auto; }
 .auth-step { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
 .auth-step-num {
@@ -146,9 +146,9 @@
 }
 .auth-step-text { font-size: 0.82rem; color: rgba(244,244,246,0.4); line-height: 1.5; }
 
-/* ══════════════════════════════════════════════════════════════════
-   RIGHT PANEL — form side
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 .auth-right {
   flex: 1;
   display: flex;
@@ -164,7 +164,7 @@
   max-width: 480px;
 }
 
-/* ── Step progress bar ──────────────────────────────────────────── */
+
 .reg-steps {
   display: flex;
   align-items: center;
@@ -222,7 +222,7 @@
 }
 .reg-step-connector.done { background: rgba(192,21,42,0.4); }
 
-/* ── Form header ────────────────────────────────────────────────── */
+
 .auth-form-header { margin-bottom: 32px; }
 
 .auth-form-title {
@@ -235,7 +235,7 @@
   font-size: 0.875rem; color: rgba(244,244,246,0.45); line-height: 1.55;
 }
 
-/* ── Back button ────────────────────────────────────────────────── */
+
 .auth-back-btn {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 0.8rem; font-weight: 600;
@@ -246,7 +246,7 @@
 }
 .auth-back-btn:hover { color: rgba(244,244,246,0.85); }
 
-/* ── Role selection grid ────────────────────────────────────────── */
+
 .role-select-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -286,7 +286,7 @@
 .role-select-name { font-size: 0.9rem; font-weight: 700; color: #fff; display: block; }
 .role-select-desc { font-size: 0.72rem; color: rgba(244,244,246,0.4); line-height: 1.45; display: block; }
 
-/* ── Account type grid ──────────────────────────────────────────── */
+
 .account-type-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 12px; margin-bottom: 24px;
@@ -321,9 +321,9 @@
 .account-type-name { font-size: 1rem; font-weight: 700; color: #fff; display: block; }
 .account-type-desc { font-size: 0.75rem; color: rgba(244,244,246,0.4); line-height: 1.4; display: block; }
 
-/* ══════════════════════════════════════════════════════════════════
-   FORM ELEMENTS
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 .auth-form { display: flex; flex-direction: column; }
 .form-group { margin-bottom: 16px; }
 
@@ -362,7 +362,7 @@
   box-shadow: 0 0 0 3px rgba(192,21,42,0.1);
 }
 
-/* select arrow — white version */
+
 .form-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 4.5L11 1' stroke='rgba(244,244,246,0.3)' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -388,7 +388,7 @@
   letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
 }
 
-/* ── Error message ──────────────────────────────────────────────── */
+
 .form-error {
   display: flex; align-items: flex-start; gap: 9px;
   background: rgba(192,21,42,0.1);
@@ -410,7 +410,7 @@
   80%      { transform: translateX(3px); }
 }
 
-/* ── Submit button ──────────────────────────────────────────────── */
+
 .auth-submit-btn {
   width: 100%; padding: 14px;
   background: var(--red);
@@ -431,7 +431,7 @@
 .auth-submit-btn:active:not(:disabled) { transform: translateY(0); }
 .auth-submit-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* spinner */
+
 .btn-spinner {
   width: 15px; height: 15px;
   border: 2px solid rgba(255,255,255,0.3);
@@ -442,7 +442,7 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Footer + forgot links ──────────────────────────────────────── */
+
 .auth-footer-text {
   text-align: center; margin-top: 22px;
   font-size: 0.84rem; color: rgba(244,244,246,0.38);
@@ -461,9 +461,9 @@
 }
 .auth-forgot:hover { color: rgba(244,244,246,0.7); }
 
-/* ══════════════════════════════════════════════════════════════════
-   PASSWORD FIELD
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 .pw-input-wrap { position: relative; }
 .pw-input-wrap .form-input { padding-right: 90px; }
 
@@ -491,9 +491,9 @@
   letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   RADIO GROUP — Agency type
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 .radio-group { display: flex; gap: 10px; }
 
 .radio-card {
@@ -526,9 +526,9 @@
   box-shadow: inset 0 0 0 3px rgba(6,6,8,1);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   SPECIALTY CHIPS
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 .specialty-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
 
 .specialty-chip {
@@ -559,9 +559,9 @@
   color: rgba(244,244,246,0.5); font-weight: 600;
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   UNAUTHORIZED PAGE
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 .unauthorized-page {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; min-height: 100vh;
@@ -626,9 +626,9 @@
   transform: translateY(-1px);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   RESPONSIVE
-   ══════════════════════════════════════════════════════════════════ */
+
+
+
 @media (max-width: 960px) {
   .auth-left { width: 380px; padding: 44px 40px; }
   .auth-left-title { font-size: 1.75rem; }

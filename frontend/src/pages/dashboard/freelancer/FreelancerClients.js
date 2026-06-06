@@ -225,7 +225,7 @@ const FreelancerClients = ({ user }) => {
                 fontFamily: "inherit", fontSize: "0.78rem", fontWeight: 700,
                 cursor: msgLoading === selected._id ? "not-allowed" : "pointer",
               }}>
-              {msgLoading === selected._id ? "…" : "✉ Message"}
+              {msgLoading === selected._id ? "…" : "Message"}
             </button>
             <button className="section-cta-btn"
               style={{ background: "transparent", color: "#9a6060",
@@ -360,7 +360,7 @@ const FreelancerClients = ({ user }) => {
                           fontWeight: 700, cursor: msgLoading === c._id ? "not-allowed" : "pointer",
                           opacity: msgLoading === c._id ? 0.6 : 1, whiteSpace: "nowrap",
                         }}>
-                        {msgLoading === c._id ? "…" : "✉ Message"}
+                        {msgLoading === c._id ? "…" : "Message"}
                       </button>
                     </div>
                   </motion.div>

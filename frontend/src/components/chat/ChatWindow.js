@@ -4,9 +4,9 @@ import { getSocket } from "../../services/socketService";
 import MessageBubble from "./MessageBubble";
 import useAuth from "../../hooks/useAuth";
 
-// Accepts either:
-//   projectId     — resolves conversation from a project (legacy)
-//   conversationId — uses conversation directly (direct messages)
+
+
+
 const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle }) => {
   const { user } = useAuth();
   const [conversationId, setConversationId] = useState(directConvId || null);
@@ -22,7 +22,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
   const pollRef    = useRef();
   const convIdRef  = useRef();
 
-  // Keep ref in sync so the poll closure always has the latest id
+  
   convIdRef.current = conversationId;
 
   const scrollBottom = () => {
@@ -36,7 +36,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
     } catch {}
   }, []);
 
-  // When directConvId prop changes, reset
+  
   useEffect(() => {
     if (directConvId) {
       setConversationId(directConvId);
@@ -49,7 +49,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
     }
   }, [directConvId, loadMessages]);
 
-  // Init: get or create conversation from project, then load messages and mark read
+  
   useEffect(() => {
     if (!projectId || directConvId) return;
     setLoading(true);
@@ -65,12 +65,12 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
       .finally(() => setLoading(false));
   }, [projectId, directConvId, loadMessages]);
 
-  // Auto-scroll when messages change
+  
   useEffect(() => {
     scrollBottom();
   }, [messages]);
 
-  // Real-time: join socket room and listen for new messages
+  
   useEffect(() => {
     if (!conversationId) return;
     const socket = getSocket();
@@ -78,7 +78,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
 
     const handleNewMessage = ({ message }) => {
       setMessages(prev => {
-        // Deduplicate by _id — sender already appended optimistically
+        
         if (prev.some(m => m._id === message._id)) return prev;
         return [...prev, message];
       });
@@ -91,7 +91,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
     };
   }, [conversationId]);
 
-  // Fallback poll every 30s in case the socket drops
+  
   useEffect(() => {
     pollRef.current = setInterval(() => {
       if (convIdRef.current) {
@@ -112,7 +112,9 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
         content: text.trim() || undefined,
         file:    selectedFile || undefined,
       });
-      setMessages(prev => [...prev, result.message]);
+      setMessages(prev =>
+        prev.some(m => m._id === result.message._id) ? prev : [...prev, result.message]
+      );
       setText("");
       setSelectedFile(null);
       if (fileRef.current) fileRef.current.value = "";
@@ -157,7 +159,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
       ...rootStyle,
     }}>
 
-      {/* ── Messages area ── */}
+      {}
       <div style={{
         flex: 1, overflowY: "auto",
         padding: "16px 18px",
@@ -182,7 +184,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
         <div ref={bottomRef} />
       </div>
 
-      {/* ── File preview strip ── */}
+      {}
       {selectedFile && (
         <div style={{
           padding: "8px 18px",
@@ -207,7 +209,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
         </div>
       )}
 
-      {/* ── Error strip ── */}
+      {}
       {error && (
         <div style={{
           padding: "6px 18px", fontSize: "0.75rem", color: "#c0152a",
@@ -217,14 +219,14 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
         </div>
       )}
 
-      {/* ── Input bar ── */}
+      {}
       <form onSubmit={handleSend}
         style={{
           display: "flex", gap: 8, padding: "12px 14px",
           borderTop: "1.5px solid var(--d-border-soft, #eee)",
           background: "var(--d-surface, #f8f8f8)",
         }}>
-        {/* Hidden file input */}
+        {}
         <input
           ref={fileRef}
           type="file"
@@ -233,7 +235,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
           onChange={handleFileChange}
         />
 
-        {/* Attach button */}
+        {}
         <button type="button"
           onClick={() => fileRef.current?.click()}
           title="Joindre un fichier"
@@ -247,7 +249,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
           📎
         </button>
 
-        {/* Text input */}
+        {}
         <input
           value={text}
           onChange={e => setText(e.target.value)}
@@ -267,7 +269,7 @@ const ChatWindow = ({ projectId, conversationId: directConvId, style: rootStyle 
           }}
         />
 
-        {/* Send button */}
+        {}
         <button type="submit"
           disabled={sending || (!text.trim() && !selectedFile)}
           style={{

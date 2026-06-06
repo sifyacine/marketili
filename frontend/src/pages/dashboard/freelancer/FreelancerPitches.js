@@ -12,96 +12,22 @@ const STATUS_META = {
   withdrawn: { label: "Retirée",    color: "#6b7280", bg: "#f9fafb" },
 };
 
-const CONTRACT_TYPE_LABEL = { cdd: "CDD", cdi: "CDI" };
 
 const FILTER_TABS = [
-  { v: "all",         l: "Toutes"        },
-  { v: "pending",     l: "En attente"    },
-  { v: "accepted",    l: "Acceptées"     },
-  { v: "rejected",    l: "Rejetées"      },
-  { v: "withdrawn",   l: "Retirées"      },
-  { v: "conventions", l: "Conventions"   },
+  { v: "all",       l: "Toutes"     },
+  { v: "pending",   l: "En attente" },
+  { v: "accepted",  l: "Acceptées"  },
+  { v: "rejected",  l: "Rejetées"   },
+  { v: "withdrawn", l: "Retirées"   },
 ];
 
 const fmt = (d) => d
   ? new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" })
   : "—";
 
-// ── Convention card ────────────────────────────────────────────
-const ConventionCard = ({ p, index }) => {
-  const [expanded, setExpanded] = useState(false);
-  const meta      = STATUS_META[p.status] || STATUS_META.pending;
-  const agencyName = p.senderAgency?.agencyName || "Agence inconnue";
 
-  return (
-    <motion.div
-      key={p._id}
-      className="card"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-      style={{ padding: "18px 22px", borderLeft: "3px solid #7c3aed" }}>
 
-      <div style={{ display: "flex", justifyContent: "space-between",
-        alignItems: "flex-start", gap: 12 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span style={{ padding: "2px 8px", borderRadius: 20, fontSize: "0.65rem",
-              fontWeight: 700, background: "#7c3aed18", color: "#7c3aed" }}>
-              Convention
-            </span>
-            {p.contractType && (
-              <span style={{ padding: "2px 8px", borderRadius: 20, fontSize: "0.65rem",
-                fontWeight: 700, background: "#0891b218", color: "#0891b2" }}>
-                {CONTRACT_TYPE_LABEL[p.contractType] || p.contractType}
-              </span>
-            )}
-          </div>
-          <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 4 }}>
-            Convention de collaboration — {agencyName}
-          </div>
-          <div style={{ fontSize: "0.75rem", color: "var(--d-muted)", marginBottom: 6 }}>
-            Reçue le {fmt(p.createdAt)}
-          </div>
-          {p.description && (
-            <div style={{ fontSize: "0.78rem", color: "#555", lineHeight: 1.55,
-              display: "-webkit-box", WebkitLineClamp: expanded ? "none" : 2,
-              WebkitBoxOrient: "vertical", overflow: expanded ? "visible" : "hidden" }}>
-              {p.description}
-            </div>
-          )}
-          {p.workRequirements && expanded && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#555",
-                marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Conditions de travail
-              </div>
-              <div style={{ fontSize: "0.78rem", color: "#555", lineHeight: 1.55 }}>
-                {p.workRequirements}
-              </div>
-            </div>
-          )}
-          {(p.description || p.workRequirements) && (
-            <button onClick={() => setExpanded(e => !e)}
-              style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer",
-                fontSize: "0.72rem", color: "#7c3aed", fontWeight: 600,
-                fontFamily: "inherit", padding: 0 }}>
-              {expanded ? "Réduire ▲" : "Voir détails ▼"}
-            </button>
-          )}
-        </div>
 
-        <span style={{ padding: "3px 11px", borderRadius: 20, fontSize: "0.7rem",
-          fontWeight: 700, background: meta.bg, color: meta.color,
-          whiteSpace: "nowrap", flexShrink: 0 }}>
-          {meta.label}
-        </span>
-      </div>
-    </motion.div>
-  );
-};
-
-// ── Pitch card ─────────────────────────────────────────────────
 const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
   const [expanded, setExpanded] = useState(false);
   const meta = STATUS_META[p.status] || STATUS_META.pending;
@@ -181,9 +107,9 @@ const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════
+
+
+
 const FreelancerPitches = ({ user }) => {
   const [pitches,     setPitches]     = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -197,10 +123,11 @@ const FreelancerPitches = ({ user }) => {
     if (!user?._id) return;
     setLoading(true);
     const params = { page, limit: 12 };
-    if (filter !== "all" && filter !== "conventions") params.status = filter;
+    if (filter !== "all") params.status = filter;
     freelancerService.getPitches(user._id, params)
       .then(d => {
-        setPitches(d.pitches || []);
+        const sent = (d.pitches || []).filter(p => p.pitchType !== "agency_to_freelancer");
+        setPitches(sent);
         setTotal(d.total || 0);
         setPages(d.pages || 1);
       })
@@ -210,7 +137,7 @@ const FreelancerPitches = ({ user }) => {
 
   useEffect(() => { load(); }, [load]);
 
-  // Real-time: refetch when pitch status changes or a pitch notification arrives
+  
   useEffect(() => {
     const socket = getSocket();
     const onPitchUpdate = () => load();
@@ -242,21 +169,16 @@ const FreelancerPitches = ({ user }) => {
     setPage(1);
   };
 
-  const displayed = filter === "conventions"
-    ? pitches.filter(p => p.pitchType === "agency_to_freelancer")
-    : pitches;
-
-  const sentCount = pitches.filter(p => p.pitchType !== "agency_to_freelancer").length;
-  const convCount = pitches.filter(p => p.pitchType === "agency_to_freelancer").length;
+  const displayed  = pitches;
+  const sentCount  = pitches.length;
 
   return (
     <div>
       <div className="section-header">
         <div className="section-header-left">
-          <h2>Mes offres & conventions</h2>
+          <h2>Mes offres</h2>
           <p style={{ color: "var(--d-muted)" }}>
             {sentCount} offre{sentCount !== 1 ? "s" : ""} envoyée{sentCount !== 1 ? "s" : ""}
-            {convCount > 0 && ` · ${convCount} convention${convCount !== 1 ? "s" : ""} reçue${convCount !== 1 ? "s" : ""}`}
           </p>
         </div>
       </div>
@@ -283,13 +205,9 @@ const FreelancerPitches = ({ user }) => {
       ) : displayed.length === 0 ? (
         <div className="card" style={{ padding: "48px 24px", textAlign: "center" }}>
           <div style={{ color: "#ccc", marginBottom: 12 }}><IconSend size={24} /></div>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>
-            {filter === "conventions" ? "Aucune convention" : "Aucune offre"}
-          </div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>Aucune offre</div>
           <div style={{ fontSize: "0.8rem", color: "var(--d-muted)" }}>
-            {filter === "conventions"
-              ? "Aucune convention de collaboration reçue"
-              : filter !== "all"
+            {filter !== "all"
               ? "Aucune offre dans ce statut"
               : "Explorez les posts et envoyez votre première offre"}
           </div>
@@ -303,15 +221,13 @@ const FreelancerPitches = ({ user }) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {displayed.map((p, i) =>
-                p.pitchType === "agency_to_freelancer"
-                  ? <ConventionCard key={p._id} p={p} index={i} />
-                  : <PitchCard key={p._id} p={p} index={i}
-                      onWithdraw={handleWithdraw} withdrawing={withdrawing} />
-              )}
+              {displayed.map((p, i) => (
+                <PitchCard key={p._id} p={p} index={i}
+                  onWithdraw={handleWithdraw} withdrawing={withdrawing} />
+              ))}
             </div>
 
-            {pages > 1 && filter !== "conventions" && (
+            {pages > 1 && (
               <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 24 }}>
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}

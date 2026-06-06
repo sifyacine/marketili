@@ -34,9 +34,9 @@ const getSenderName = (user) =>
     ? `${user.firstName} ${user.lastName || ""}`.trim()
     : user.agencyName || user.teamName || user.companyName || "Utilisateur";
 
-// ─────────────────────────────────────────────
-// GET OR CREATE CONVERSATION (project-tied)  GET /api/chat/project/:projectId
-// ─────────────────────────────────────────────
+
+
+
 exports.getOrCreateConversation = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -73,21 +73,21 @@ exports.getOrCreateConversation = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// LIST MY CONVERSATIONS  GET /api/chat/conversations
-// ─────────────────────────────────────────────
+
+
+
 exports.getMyConversations = async (req, res) => {
   try {
     const userId   = req.user._id;
     const userRole = req.userRole;
 
-    // ── Direct conversations ──
+    
     const directConvs = await Conversation.find({
       isDirect: true,
       users: userId,
     }).sort({ lastMessageAt: -1, updatedAt: -1 }).lean();
 
-    // ── Project conversations ──
+    
     let projectFilter = {};
     if (userRole === "client")
       projectFilter.client = userId;
@@ -115,7 +115,7 @@ exports.getMyConversations = async (req, res) => {
           .sort({ lastMessageAt: -1, updatedAt: -1 }).lean()
       : [];
 
-    // Attach project title as synthetic participantInfo
+    
     const projectConvsWithInfo = projectConvs.map((conv) => {
       const project = userProjects.find((p) => String(p._id) === String(conv.project));
       return {
@@ -128,14 +128,14 @@ exports.getMyConversations = async (req, res) => {
       };
     });
 
-    // ── Merge and sort by last activity ──
+    
     const allConvs = [...directConvs, ...projectConvsWithInfo].sort((a, b) => {
       const at = new Date(a.lastMessageAt || a.updatedAt || a.createdAt || 0);
       const bt = new Date(b.lastMessageAt || b.updatedAt || b.createdAt || 0);
       return bt - at;
     });
 
-    // ── Attach unread counts ──
+    
     const withUnread = await Promise.all(
       allConvs.map(async (conv) => {
         const unreadCount = await Message.countDocuments({
@@ -153,9 +153,9 @@ exports.getMyConversations = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// START OR FIND DIRECT CONVERSATION  POST /api/chat/conversations/direct
-// ─────────────────────────────────────────────
+
+
+
 exports.startDirectConversation = async (req, res) => {
   try {
     const { targetUserId, targetRole } = req.body;
@@ -166,19 +166,19 @@ exports.startDirectConversation = async (req, res) => {
       return res.status(400).json({ success: false, message: "targetUserId requis" });
     }
 
-    // Prevent conversation with self
+    
     if (String(currentUser._id) === String(targetUserId)) {
       return res.status(400).json({ success: false, message: "Vous ne pouvez pas vous envoyer de message" });
     }
 
-    // Find existing direct conversation between these two users
+    
     let conv = await Conversation.findOne({
       isDirect: true,
       users: { $all: [currentUser._id, targetUserId] },
     });
 
     if (!conv) {
-      // Resolve target name from role model
+      
       let targetName = "Utilisateur";
       const TargetModel = MODEL_MAP[targetRole];
       if (TargetModel) {
@@ -200,13 +200,25 @@ exports.startDirectConversation = async (req, res) => {
 
     res.json({ success: true, conversation: conv });
   } catch (err) {
+    // Spurious unique index on project field causes E11000 for second direct conversation;
+    // fall back to finding the existing one rather than failing hard.
+    if (err.code === 11000) {
+      try {
+        const { targetUserId } = req.body;
+        const existing = await Conversation.findOne({
+          isDirect: true,
+          users: { $all: [req.user._id, targetUserId] },
+        });
+        if (existing) return res.json({ success: true, conversation: existing });
+      } catch {}
+    }
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ─────────────────────────────────────────────
-// GET MESSAGES  GET /api/chat/:conversationId/messages
-// ─────────────────────────────────────────────
+
+
+
 exports.getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -218,14 +230,14 @@ exports.getMessages = async (req, res) => {
       return res.status(404).json({ success: false, message: "Conversation introuvable" });
     }
 
-    // Participant-only access
+    
     if (conv.isDirect) {
       const isParticipant = conv.users.some((uid) => String(uid) === String(userId));
       if (!isParticipant) {
         return res.status(403).json({ success: false, message: "Accès refusé" });
       }
     } else if (conv.project) {
-      // Project conversation — verify the user belongs to this project
+      
       const project = await Project.findById(conv.project).select(
         "client providerAgency providerTeam providerFreelancer"
       );
@@ -266,9 +278,9 @@ exports.getMessages = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// SEND MESSAGE  POST /api/chat/:conversationId/messages
-// ─────────────────────────────────────────────
+
+
+
 exports.sendMessage = async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -279,7 +291,7 @@ exports.sendMessage = async (req, res) => {
       return res.status(404).json({ success: false, message: "Conversation introuvable" });
     }
 
-    // Verify sender is a participant in direct conversations
+    
     if (conv.isDirect) {
       const isParticipant = conv.users.some(
         (uid) => String(uid) === String(req.user._id)
@@ -306,10 +318,10 @@ exports.sendMessage = async (req, res) => {
     if (metadata) msgData.metadata = metadata;
 
     if (req.file) {
-      // Stream the buffer into GridFS to get a real ObjectId
+      
       const bucket = new mongoose.mongo.GridFSBucket(conn().db, { bucketName: "uploads" });
       const storedFilename = `${Date.now()}-${req.file.originalname.replace(/\s/g, "_")}`;
-      // Pre-create ObjectId — uploadStream.id returns Date.now() in Mongoose 9 / driver v6
+      
       const fileId = new mongoose.Types.ObjectId();
       const uploadStream = bucket.openUploadStream(storedFilename, {
         id:          fileId,
@@ -338,7 +350,7 @@ exports.sendMessage = async (req, res) => {
 
     const message = await Message.create(msgData);
 
-    // Update conversation's last message metadata
+    
     const preview = message.content
       ? message.content.slice(0, 60)
       : "📎 Fichier joint";
@@ -347,7 +359,7 @@ exports.sendMessage = async (req, res) => {
       lastMessagePreview: preview,
     });
 
-    // Push to all clients currently in this conversation room
+    
     const io = getIo();
     if (io) io.to(`conv:${conversationId}`).emit("new_message", { message });
 
@@ -357,9 +369,9 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// MARK READ  PATCH /api/chat/:conversationId/read
-// ─────────────────────────────────────────────
+
+
+
 exports.markRead = async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -376,22 +388,22 @@ exports.markRead = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET UNREAD COUNT  GET /api/chat/unread-count
-// ─────────────────────────────────────────────
+
+
+
 exports.getUnreadCount = async (req, res) => {
   try {
     const userId   = req.user._id;
     const userRole = req.userRole;
 
-    // Direct conversations unread
+    
     const directConvs = await Conversation.find({
       isDirect: true,
       users: userId,
     }).select("_id");
     const directConvIds = directConvs.map((c) => c._id);
 
-    // Project conversations unread (legacy)
+    
     let projectFilter = {};
     if (userRole === "client")        projectFilter.client               = userId;
     else if (userRole === "agency")   projectFilter.providerAgency       = userId;
@@ -423,9 +435,9 @@ exports.getUnreadCount = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// DELETE MESSAGE  DELETE /api/chat/:conversationId/messages/:messageId
-// ─────────────────────────────────────────────
+
+
+
 exports.deleteMessage = async (req, res) => {
   try {
     const { conversationId, messageId } = req.params;

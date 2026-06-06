@@ -113,7 +113,7 @@ const STATUS_META = {
   withdrawn: { label: "Retirée",    color: "#6b7280" },
 };
 
-// ── My sent requests ──────────────────────────────────────────────────────────
+
 const MyRequests = () => {
   const [requests,    setRequests]    = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -153,7 +153,7 @@ const MyRequests = () => {
         </div>
       )}
 
-      {/* Status filter */}
+      {}
       <div className="filters-bar" style={{ marginBottom: 16 }}>
         {[
           { v: "all",       l: "Toutes"     },
@@ -248,7 +248,7 @@ const MyRequests = () => {
   );
 };
 
-// ── Root ──────────────────────────────────────────────────────────────────────
+
 const FreelancerCollaborations = ({ collaborations, activeContext, onSwitchContext }) => {
   const [tab, setTab] = useState("collabs");
 
@@ -263,7 +263,7 @@ const FreelancerCollaborations = ({ collaborations, activeContext, onSwitchConte
         </div>
       </div>
 
-      {/* Tab bar */}
+      {}
       <div style={{ display: "flex", gap: 4, marginBottom: 22 }}>
         {[
           { id: "collabs", label: "Collaborations actives" },

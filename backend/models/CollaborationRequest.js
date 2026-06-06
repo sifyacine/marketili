@@ -1,4 +1,4 @@
-// backend/models/CollaborationRequest.js
+
 
 const mongoose = require("mongoose");
 
@@ -27,7 +27,7 @@ const collaborationRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Prevent duplicate pending requests from the same sender to the same target
+
 collaborationRequestSchema.index(
   { fromId: 1, toId: 1, status: 1 },
   { unique: false }

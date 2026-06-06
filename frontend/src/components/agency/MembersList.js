@@ -10,11 +10,11 @@ const MembersList = () => {
       setLoading(true);
       const res = await agencyMemberService.getMembers();
 
-      // 🔥 FIX: always force array
+      
       setMembers(res.data?.members || res.data || []);
     } catch (err) {
       console.error(err);
-      setMembers([]); // safety fallback
+      setMembers([]); 
     } finally {
       setLoading(false);
     }

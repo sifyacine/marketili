@@ -1,6 +1,6 @@
-/* frontend/src/styles/OffresRecues.css */
 
-/* ── Empty states ── */
+
+
 .offres-recues-empty {
   padding: 64px 24px;
 }
@@ -9,7 +9,7 @@
   padding: 48px 24px;
 }
 
-/* ── Post list ── */
+
 .offres-recues-list {
   display: flex;
   flex-direction: column;
@@ -75,7 +75,7 @@
   font-size: 1.1rem;
 }
 
-/* ── Back header ── */
+
 .offres-recues-back-header {
   display: flex;
   align-items: center;
@@ -115,7 +115,7 @@
   margin: 2px 0 0;
 }
 
-/* ── Brief card (post info) ── */
+
 .offres-recues-brief-card {
   margin-bottom: 24px;
   padding: 20px 24px;
@@ -222,7 +222,7 @@
   font-weight: 600;
 }
 
-/* ── Success message ── */
+
 .offres-recues-success-msg {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border: 1px solid #bbf7d0;
@@ -235,14 +235,14 @@
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
 }
 
-/* ── Pitches grid ── */
+
 .offres-recues-pitches-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
   gap: 24px;
 }
 
-/* ── Unified pitch card ── */
+
 .offres-recues-pitch-card-unified {
   background: white;
   border-radius: 12px;
@@ -257,7 +257,7 @@
   transform: translateY(-2px);
 }
 
-/* ── Pitch header ── */
+
 .offres-pitch-header {
   background: linear-gradient(135deg, #fdf8f8 0%, #fff 100%);
   padding: 20px 24px;
@@ -328,7 +328,7 @@
   margin-top: 2px;
 }
 
-/* ── Pitch body ── */
+
 .offres-pitch-body {
   padding: 24px;
 }
@@ -361,14 +361,14 @@
   border-left: 3px solid #c0152a;
 }
 
-/* ── Grid sections layout ── */
+
 .offres-pitch-grid-sections {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
 }
 
-/* ── Detail items ── */
+
 .offres-pitch-detail-grid {
   display: flex;
   flex-direction: column;
@@ -403,7 +403,7 @@
   line-height: 1.5;
 }
 
-/* ── Attachments ── */
+
 .offres-pitch-attachments {
   display: flex;
   flex-direction: column;
@@ -446,7 +446,7 @@
   flex-shrink: 0;
 }
 
-/* ── Footer buttons ── */
+
 .offres-pitch-footer {
   display: flex;
   gap: 12px;
@@ -505,7 +505,7 @@
   opacity: 0.6;
 }
 
-/* ── Rejected footer ── */
+
 .offres-pitch-footer-rejected {
   padding: 12px 24px;
   background: #fef2f2;

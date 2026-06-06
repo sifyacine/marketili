@@ -16,9 +16,9 @@ const adController = require("./adController");
 const ok   = (res, data, code = 200) => res.status(code).json({ success: true,  ...data });
 const fail = (res, msg,  code = 400) => res.status(code).json({ success: false, message: msg });
 
-// ─────────────────────────────────────────────
-// GET ALL USERS  GET /admin/users
-// ─────────────────────────────────────────────
+
+
+
 exports.getAllUsers = async (req, res) => {
   try {
     const { role, search } = req.query;
@@ -48,9 +48,9 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// TOGGLE USER  PATCH /admin/users/:role/:id/toggle
-// ─────────────────────────────────────────────
+
+
+
 exports.toggleUserStatus = async (req, res) => {
   try {
     const { id, role } = req.params;
@@ -79,9 +79,9 @@ exports.toggleUserStatus = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET STATS  GET /admin/stats
-// ─────────────────────────────────────────────
+
+
+
 exports.getStats = async (req, res) => {
   try {
     const now      = new Date();
@@ -141,9 +141,9 @@ exports.getStats = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET ADMIN POSTS  GET /admin/posts
-// ─────────────────────────────────────────────
+
+
+
 exports.getAdminPosts = async (req, res) => {
   try {
     const { status, search, page = 1, limit = 20 } = req.query;
@@ -165,7 +165,7 @@ exports.getAdminPosts = async (req, res) => {
       Post.countDocuments(filter),
     ]);
 
-    // Attach pitch count per post
+    
     const postIds = posts.map(p => p._id);
     const pitchCounts = await Pitch.aggregate([
       { $match: { post: { $in: postIds } } },
@@ -184,9 +184,9 @@ exports.getAdminPosts = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// REMOVE POST  PATCH /admin/posts/:id/remove
-// ─────────────────────────────────────────────
+
+
+
 exports.removePost = async (req, res) => {
   try {
     const { reason } = req.body;
@@ -209,9 +209,9 @@ exports.removePost = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// REACTIVATE POST  PATCH /admin/posts/:id/reactivate
-// ─────────────────────────────────────────────
+
+
+
 exports.reactivatePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -234,9 +234,9 @@ exports.reactivatePost = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET RECENT ACTIVITY  GET /admin/activity
-// ─────────────────────────────────────────────
+
+
+
 exports.getRecentActivity = async (req, res) => {
   try {
     const [recentClients, recentAgencies, recentTeams, recentFreelancers, recentPosts, recentPitches] =
@@ -266,12 +266,12 @@ exports.getRecentActivity = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// OPTIONS CRUD
-// GET /admin/options/:key
-// POST /admin/options/:key/add  { value }
-// DELETE /admin/options/:key/:value
-// ─────────────────────────────────────────────
+
+
+
+
+
+
 exports.getOptions = async (req, res) => {
   try {
     const { key } = req.params;
@@ -322,9 +322,9 @@ exports.getAllOptions = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ACTIVITY LOG  GET /admin/activity
-// ─────────────────────────────────────────────
+
+
+
 exports.getActivityLog = async (req, res) => {
   try {
     const page  = parseInt(req.query.page)  || 1;
@@ -350,9 +350,9 @@ exports.getActivityLog = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ADS  (proxy to adController)
-// ─────────────────────────────────────────────
+
+
+
 exports.getAdminAds = adController.getAdminAds;
 exports.createAd    = adController.createAd;
 exports.updateAd    = adController.updateAd;

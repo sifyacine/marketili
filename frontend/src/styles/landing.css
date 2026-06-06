@@ -1,4 +1,4 @@
-/* ── DESIGN TOKENS ── */
+
 :root {
   --lp-bg:          #060608;
   --lp-surface:     rgba(255,255,255,0.04);
@@ -17,7 +17,7 @@
 html { scroll-behavior: smooth; }
 body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
 
-/* ── ROOT ── */
+
 .lp-root {
   min-height: 100vh;
   background: var(--lp-bg);
@@ -25,7 +25,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
   overflow-x: hidden;
 }
 
-/* ── CONTAINER ── */
+
 .lp-container {
   width: 100%;
   max-width: 1120px;
@@ -33,9 +33,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
   padding: 0 32px;
 }
 
-/* ══════════════════════════════════════
-   NAVBAR
-══════════════════════════════════════ */
+
+
+
 .lp-nav {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -153,9 +153,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
   border: none !important;
 }
 
-/* ══════════════════════════════════════
-   SECTIONS
-══════════════════════════════════════ */
+
+
+
 .lp-section {
   display: flex;
   align-items: center;
@@ -201,9 +201,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 .lp-text-center { text-align: center; }
 .lp-accent { color: var(--lp-accent); }
 
-/* ══════════════════════════════════════
-   BUTTONS
-══════════════════════════════════════ */
+
+
+
 .lp-btn-primary {
   display: inline-flex;
   align-items: center;
@@ -248,9 +248,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 
 .lp-btn-lg { padding: 16px 36px; font-size: 1rem; }
 
-/* ══════════════════════════════════════
-   HERO
-══════════════════════════════════════ */
+
+
+
 .lp-hero {
   min-height: 100vh;
   padding-top: 80px;
@@ -301,7 +301,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 
 .lp-hero-text { display: flex; flex-direction: column; max-width: 780px; position: relative; z-index: 1; }
 
-/* Brand "M" watermark filling the empty side of the hero */
+
 .lp-hero-decor {
   position: absolute;
   right: -1vw;
@@ -383,7 +383,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 }
 .lp-hero-stat-label { font-size: 0.72rem; color: rgba(244,244,246,0.4); letter-spacing: 0.04em; }
 
-/* ── HERO MOCK CARDS ── */
+
 .lp-hero-mock-wrap {
   display: flex;
   align-items: center;
@@ -457,9 +457,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 
 .lp-mock-date { font-size: 0.66rem; color: rgba(244,244,246,0.3); }
 
-/* ══════════════════════════════════════
-   LOGO STRIP
-══════════════════════════════════════ */
+
+
+
 .lp-logos {
   padding: 48px 0;
   border-top: 1px solid var(--lp-border);
@@ -487,9 +487,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 }
 .lp-logo-item:hover { color: rgba(244,244,246,0.5); }
 
-/* ══════════════════════════════════════
-   BENEFITS / FEATURES
-══════════════════════════════════════ */
+
+
+
 .lp-benefits { background: var(--lp-bg); }
 
 .lp-benefits-grid {
@@ -533,9 +533,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 .lp-benefit-title { font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1.3; }
 .lp-benefit-desc  { font-size: 0.855rem; color: rgba(244,244,246,0.45); line-height: 1.7; }
 
-/* ══════════════════════════════════════
-   HOW IT WORKS
-══════════════════════════════════════ */
+
+
+
 .lp-how { background: rgba(255,255,255,0.02); }
 
 .lp-steps { max-width: 680px; margin: 0 auto; width: 100%; }
@@ -558,9 +558,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 .lp-step-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
 .lp-step-desc  { font-size: 0.875rem; color: rgba(244,244,246,0.45); line-height: 1.65; }
 
-/* ══════════════════════════════════════
-   ROLES / FOR WHOM
-══════════════════════════════════════ */
+
+
+
 .lp-roles { background: var(--lp-bg); }
 
 .lp-role-grid {
@@ -612,9 +612,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 }
 .lp-role-cta:hover { background: rgba(255,255,255,0.06); border-color: var(--rc, rgba(255,255,255,0.3)); }
 
-/* ══════════════════════════════════════
-   STATS
-══════════════════════════════════════ */
+
+
+
 .lp-stats { background: rgba(255,255,255,0.02); }
 
 .lp-stat-grid {
@@ -635,9 +635,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 }
 .lp-stat-label { font-size: 0.8rem; color: rgba(244,244,246,0.4); line-height: 1.4; }
 
-/* ══════════════════════════════════════
-   CTA SECTION
-══════════════════════════════════════ */
+
+
+
 .lp-cta { background: var(--lp-bg); padding: 140px 0; }
 
 .lp-cta-glow {
@@ -659,9 +659,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 
 .lp-cta-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
-/* ══════════════════════════════════════
-   CONTACT
-══════════════════════════════════════ */
+
+
+
 .lp-contact { background: rgba(255,255,255,0.02); }
 
 .lp-contact-form-wrap {
@@ -707,9 +707,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
 }
 .lp-contact-quick-item:hover { color: rgba(255,255,255,0.8); }
 
-/* ══════════════════════════════════════
-   FOOTER
-══════════════════════════════════════ */
+
+
+
 .lp-footer {
   background: rgba(255,255,255,0.02);
   border-top: 1px solid var(--lp-border);
@@ -754,9 +754,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: ant
   max-width: 1120px; margin: 0 auto;
 }
 
-/* ══════════════════════════════════════
-   RESPONSIVE
-══════════════════════════════════════ */
+
+
+
 @media (max-width: 960px) {
   .lp-benefits-grid { grid-template-columns: repeat(2, 1fr); }
   .lp-stat-grid     { grid-template-columns: repeat(2, 1fr); }

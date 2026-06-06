@@ -1,4 +1,4 @@
-// frontend/src/pages/BrowseProvidersPage.js
+
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -7,8 +7,8 @@ import uploadService  from "../services/uploadService";
 import useAuth from "../hooks/useAuth";
 import CollaborationRequestModal from "../components/collaborations/CollaborationRequestModal";
 import { IconSearch } from "../components/ui/Icons";
+import BrowseBanner  from "../components/ui/BrowseBanner";
 
-// ── Constants ──────────────────────────────────────────────────────────────────
 const TYPE_TABS = [
   { v: "all",        l: "Tous"        },
   { v: "agency",     l: "Agences"     },
@@ -16,7 +16,6 @@ const TYPE_TABS = [
   { v: "freelancer", l: "Freelancers" },
 ];
 
-// Same list providers pick from at registration (keeps filter values consistent).
 const SPECIALTIES = [
   "Events", "360 Marketing", "ATL", "BTL", "Production", "Brand Marketing",
   "Digital", "Influence & Réseaux sociaux", "Relations presse", "Brand Strategy",
@@ -33,125 +32,152 @@ const WILAYAS = [
   "Ghardaïa","Relizane",
 ];
 
-const ROLE_COLORS = {
-  agency:     "#7c3aed",
-  team:       "#0891b2",
-  freelancer: "#d97706",
+const ROLE_META = {
+  agency:     { color: "#7c3aed", bg: "#f5f3ff", label: "Agence" },
+  team:       { color: "#0891b2", bg: "#e0f2fe", label: "Équipe" },
+  freelancer: { color: "#c0152a", bg: "#fef2f2", label: "Freelancer" },
 };
 
-const ROLE_LABELS = {
-  agency:     "Agence",
-  team:       "Équipe",
-  freelancer: "Freelancer",
-};
-
-// ── Provider card ─────────────────────────────────────────────────────────────
 const ProviderCard = ({ provider, index, onCollab, isFreelancer }) => {
   const navigate = useNavigate();
-  const role     = provider._role;
-  const color    = ROLE_COLORS[role] || "#6b7280";
+  const role  = provider._role;
+  const meta  = ROLE_META[role] || { color: "#6b7280", bg: "#f3f4f6", label: role };
 
   const name = provider.agencyName || provider.teamName ||
     (provider.firstName ? `${provider.firstName} ${provider.lastName}` : "—");
-  const avatarSrc   = provider.logo || provider.avatar || null;
-  const initials    = name.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase()).join("");
-  const specialties = provider.specialties || provider.skills || provider.categories || [];
-  const locationStr = provider.address?.region || provider.location?.region || "";
+  const avatarSrc    = provider.logo || provider.avatar || null;
+  const initials     = name.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase()).join("");
+  const specialties  = provider.specialties || provider.skills || provider.categories || [];
+  const locationStr  = provider.address?.region || provider.location?.region || "";
   const membersCount = Array.isArray(provider.members) ? provider.members.length : null;
+
+  const goProfile = () => navigate(`/profile/${role}/${provider._id}`);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-      onClick={() => navigate(`/profile/${role}/${provider._id}`)}
+      transition={{ delay: index * 0.04, duration: 0.22 }}
       style={{
-        borderRadius: 14, border: "1px solid #eee", background: "#fff",
-        padding: "18px 18px 16px",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-        cursor: "pointer", transition: "box-shadow 0.18s, transform 0.18s",
-        borderLeft: `3px solid ${color}`,
+        borderRadius: 16,
+        border: "1px solid #ebebeb",
+        background: "#fff",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+        display: "flex", flexDirection: "column",
+        overflow: "hidden",
+        transition: "box-shadow 0.18s, transform 0.18s",
       }}
-      whileHover={{ boxShadow: "0 6px 22px rgba(0,0,0,0.10)", y: -2 }}>
-      {/* Header */}
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-        {avatarSrc ? (
-          <img src={uploadService.resolveUrl(avatarSrc)} alt={name}
-            style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-        ) : (
-          <div style={{ width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
-            background: `linear-gradient(135deg, ${color}, ${color}99)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "1rem", fontWeight: 800, color: "#fff" }}>
-            {initials}
+      whileHover={{ boxShadow: "0 8px 28px rgba(0,0,0,0.10)", y: -3 }}>
+
+      <div style={{
+        height: 6, background: meta.color, opacity: 0.7, flexShrink: 0,
+      }} />
+
+      <div style={{ padding: "18px 18px 0", flex: 1 }}>
+        <div style={{ display: "flex", gap: 13, alignItems: "flex-start", marginBottom: 12 }}>
+          {avatarSrc ? (
+            <img src={uploadService.resolveUrl(avatarSrc)} alt={name}
+              style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover",
+                flexShrink: 0, border: `2px solid ${meta.color}22` }} />
+          ) : (
+            <div style={{ width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
+              background: `linear-gradient(135deg, ${meta.color}, ${meta.color}cc)`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "1.05rem", fontWeight: 800, color: "#fff",
+              border: `2px solid ${meta.color}33` }}>
+              {initials}
+            </div>
+          )}
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginBottom: 2 }}>
+              <span style={{ fontWeight: 700, fontSize: "0.93rem", color: "#111",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 }}>
+                {name}
+              </span>
+              <span style={{
+                padding: "2px 9px", borderRadius: 20, fontSize: "0.63rem",
+                fontWeight: 800, background: meta.bg, color: meta.color,
+                letterSpacing: "0.04em", textTransform: "uppercase", flexShrink: 0,
+              }}>
+                {meta.label}
+              </span>
+            </div>
+            {locationStr && (
+              <div style={{ fontSize: "0.72rem", color: "#999", display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ fontSize: "0.7rem" }}>📍</span> {locationStr}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {provider.bio && (
+          <p style={{
+            fontSize: "0.79rem", color: "#666", lineHeight: 1.55, margin: "0 0 12px",
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+          }}>
+            {provider.bio}
+          </p>
+        )}
+
+        {specialties.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
+            {specialties.slice(0, 3).map((s, i) => (
+              <span key={i} style={{
+                padding: "3px 9px", borderRadius: 20, fontSize: "0.63rem", fontWeight: 600,
+                background: meta.bg, color: meta.color,
+              }}>
+                {s}
+              </span>
+            ))}
+            {specialties.length > 3 && (
+              <span style={{ fontSize: "0.63rem", color: "#bbb", alignSelf: "center" }}>
+                +{specialties.length - 3}
+              </span>
+            )}
           </div>
         )}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-            <span style={{ fontWeight: 700, fontSize: "0.92rem", color: "#1a1a1a",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {name}
-            </span>
-            <span style={{ padding: "1px 8px", borderRadius: 10, fontSize: "0.65rem",
-              fontWeight: 700, background: color + "18", color, flexShrink: 0 }}>
-              {ROLE_LABELS[role]}
-            </span>
+
+        {(membersCount !== null || provider.followersCount > 0) && (
+          <div style={{ display: "flex", gap: 16, marginBottom: 14 }}>
+            {membersCount !== null && (
+              <div style={{ fontSize: "0.72rem", color: "#888" }}>
+                <span style={{ fontWeight: 700, color: meta.color }}>{membersCount}</span> membres
+              </div>
+            )}
+            {provider.followersCount > 0 && (
+              <div style={{ fontSize: "0.72rem", color: "#888" }}>
+                <span style={{ fontWeight: 700, color: meta.color }}>
+                  {provider.followersCount?.toLocaleString()}
+                </span> abonnés
+              </div>
+            )}
           </div>
-          {locationStr && (
-            <div style={{ fontSize: "0.72rem", color: "#aaa", marginTop: 2 }}>{locationStr}</div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* Bio */}
-      {provider.bio && (
-        <p style={{ fontSize: "0.78rem", color: "#666", lineHeight: 1.5, margin: "0 0 10px",
-          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-          overflow: "hidden" }}>
-          {provider.bio}
-        </p>
-      )}
-
-      {/* Tags */}
-      {specialties.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
-          {specialties.slice(0, 4).map((s, i) => (
-            <span key={i} style={{ padding: "2px 8px", borderRadius: 10, fontSize: "0.65rem",
-              fontWeight: 600, background: "#f3f0ff", color: "#7c3aed" }}>
-              {s}
-            </span>
-          ))}
-          {specialties.length > 4 && (
-            <span style={{ fontSize: "0.65rem", color: "#aaa", alignSelf: "center" }}>
-              +{specialties.length - 4}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Stats footer */}
-      <div style={{ display: "flex", gap: 14, borderTop: "1px solid #f0f0f0", paddingTop: 10,
-        marginTop: 4, justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", gap: 14 }}>
-          {membersCount !== null && (
-            <div style={{ fontSize: "0.72rem", color: "#888" }}>
-              <span style={{ fontWeight: 700, color: color }}>{membersCount}</span> membres
-            </div>
-          )}
-          {provider.followersCount > 0 && (
-            <div style={{ fontSize: "0.72rem", color: "#888" }}>
-              <span style={{ fontWeight: 700, color: "#d97706" }}>
-                {provider.followersCount?.toLocaleString()}
-              </span> abonnés
-            </div>
-          )}
-        </div>
+      <div style={{
+        padding: "12px 18px",
+        borderTop: "1px solid #f0f0f0",
+        display: "flex", gap: 8, background: "#fafafa",
+      }}>
+        <button onClick={goProfile}
+          style={{
+            flex: 1, padding: "9px 14px", borderRadius: 9,
+            border: `1.5px solid ${meta.color}`, background: meta.color,
+            color: "#fff", fontWeight: 700, fontSize: "0.8rem",
+            cursor: "pointer", fontFamily: "inherit",
+          }}>
+          Voir le profil
+        </button>
         {isFreelancer && (role === "agency" || role === "team") && (
           <button
             onClick={e => { e.stopPropagation(); onCollab(provider); }}
-            style={{ padding: "5px 12px", borderRadius: 8, fontSize: "0.72rem", fontWeight: 700,
-              border: "1.5px solid #7c3aed", background: "#f3f0ff", color: "#7c3aed",
-              cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+            style={{
+              padding: "9px 13px", borderRadius: 9, fontSize: "0.8rem", fontWeight: 700,
+              border: `1.5px solid ${meta.color}`, background: "#fff", color: meta.color,
+              cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+            }}>
             + Collaborer
           </button>
         )}
@@ -160,31 +186,28 @@ const ProviderCard = ({ provider, index, onCollab, isFreelancer }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
 const BrowseProvidersPage = () => {
   const { user } = useAuth();
   const isFreelancer = user?.role === "freelancer";
 
-  const [providers,   setProviders]   = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [type,        setType]        = useState("all");
-  const [search,      setSearch]      = useState("");
-  const [specialty,   setSpecialty]   = useState("");
-  const [region,      setRegion]      = useState("");
-  const [page,        setPage]        = useState(1);
-  const [pages,       setPages]       = useState(1);
-  const [total,       setTotal]       = useState(0);
+  const [providers,    setProviders]    = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [type,         setType]         = useState("all");
+  const [search,       setSearch]       = useState("");
+  const [specialty,    setSpecialty]    = useState("");
+  const [region,       setRegion]       = useState("");
+  const [page,         setPage]         = useState(1);
+  const [pages,        setPages]        = useState(1);
+  const [total,        setTotal]        = useState(0);
   const [collabTarget, setCollabTarget] = useState(null);
 
   const load = useCallback(async (pg = 1) => {
     setLoading(true);
     try {
       const params = { type, page: pg, limit: 12 };
-      if (search.trim())   params.search    = search.trim();
+      if (search.trim())    params.search    = search.trim();
       if (specialty.trim()) params.specialty = specialty.trim();
-      if (region.trim())   params.region    = region.trim();
+      if (region.trim())    params.region    = region.trim();
 
       const data = await profileService.browseProviders(params);
       setProviders(data.providers || []);
@@ -195,120 +218,140 @@ const BrowseProvidersPage = () => {
     finally { setLoading(false); }
   }, [type, search, specialty, region]);
 
-  useEffect(() => { load(1); }, [type, specialty, region]); // eslint-disable-line
+  useEffect(() => { load(1); }, [type, specialty, region]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    load(1);
-  };
+  const handleSearch = (e) => { e.preventDefault(); load(1); };
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontWeight: 800, fontSize: "1.4rem", margin: "0 0 4px" }}>
+    <div style={{ maxWidth: 1140, margin: "0 auto", padding: "28px 20px 48px" }}>
+      <div style={{ marginBottom: 22 }}>
+        <h2 style={{ fontWeight: 900, fontSize: "1.5rem", margin: "0 0 4px", color: "#111" }}>
           Explorer les prestataires
         </h2>
-        <p style={{ fontSize: "0.82rem", color: "#888", margin: 0 }}>
-          Découvrez des agences, équipes et freelancers — {total} résultat{total !== 1 ? "s" : ""}
+        <p style={{ fontSize: "0.83rem", color: "#888", margin: 0 }}>
+          {loading ? "Chargement…" : `${total} prestataire${total !== 1 ? "s" : ""} disponible${total !== 1 ? "s" : ""}`}
         </p>
       </div>
 
-      {/* Type tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
-        {TYPE_TABS.map(t => (
-          <button key={t.v}
-            onClick={() => setType(t.v)}
-            style={{
-              padding: "7px 16px", borderRadius: 20, fontFamily: "inherit",
-              fontSize: "0.8rem", fontWeight: 700, cursor: "pointer",
-              border: "1.5px solid " + (type === t.v ? "#7c3aed" : "#e5e5e5"),
-              background: type === t.v ? "#7c3aed" : "#fff",
-              color: type === t.v ? "#fff" : "#555",
-              transition: "all 0.15s",
-            }}>
-            {t.l}
-          </button>
-        ))}
+      <BrowseBanner />
+
+      <div style={{
+        display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 20, marginTop: 20,
+      }}>
+        {TYPE_TABS.map(t => {
+          const active = type === t.v;
+          return (
+            <button key={t.v} onClick={() => setType(t.v)}
+              style={{
+                padding: "7px 18px", borderRadius: 22, fontFamily: "inherit",
+                fontSize: "0.8rem", fontWeight: 700, cursor: "pointer",
+                border: "1.5px solid " + (active ? "#c0152a" : "#e5e5e5"),
+                background: active ? "#c0152a" : "#fff",
+                color: active ? "#fff" : "#666",
+                transition: "all 0.14s",
+              }}>
+              {t.l}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Search + filters */}
       <form onSubmit={handleSearch}
-        style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-        <div style={{ position: "relative", flex: 2, minWidth: 200 }}>
-          <span style={{ position: "absolute", left: 10, top: "50%",
-            transform: "translateY(-50%)", color: "#aaa", display: "flex", pointerEvents: "none" }}>
-            <IconSearch size={14} />
+        style={{
+          display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 28,
+          padding: "14px 16px", borderRadius: 14, background: "#f9f9f9",
+          border: "1px solid #ebebeb",
+        }}>
+        <div style={{ position: "relative", flex: "2 1 200px" }}>
+          <span style={{
+            position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)",
+            color: "#bbb", display: "flex", pointerEvents: "none",
+          }}>
+            <IconSearch size={15} />
           </span>
           <input
-            style={{ paddingLeft: 32, width: "100%", padding: "9px 12px 9px 32px",
-              borderRadius: 9, border: "1px solid #ddd", fontFamily: "inherit",
-              fontSize: "0.85rem", background: "#fff", boxSizing: "border-box" }}
-            placeholder="Nom, bio, spécialité..."
+            style={{
+              paddingLeft: 34, width: "100%", padding: "9px 12px 9px 34px",
+              borderRadius: 9, border: "1.5px solid #ddd", fontFamily: "inherit",
+              fontSize: "0.84rem", background: "#fff", boxSizing: "border-box",
+              outline: "none", color: "#1a1a1a",
+            }}
+            placeholder="Rechercher par nom, bio, spécialité..."
             value={search} onChange={e => setSearch(e.target.value)} />
         </div>
+
         <select
-          style={{ flex: 1, minWidth: 130, padding: "9px 12px", borderRadius: 9,
-            border: "1px solid #ddd", fontFamily: "inherit", fontSize: "0.85rem",
-            background: "#fff", color: specialty ? "#1a1a1a" : "#888", cursor: "pointer" }}
-          value={specialty} onChange={e => setSpecialty(e.target.value)}>
+          value={specialty} onChange={e => setSpecialty(e.target.value)}
+          style={{
+            flex: "1 1 150px", padding: "9px 12px", borderRadius: 9,
+            border: "1.5px solid #ddd", fontFamily: "inherit", fontSize: "0.84rem",
+            background: "#fff", color: specialty ? "#111" : "#999", cursor: "pointer", outline: "none",
+          }}>
           <option value="">Toutes spécialités</option>
-          {SPECIALTIES.map(s => <option key={s} value={s} style={{ color: "#1a1a1a" }}>{s}</option>)}
+          {SPECIALTIES.map(s => <option key={s} value={s} style={{ color: "#111" }}>{s}</option>)}
         </select>
+
         <select
-          style={{ flex: 1, minWidth: 130, padding: "9px 12px", borderRadius: 9,
-            border: "1px solid #ddd", fontFamily: "inherit", fontSize: "0.85rem",
-            background: "#fff", color: region ? "#1a1a1a" : "#888", cursor: "pointer" }}
-          value={region} onChange={e => setRegion(e.target.value)}>
-          <option value="">Toutes régions</option>
-          {WILAYAS.map(w => <option key={w} value={w} style={{ color: "#1a1a1a" }}>{w}</option>)}
+          value={region} onChange={e => setRegion(e.target.value)}
+          style={{
+            flex: "1 1 150px", padding: "9px 12px", borderRadius: 9,
+            border: "1.5px solid #ddd", fontFamily: "inherit", fontSize: "0.84rem",
+            background: "#fff", color: region ? "#111" : "#999", cursor: "pointer", outline: "none",
+          }}>
+          <option value="">Toutes wilayas</option>
+          {WILAYAS.map(w => <option key={w} value={w} style={{ color: "#111" }}>{w}</option>)}
         </select>
+
         <button type="submit"
-          style={{ padding: "9px 18px", borderRadius: 9, border: "none",
-            background: "#1a1a1a", color: "#fff", fontFamily: "inherit",
-            fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}>
+          style={{
+            padding: "9px 22px", borderRadius: 9, border: "none",
+            background: "#111", color: "#fff", fontFamily: "inherit",
+            fontSize: "0.84rem", fontWeight: 700, cursor: "pointer", flexShrink: 0,
+          }}>
           Chercher
         </button>
       </form>
 
-      {/* Results */}
       {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: 64 }}>
+        <div style={{ display: "flex", justifyContent: "center", padding: "64px 0" }}>
           <div className="spinner" />
         </div>
       ) : providers.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "64px 16px", color: "#aaa" }}>
-          <div style={{ fontSize: "2rem", marginBottom: 12 }}>◎</div>
-          <div style={{ fontWeight: 700, fontSize: "1rem", color: "#555" }}>
+        <div style={{ textAlign: "center", padding: "80px 16px" }}>
+          <div style={{ fontSize: "3rem", marginBottom: 14 }}>🔍</div>
+          <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "#333", marginBottom: 8 }}>
             Aucun prestataire trouvé
           </div>
-          <div style={{ fontSize: "0.82rem", marginTop: 6 }}>
-            Essayez d'autres filtres.
+          <div style={{ fontSize: "0.83rem", color: "#aaa" }}>
+            Essayez d'autres filtres ou une recherche plus large.
           </div>
         </div>
       ) : (
         <>
-          <div style={{ display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+            gap: 18,
+          }}>
             <AnimatePresence>
               {providers.map((p, i) => (
                 <ProviderCard key={p._id} provider={p} index={i}
-                  isFreelancer={isFreelancer}
-                  onCollab={setCollabTarget} />
+                  isFreelancer={isFreelancer} onCollab={setCollabTarget} />
               ))}
             </AnimatePresence>
           </div>
 
-          {/* Pagination */}
           {pages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 24 }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 32 }}>
               {Array.from({ length: pages }, (_, i) => i + 1).map(p => (
                 <button key={p} onClick={() => load(p)}
-                  style={{ padding: "7px 14px", borderRadius: 8,
-                    border: "1.5px solid " + (p === page ? "#7c3aed" : "#e5e5e5"),
-                    background: p === page ? "#7c3aed" : "#fff",
+                  style={{
+                    width: 36, height: 36, borderRadius: 9, fontFamily: "inherit",
+                    fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",
+                    border: "1.5px solid " + (p === page ? "#c0152a" : "#e5e5e5"),
+                    background: p === page ? "#c0152a" : "#fff",
                     color: p === page ? "#fff" : "#555",
-                    fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 700,
-                    cursor: "pointer" }}>
+                  }}>
                   {p}
                 </button>
               ))}
@@ -316,6 +359,7 @@ const BrowseProvidersPage = () => {
           )}
         </>
       )}
+
       <AnimatePresence>
         {collabTarget && (
           <CollaborationRequestModal

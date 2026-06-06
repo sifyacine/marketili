@@ -2,7 +2,7 @@ import api from "./api";
 
 const postService = {
   create: (data) => {
-    // ✅ Only use FormData when a file is actually attached
+    
     if (data.file) {
       const formData = new FormData();
       Object.keys(data).forEach(key => {
@@ -19,7 +19,7 @@ const postService = {
       }).then(r => r.data);
     }
 
-    // No file — send as JSON so nested objects (budget, location) parse correctly
+    
     return api.post("/posts", data).then(r => r.data);
   },
 

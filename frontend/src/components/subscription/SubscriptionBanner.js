@@ -1,8 +1,8 @@
-// frontend/src/components/subscription/SubscriptionBanner.js
-//
-// Thin status bar shown at the top of dashboards: a hard "subscribe now" prompt
-// when access is gated, or a cancellation notice. Hidden for exempt accounts
-// (members / admin) and for healthy active subscriptions.
+
+
+
+
+
 
 import React from "react";
 import { useNavigate } from "react-router-dom";

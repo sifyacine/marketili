@@ -1,16 +1,16 @@
-// frontend/src/services/projectService.js
+
 
 import api from "./api";
 
 const projectService = {
-  // ── Agency ──
+  
   getAgencyProjects: (agencyId, params = {}) =>
     api.get(`/projects/agency/${agencyId}`, { params }).then(r => r.data),
 
   getProject: (projectId) =>
     api.get(`/projects/${projectId}`).then(r => r.data),
 
-  // Unified per-project timeline (status, deliverables, decisions, contract milestones)
+  
   getHistory: (projectId) =>
     api.get(`/projects/${projectId}/history`).then(r => r.data),
 
@@ -26,11 +26,11 @@ const projectService = {
   sendToStrategist: (agencyId, postId, data) =>
     api.patch(`/projects/agency/${agencyId}/flagged-posts/${postId}/send-to-strategist`, data).then(r => r.data),
 
-  // ── Commercial ──
+  
   flagPost: (agencyId, postId, memberId, memberName, note = "") =>
     api.post(`/projects/flag-post`, { agencyId, postId, memberId, memberName, note }).then(r => r.data),
 
-  // ── Client ── ✅ NEW
+  
   getClientProjects: (clientId, params = {}) =>
     api.get(`/projects/client/${clientId}`, { params }).then(r => r.data),
 
@@ -49,7 +49,7 @@ const projectService = {
   updateDeliverable: (projectId, deliverableId, data) =>
     api.patch(`/projects/${projectId}/deliverables/${deliverableId}`, data).then(r => r.data),
 
-  // ── Tasks ──
+  
   createTask: (projectId, data) =>
     api.post(`/projects/${projectId}/tasks`, data).then(r => r.data),
 
@@ -65,14 +65,14 @@ const projectService = {
   assignMember: (projectId, data) =>
     api.post(`/projects/${projectId}/assign`, data).then(r => r.data),
 
-  // ── Worker / Team member ──
+  
   getMemberTasks: (memberId) =>
     api.get(`/projects/member/${memberId}/tasks`).then(r => r.data),
 
   getMemberProjects: (memberId) =>
     api.get(`/projects/member/${memberId}/projects`).then(r => r.data),
 
-  // ── Team ──
+  
   getTeamProjects: (teamId, params = {}) =>
     api.get(`/projects/team/${teamId}`, { params }).then(r => r.data),
 

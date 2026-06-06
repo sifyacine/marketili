@@ -1,4 +1,4 @@
-// frontend/src/pages/dashboard/agency/DirectorAnalytics.js
+
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -59,7 +59,7 @@ const DirectorAnalytics = ({ user }) => {
 
   const { pitches, projects, tasks, revenue, members } = data;
 
-  // Donut data
+  
   const donutData = [
     { name: PITCH_LABELS.accepted,  value: pitches.accepted,  color: PITCH_COLORS.accepted  },
     { name: PITCH_LABELS.pending,   value: pitches.pending,   color: PITCH_COLORS.pending   },
@@ -84,7 +84,7 @@ const DirectorAnalytics = ({ user }) => {
         </div>
       </div>
 
-      {/* Row 1 — KPI cards */}
+      {}
       <div className="stats-row" style={{ marginBottom: 24 }}>
         <KpiCard label="Pitches envoyés"     value={pitches.total}         sub="au total"         color="#7c3aed" />
         <KpiCard label="Taux de conversion"  value={`${pitches.winRate}%`} sub="pitches acceptés" color="#10b981" />
@@ -92,7 +92,7 @@ const DirectorAnalytics = ({ user }) => {
         <KpiCard label="Tâches en retard"    value={tasks.overdue}         sub="à régulariser"    color="#ef4444" />
       </div>
 
-      {/* Row 2 — Line chart + Donut */}
+      {}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, marginBottom: 24 }}>
         <div className="card" style={{ padding: "20px 22px" }}>
           <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
@@ -136,7 +136,7 @@ const DirectorAnalytics = ({ user }) => {
         </div>
       </div>
 
-      {/* Row 3 — Bar chart + Revenue */}
+      {}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
         <div className="card" style={{ padding: "20px 22px" }}>
           <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "#9a6060",
@@ -177,7 +177,7 @@ const DirectorAnalytics = ({ user }) => {
         </div>
       </div>
 
-      {/* Row 4 — Member productivity table */}
+      {}
       <div className="card">
         <div style={{ padding: "16px 22px", borderBottom: "1px solid #faeaea" }}>
           <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1a0a0a" }}>

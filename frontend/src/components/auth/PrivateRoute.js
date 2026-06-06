@@ -1,15 +1,15 @@
-// frontend/src/components/auth/PrivateRoute.jsx
+
 
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
-/**
- * PrivateRoute — wraps a page that requires authentication.
- * - Not logged in  → /login  (saves current URL to redirect back)
- * - Wrong role     → /unauthorized
- * - OK             → render children
- */
+
+
+
+
+
+
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, role, loading } = useAuth();
   const location = useLocation();

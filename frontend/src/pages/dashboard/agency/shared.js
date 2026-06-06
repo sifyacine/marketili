@@ -1,4 +1,4 @@
-// Shared components used across all agency views
+
 import React from "react";
 import { motion } from "framer-motion";
 import { getDeadlineColor, getDeadlineLabel } from "../../../utils/deadlineColor";
@@ -64,7 +64,7 @@ export const PostCard = ({ post, index, actionLabel, onAction, actionColor, acti
     >
       <div style={{ padding: "16px 18px" }}>
 
-        {/* Header row: status + deadline */}
+        {}
         <div style={{ display: "flex", justifyContent: "space-between",
           alignItems: "center", marginBottom: 10 }}>
           <span className="status-badge open">Ouvert</span>
@@ -73,7 +73,7 @@ export const PostCard = ({ post, index, actionLabel, onAction, actionColor, acti
           </span>
         </div>
 
-        {/* Title */}
+        {}
         <div style={{
           fontWeight: 700, fontSize: "0.92rem", color: "var(--d-ink)",
           marginBottom: 5, lineHeight: 1.35,
@@ -81,7 +81,7 @@ export const PostCard = ({ post, index, actionLabel, onAction, actionColor, acti
           {post.title}
         </div>
 
-        {/* Description excerpt */}
+        {}
         <div style={{
           fontSize: "0.78rem", color: "var(--d-ink-muted)", lineHeight: 1.55,
           marginBottom: 12, overflow: "hidden", display: "-webkit-box",
@@ -90,17 +90,15 @@ export const PostCard = ({ post, index, actionLabel, onAction, actionColor, acti
           {post.description}
         </div>
 
-        {/* Media attachments */}
+        {}
         {post.media?.length > 0 && (
           <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
             {post.media.slice(0, 3).map((m, i) => (
-              m.mimeType?.startsWith("image/") ? (
-                <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
-                  style={{ display: "block", flexShrink: 0 }}>
-                  <img src={uploadService.resolveUrl(m.url)} alt={m.filename}
-                    style={{ width: 64, height: 48, objectFit: "cover",
-                      borderRadius: 6, border: "1px solid #f0dede" }} />
-                </a>
+              (m.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(m.filename || "")) ? (
+                <img key={i} src={uploadService.resolveUrl(m.url)} alt={m.filename}
+                  onError={e => { e.target.style.display = "none"; }}
+                  style={{ width: 64, height: 48, objectFit: "cover",
+                    borderRadius: 6, border: "1px solid #f0dede", flexShrink: 0 }} />
               ) : (
                 <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
                   style={{ display: "flex", alignItems: "center", gap: 4,
@@ -128,7 +126,7 @@ export const PostCard = ({ post, index, actionLabel, onAction, actionColor, acti
           </div>
         )}
 
-        {/* Tags row */}
+        {}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
           {post.marketingType && (
             <span style={{
@@ -150,7 +148,7 @@ export const PostCard = ({ post, index, actionLabel, onAction, actionColor, acti
           ))}
         </div>
 
-        {/* Footer: budget + location + action */}
+        {}
         <div style={{
           display: "flex", alignItems: "center",
           justifyContent: "space-between",

@@ -1,26 +1,19 @@
 import React, { useState } from "react";
 import FileViewerModal from "../ui/FileViewerModal";
 import uploadService from "../../services/uploadService";
-import useFileBlob from "../../hooks/useFileBlob";
 
-// Loads a chat image through the authenticated axios client (so it works
-// behind the dev proxy / cross-origin) and renders the resulting blob.
 const ChatImage = ({ url, alt, onClick }) => {
-  const { blobUrl, loading, error } = useFileBlob(url);
-
-  const box = {
-    width: 220, maxWidth: 220, height: 150, borderRadius: 8,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    background: "rgba(0,0,0,0.06)", color: "#9a6060", fontSize: "0.72rem",
-  };
-
-  if (loading) return <div style={box}>Chargement…</div>;
-  if (error || !blobUrl) return <div style={box}>Image indisponible</div>;
-
+  const src = uploadService.resolveUrl(url);
   return (
     <div onClick={onClick} style={{ cursor: "pointer" }}>
-      <img src={blobUrl} alt={alt}
+      <img src={src} alt={alt}
+        onError={e => { e.target.style.display = "none"; e.target.nextSibling && (e.target.nextSibling.style.display = "flex"); }}
         style={{ maxWidth: 220, maxHeight: 160, borderRadius: 8, display: "block" }} />
+      <div style={{ display: "none", width: 220, height: 60, borderRadius: 8,
+        background: "rgba(0,0,0,0.06)", alignItems: "center", justifyContent: "center",
+        color: "#9a6060", fontSize: "0.72rem" }}>
+        Image indisponible
+      </div>
     </div>
   );
 };
@@ -65,7 +58,7 @@ const MessageBubble = ({ message, isMine }) => {
   const { messageType, content, file, senderName, createdAt } = message;
   const [viewer, setViewer] = useState(null);
 
-  // ── System message ──
+  
   if (messageType === "system") {
     return (
       <div style={{
@@ -77,7 +70,7 @@ const MessageBubble = ({ message, isMine }) => {
     );
   }
 
-  // ── Document-type messages ──
+  
   if (["contract_pdf", "receipt", "bon_de_commande"].includes(messageType)) {
     const meta = TYPE_META[messageType];
     const resolvedFileUrl = file ? uploadService.resolveUrl(file.url) : null;
@@ -133,7 +126,7 @@ const MessageBubble = ({ message, isMine }) => {
     );
   }
 
-  // ── File message ──
+  
   if (messageType === "file" && file) {
     const isPdf   = file.mimeType?.includes("pdf");
     const isImage = file.mimeType?.startsWith("image/");
@@ -206,7 +199,7 @@ const MessageBubble = ({ message, isMine }) => {
     );
   }
 
-  // ── Regular text message ──
+  
   return (
     <div style={{
       display: "flex", flexDirection: isMine ? "row-reverse" : "row",

@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import profileService from "../../services/profileService";
 import uploadService  from "../../services/uploadService";
 import {
-  IconX, IconPlus, IconFileText,
-  IconCamera, IconLink, IconCheck,
+  IconX, IconPlus, IconMapPin, IconCalendar, IconFileText,
+  IconMail, IconPhone, IconGlobe, IconCamera, IconLink,
+  IconCheck, IconAward,
 } from "../ui/Icons";
 
-// ── Formatters ────────────────────────────────────────────────────────────────
+
 export const fmt = (d) =>
   d ? new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "long", year: "numeric" }) : "—";
 
@@ -22,7 +23,7 @@ export const relTime = (d) => {
   return fmt(d);
 };
 
-// ── AvatarCircle ──────────────────────────────────────────────────────────────
+
 export const AvatarCircle = ({ src, name, size = 88, accentColor = "#c0152a" }) => {
   const initials = (name || "?").split(" ").slice(0, 2).map(w => w[0]?.toUpperCase()).join("");
   const ring = {
@@ -44,7 +45,7 @@ export const AvatarCircle = ({ src, name, size = 88, accentColor = "#c0152a" }) 
   );
 };
 
-// ── AvatarEditButton ──────────────────────────────────────────────────────────
+
 export const AvatarEditBtn = ({ onClick, loading, accentColor }) => (
   <button type="button" onClick={onClick} disabled={loading}
     style={{
@@ -63,9 +64,9 @@ export const AvatarEditBtn = ({ onClick, loading, accentColor }) => (
   </button>
 );
 
-// ── InfoGrid ──────────────────────────────────────────────────────────────────
-// items: [{ icon, label, value }]
-// Renders a 2-column grid separated by 1px gaps (the "gap" is the background color showing through)
+
+
+
 export const InfoGrid = ({ items }) => {
   const cells = [...items];
   if (cells.length % 2 !== 0) cells.push({ icon: null, label: "", value: "" });
@@ -95,8 +96,8 @@ export const InfoGrid = ({ items }) => {
   );
 };
 
-// ── StatBar ───────────────────────────────────────────────────────────────────
-// stats: [{ value, label, color }]
+
+
 export const StatBar = ({ stats, isActive, isVerified }) => (
   <div style={{ display: "flex", alignItems: "stretch", borderTop: "1px solid var(--d-border-soft)" }}>
     {stats.map(({ value, label, color }, i) => (
@@ -126,7 +127,7 @@ export const StatBar = ({ stats, isActive, isVerified }) => (
   </div>
 );
 
-// ── TagList ───────────────────────────────────────────────────────────────────
+
 export const TagList = ({ tags = [], color = "var(--d-ink-soft)", bg = "var(--d-bg)" }) =>
   tags.length === 0 ? null : (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
@@ -139,7 +140,7 @@ export const TagList = ({ tags = [], color = "var(--d-ink-soft)", bg = "var(--d-
     </div>
   );
 
-// ── TagInput ──────────────────────────────────────────────────────────────────
+
 export const TagInput = ({ value = [], onChange, placeholder = "Ajouter...", accentColor = "var(--d-accent)" }) => {
   const [input, setInput] = useState("");
   const add = () => {
@@ -184,7 +185,7 @@ export const TagInput = ({ value = [], onChange, placeholder = "Ajouter...", acc
   );
 };
 
-// ── SocialLinks ───────────────────────────────────────────────────────────────
+
 export const SocialLinks = ({ links = {} }) => {
   const entries = Object.entries(links).filter(([, v]) => v);
   if (!entries.length) return null;
@@ -207,7 +208,7 @@ export const SocialLinks = ({ links = {} }) => {
   );
 };
 
-// ── Banners ───────────────────────────────────────────────────────────────────
+
 export const ErrorBanner = ({ message }) =>
   message ? (
     <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -227,7 +228,7 @@ export const SuccessBanner = ({ show }) =>
     </motion.div>
   ) : null;
 
-// ── EditActions ───────────────────────────────────────────────────────────────
+
 export const EditActions = ({ editing, saving, onEdit, onSave, onCancel, accentColor }) => (
   <AnimatePresence mode="wait">
     {editing ? (
@@ -265,7 +266,7 @@ export const EditActions = ({ editing, saving, onEdit, onSave, onCancel, accentC
   </AnimatePresence>
 );
 
-// ── PostFeed ──────────────────────────────────────────────────────────────────
+
 const POST_TYPE_META = {
   update:       { label: "Mise à jour",  color: "#0891b2" },
   achievement:  { label: "Réalisation",  color: "#059669" },

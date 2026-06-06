@@ -1,7 +1,7 @@
-// frontend/src/pages/PrivacyPolicyPage.js
-//
-// Public privacy policy page (Politique de confidentialité). Branded dark theme,
-// linked from the login/register screens and the landing footer.
+
+
+
+
 
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -20,7 +20,7 @@ const PrivacyPolicyPage = () => {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d0b14", color: "#fff", paddingBottom: 60 }}>
-      {/* Header */}
+      {}
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "18px 24px", maxWidth: 820, margin: "0 auto",

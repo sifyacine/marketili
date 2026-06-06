@@ -6,7 +6,7 @@ const mongoose  = require("mongoose");
 const { upload, conn } = require("../config/db");
 const { protect } = require("../middleware/auth");
 
-// 20 uploads per 15 minutes per IP — prevents storage exhaustion
+
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -15,9 +15,9 @@ const uploadLimiter = rateLimit({
   message: { success: false, message: "Limite d'upload atteinte. Réessayez plus tard." },
 });
 
-// POST /api/upload
-// Multer puts the file in memory (req.file.buffer), then we stream it
-// to GridFSBucket using the existing mongoose connection.
+
+
+
 router.post("/", protect, uploadLimiter, upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
@@ -31,7 +31,7 @@ router.post("/", protect, uploadLimiter, upload.single("file"), async (req, res)
 
     const filename = `${Date.now()}-${req.file.originalname.replace(/\s/g, "_")}`;
 
-    // Pre-create ObjectId — uploadStream.id returns Date.now() in Mongoose 9 / driver v6
+    
     const fileId = new mongoose.Types.ObjectId();
 
     const uploadStream = bucket.openUploadStream(filename, {
@@ -45,8 +45,8 @@ router.post("/", protect, uploadLimiter, upload.single("file"), async (req, res)
       },
     });
 
-    // Stream the buffer into GridFS — wrap in array so it emits one Buffer chunk,
-    // not individual bytes (Readable.from iterates Buffers in older Node versions)
+    
+    
     const readable = Readable.from([req.file.buffer]);
     readable.pipe(uploadStream);
 
@@ -78,8 +78,8 @@ router.post("/", protect, uploadLimiter, upload.single("file"), async (req, res)
   }
 });
 
-// GET /api/upload/:id   — stream file from GridFS
-// ?download=1 forces attachment disposition (browser download)
+
+
 router.get("/:id", async (req, res) => {
   try {
     const connection = conn();
@@ -99,8 +99,8 @@ router.get("/:id", async (req, res) => {
     const encodedName  = encodeURIComponent(file.filename || req.params.id);
     const disposition  = req.query.download === "1" ? "attachment" : "inline";
 
-    // Allow cross-origin embedding in iframes (FileViewerModal)
-    // Remove nosniff so browsers can render images/PDFs served before metadata.contentType was added
+    
+    
     res.removeHeader("X-Frame-Options");
     res.removeHeader("Content-Security-Policy");
     res.removeHeader("X-Content-Type-Options");

@@ -1,18 +1,18 @@
-// frontend/src/pages/EditProfilePage.js
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import profileService from "../services/profileService";
 import useAuth from "../hooks/useAuth";
 
-// ── Field definitions per role ────────────────────────────────────────────────
+
 const ROLE_FIELDS = {
   agency: [
     { name: "agencyName",  label: "Nom de l'agence",  type: "text"     },
     { name: "bio",         label: "Bio",              type: "textarea" },
     { name: "phone",       label: "Téléphone",        type: "text"     },
     { name: "website",     label: "Site web",         type: "url"      },
-    { name: "region",      label: "Wilaya / Région",  type: "text"     },
+    { name: "region",      label: "Wilaya",  type: "text"     },
     { name: "specialties", label: "Spécialités",      type: "tags"     },
   ],
   freelancer: [
@@ -29,14 +29,14 @@ const ROLE_FIELDS = {
     { name: "bio",          label: "Bio",                           type: "textarea" },
     { name: "industry",     label: "Secteur d'activité",            type: "text"     },
     { name: "fieldOfWork",  label: "Domaine / Description",         type: "text"     },
-    { name: "region",       label: "Wilaya / Région",               type: "text"     },
+    { name: "region",       label: "Wilaya",               type: "text"     },
     { name: "achievements", label: "Réalisations / Références",     type: "tags"     },
   ],
   team: [
     { name: "teamName",    label: "Nom de l'équipe",  type: "text"     },
     { name: "bio",         label: "Bio",              type: "textarea" },
     { name: "website",     label: "Site web",         type: "url"      },
-    { name: "region",      label: "Wilaya / Région",  type: "text"     },
+    { name: "region",      label: "Wilaya",  type: "text"     },
     { name: "specialties", label: "Spécialités",      type: "tags"     },
   ],
   agency_member: [
@@ -48,7 +48,7 @@ const ROLE_FIELDS = {
   ],
 };
 
-// ── TagInput ──────────────────────────────────────────────────────────────────
+
 const TagInput = ({ label, value = [], onChange }) => {
   const [input, setInput] = useState("");
   const add = () => {
@@ -93,7 +93,7 @@ const TagInput = ({ label, value = [], onChange }) => {
   );
 };
 
-// ── PortfolioEditor ───────────────────────────────────────────────────────────
+
 const PortfolioEditor = ({ items = [], onChange }) => {
   const add = () => onChange([...items, { title: "", description: "", imageUrl: "", link: "" }]);
   const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
@@ -149,9 +149,9 @@ const PortfolioEditor = ({ items = [], onChange }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
+
+
+
 const EditProfilePage = () => {
   const { user }   = useAuth();
   const navigate   = useNavigate();
@@ -167,13 +167,13 @@ const EditProfilePage = () => {
       .then(d => {
         const p = d.profile;
         setForm({
-          // Identity
+          
           agencyName:  p.agencyName  || "",
           teamName:    p.teamName    || "",
           companyName: p.companyName || "",
           firstName:   p.firstName   || "",
           lastName:    p.lastName    || "",
-          // Profile info
+          
           bio:          p.bio          || "",
           phone:        p.phone        || "",
           website:      p.website      || "",
@@ -264,7 +264,7 @@ const EditProfilePage = () => {
               );
             })}
 
-            {/* Social links (freelancer) */}
+            {}
             {user.role === "freelancer" && (
               <div className="dash-form-group">
                 <label className="dash-form-label">Liens sociaux</label>
@@ -281,7 +281,7 @@ const EditProfilePage = () => {
               </div>
             )}
 
-            {/* Portfolio editor for agency/team */}
+            {}
             {hasPortfolio && (
               <PortfolioEditor
                 items={form.portfolioItems}

@@ -1,4 +1,4 @@
-// frontend/src/pages/dashboard/agency/WorkerTasks.js
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { PriorityBadge } from "./shared";
 import projectService from "../../../services/projectService";
@@ -13,7 +13,7 @@ const TASK_STATUS_OPTS = [
   { value: "done",        label: "Terminé"     },
 ];
 
-// Sort helper: closest dueDate first, no dueDate last
+
 const sortByDue = (tasks) =>
   [...tasks].sort((a, b) => {
     if (!a.dueDate && !b.dueDate) return 0;
@@ -44,7 +44,7 @@ const WorkerTasks = ({ user }) => {
     } catch {}
   };
 
-  // Group by project, sort tasks within each group by dueDate
+  
   const grouped = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = q
@@ -115,7 +115,7 @@ const WorkerTasks = ({ user }) => {
   );
 };
 
-// ── Single task row with inline comment thread ────────────────────────────────
+
 const TaskRow = ({ task, isLast, onStatusChange, authUser }) => {
   const [open,        setOpen]        = useState(false);
   const [comments,    setComments]    = useState(task.comments || []);
@@ -148,10 +148,10 @@ const TaskRow = ({ task, isLast, onStatusChange, authUser }) => {
 
   return (
     <div style={{ borderBottom: isLast ? "none" : "1px solid var(--d-border-soft)" }}>
-      {/* Main row */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 12,
         padding: "13px 22px", borderLeft: `3px solid ${dlColor}` }}>
-        {/* Urgency dot */}
+        {}
         <div style={{ width: 8, height: 8, borderRadius: "50%",
           background: dlColor, flexShrink: 0 }} />
 
@@ -194,7 +194,7 @@ const TaskRow = ({ task, isLast, onStatusChange, authUser }) => {
         </div>
       </div>
 
-      {/* Comment thread */}
+      {}
       {open && (
         <div style={{ padding: "12px 22px 16px", background: "var(--d-surface-alt)",
           borderTop: "1px solid var(--d-border-soft)" }}>

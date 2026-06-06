@@ -1,4 +1,4 @@
-// frontend/src/App.js
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
@@ -13,19 +13,29 @@ import FreelancerDashboard from "./pages/dashboard/FreelancerDashboard";
 import TeamDashboard from "./pages/dashboard/TeamDashboard";
 import ChangePasswordPage from "./pages/auth/ChangePasswordPage";
 import VerifyEmailPage    from "./pages/auth/VerifyEmailPage";
+import ResetPasswordPage  from "./pages/auth/ResetPasswordPage";
 import ProfilePage        from "./pages/ProfilePage";
 import EditProfilePage    from "./pages/EditProfilePage";
 import BrowseProvidersPage from "./pages/BrowseProvidersPage";
 import BillingPage         from "./pages/BillingPage";
 import PricingPage         from "./pages/PricingPage";
 import PrivacyPolicyPage   from "./pages/PrivacyPolicyPage";
-//uuyou
+
 let LandingPage;
 try {
   LandingPage = require("./pages/LandingPage").default;
 } catch {
   LandingPage = () => <Navigate to="/login" replace />;
 }
+
+const ComingSoon = ({ role }) => (
+  <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
+    minHeight:"100vh", background:"#fff5f5", flexDirection:"column", gap:16 }}>
+    <div style={{ fontSize:"2.5rem" }}>{role==="team"?"👥":"⚡"}</div>
+    <h2 style={{ color:"#1a0a0a", fontWeight:800 }}>Dashboard {role}</h2>
+    <p style={{ color:"#7a4a4a", fontSize:"0.9rem" }}>Phase suivante — bientôt disponible</p>
+  </div>
+);
 
 function App() {
   return (
@@ -36,14 +46,15 @@ function App() {
         <Route path="/register"     element={<Register />} />
         <Route path="/pricing"      element={<PricingPage />} />
         <Route path="/tarifs"       element={<PricingPage />} />
-        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/verify-email"   element={<VerifyEmailPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/privacy"      element={<PrivacyPolicyPage />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* ✅ Admin handles its own auth internally — no PrivateRoute */}
+        {}
         <Route path="/admin"        element={<AdminDashboard />} />
 
-        {/* Public route (no PrivateRoute wrapper — member is logged in but forced here) */}
+        {}
         <Route path="/change-password" element={<ChangePasswordPage />} />
 
         <Route path="/dashboard/client/*" element={
@@ -67,14 +78,14 @@ function App() {
           </PrivateRoute>
         } />
 
-        {/* Subscription / billing — any authenticated role */}
+        {}
         <Route path="/billing" element={
           <PrivateRoute>
             <BillingPage />
           </PrivateRoute>
         } />
 
-        {/* Public profile & browse routes */}
+        {}
         <Route path="/profile/:role/:id/edit" element={<EditProfilePage />} />
         <Route path="/profile/:role/:id"      element={<ProfilePage />} />
         <Route path="/browse"                 element={<BrowseProvidersPage />} />

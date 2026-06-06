@@ -85,7 +85,7 @@ const FreelancerOverview = ({ user, collaborations, activeContext, onSwitchConte
         )}
       </div>
 
-      {/* Stat cards */}
+      {}
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 28 }}>
         <StatCard icon={<IconBriefcase size={16} />} label="Projets actifs"
           value={activeProjects} color="#0891b2"
@@ -107,7 +107,7 @@ const FreelancerOverview = ({ user, collaborations, activeContext, onSwitchConte
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
 
-          {/* Recent projects */}
+          {}
           <div className="card" style={{ padding: 0 }}>
             <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
               display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -149,7 +149,7 @@ const FreelancerOverview = ({ user, collaborations, activeContext, onSwitchConte
             })}
           </div>
 
-          {/* Recent pitches (independent only) */}
+          {}
           {!activeContext && (
             <div className="card" style={{ padding: 0 }}>
               <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid var(--d-border-soft)",
@@ -200,7 +200,7 @@ const FreelancerOverview = ({ user, collaborations, activeContext, onSwitchConte
             </div>
           )}
 
-          {/* Agency context: show task summary */}
+          {}
           {activeContext && (
             <div className="card" style={{ padding: "20px" }}>
               <div style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 14 }}>

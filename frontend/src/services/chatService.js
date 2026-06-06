@@ -1,11 +1,11 @@
 import api from "./api";
 
 const chatService = {
-  // Project-tied conversation (legacy)
+  
   getConversation: (projectId) =>
     api.get(`/chat/project/${projectId}`).then(r => r.data),
 
-  // Direct conversations
+  
   getMyConversations: () =>
     api.get("/chat/conversations").then(r => r.data),
 
@@ -22,7 +22,7 @@ const chatService = {
       if (content)     form.append("content", content);
       if (messageType) form.append("messageType", messageType);
       if (metadata)    form.append("metadata", JSON.stringify(metadata));
-      // Do NOT set Content-Type manually — axios detects FormData and adds the boundary automatically
+      
       return api.post(`/chat/${conversationId}/messages`, form).then(r => r.data);
     }
     return api.post(`/chat/${conversationId}/messages`, { content, messageType, metadata })

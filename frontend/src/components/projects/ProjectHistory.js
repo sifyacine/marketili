@@ -1,20 +1,20 @@
-// frontend/src/components/projects/ProjectHistory.js
-//
-// Unified, per-project timeline — shows everything that happened on a
-// project (status changes, deliverables, decisions, team changes, and
-// contract milestones) in one chronological view, accessible to both
-// the client and the provider. Backed by GET /api/projects/:id/history.
+
+
+
+
+
+
 
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import projectService from "../../services/projectService";
 
-// Resolve a stored file url. Contract/upload urls are stored as "/api/..."
-// (relative to the API origin), deliverable urls may already be absolute.
+
+
 const API_ORIGIN = (process.env.REACT_APP_API_URL || "http://localhost:5000/api")
   .replace(/\/api\/?$/, "");
 const resolveUrl = (u) =>
-  !u ? null : (/^https?:\/\//.test(u) ? u : API_ORIGIN + (u.startsWith("/") ? u : `/${u}`));
+  !u ? null : (/^https?:\/\//.test(u) ? u : API_ORIGIN + u);
 
 const CAT_META = {
   status:      { label: "Statut",   color: "#0891b2", bg: "#f0f9ff", icon: "📁" },
@@ -66,7 +66,7 @@ const ProjectHistory = ({ projectId }) => {
     [events, filter]
   );
 
-  // Only show filter chips for categories that actually have events
+  
   const availableFilters = useMemo(() => {
     const present = new Set(events.map(e => e.category));
     return FILTER_OPTS.filter(o => o.value === "all" || present.has(o.value));
@@ -114,7 +114,7 @@ const ProjectHistory = ({ projectId }) => {
         </div>
       ) : (
         <div style={{ position: "relative" }}>
-          {/* Vertical timeline line */}
+          {}
           <div style={{
             position: "absolute", left: 19, top: 0, bottom: 0,
             width: 2, background: "#f0eded", zIndex: 0,
@@ -133,7 +133,7 @@ const ProjectHistory = ({ projectId }) => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: Math.min(i * 0.02, 0.3) }}
                     style={{ display: "flex", gap: 16, paddingBottom: 18, position: "relative" }}>
-                    {/* Dot */}
+                    {}
                     <div style={{
                       width: 40, height: 40, borderRadius: "50%",
                       background: meta.bg, border: `2px solid ${meta.color}`,
@@ -143,7 +143,7 @@ const ProjectHistory = ({ projectId }) => {
                       {meta.icon}
                     </div>
 
-                    {/* Content card */}
+                    {}
                     <div className="card" style={{
                       flex: 1, padding: "12px 16px",
                       borderLeft: `3px solid ${meta.color}`, marginBottom: 0,

@@ -1,10 +1,10 @@
-// backend/controllers/collaborationRequestController.js
+
 
 const CollaborationRequest = require("../models/CollaborationRequest");
 const Freelancer           = require("../models/Freelancer");
 const Notification         = require("../models/Notification");
 
-// POST /api/collaboration-requests
+
 const sendRequest = async (req, res) => {
   try {
     const { fromId, fromType, fromName, toId, toType, toName, message, proposedRole } = req.body;
@@ -13,7 +13,7 @@ const sendRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "Champs obligatoires manquants" });
     }
 
-    // Check for an existing pending request between the same pair
+    
     const existing = await CollaborationRequest.findOne({
       fromId, toId, status: "pending",
     });
@@ -30,7 +30,7 @@ const sendRequest = async (req, res) => {
       message, proposedRole,
     });
 
-    // Determine recipient model + role for notification
+    
     const toRoleMap = { Agency: "agency", Team: "team", Client: "client" };
     const toModelMap = { Agency: "Agency", Team: "Team", Client: "Client" };
     const toRole  = toRoleMap[toType]  || "agency";
@@ -52,7 +52,7 @@ const sendRequest = async (req, res) => {
   }
 };
 
-// GET /api/collaboration-requests/mine
+
 const getMyRequests = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
@@ -77,7 +77,7 @@ const getMyRequests = async (req, res) => {
   }
 };
 
-// GET /api/collaboration-requests/incoming
+
 const getIncomingRequests = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
@@ -102,7 +102,7 @@ const getIncomingRequests = async (req, res) => {
   }
 };
 
-// PATCH /api/collaboration-requests/:id/respond
+
 const respondToRequest = async (req, res) => {
   try {
     const { action, declineReason } = req.body;
@@ -125,7 +125,7 @@ const respondToRequest = async (req, res) => {
       request.status = "accepted";
       await request.save();
 
-      // Push agencyCollaborations entry if accepting a freelancer
+      
       if (request.fromType === "Freelancer" && request.toType === "Agency") {
         await Freelancer.findByIdAndUpdate(request.fromId, {
           $push: {
@@ -170,7 +170,7 @@ const respondToRequest = async (req, res) => {
   }
 };
 
-// PATCH /api/collaboration-requests/:id/withdraw
+
 const withdrawRequest = async (req, res) => {
   try {
     const request = await CollaborationRequest.findOne({

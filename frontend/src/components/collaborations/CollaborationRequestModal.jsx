@@ -1,4 +1,4 @@
-// frontend/src/components/collaborations/CollaborationRequestModal.jsx
+
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -83,7 +83,7 @@ const CollaborationRequestModal = ({ target, onClose, onSuccess }) => {
           boxShadow: "0 24px 64px rgba(0,0,0,0.18)",
           overflow: "hidden",
         }}>
-        {/* Header */}
+        {}
         <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid #f0dede",
           display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
@@ -101,7 +101,7 @@ const CollaborationRequestModal = ({ target, onClose, onSuccess }) => {
           </button>
         </div>
 
-        {/* Body */}
+        {}
         <div style={{ padding: "20px 24px" }}>
           <AnimatePresence mode="wait">
             {sent ? (
@@ -122,7 +122,7 @@ const CollaborationRequestModal = ({ target, onClose, onSuccess }) => {
               </motion.div>
             ) : (
               <motion.form key="form" onSubmit={handleSubmit}>
-                {/* Role */}
+                {}
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 600,
                     color: "#9a6060", marginBottom: 6, textTransform: "uppercase",
@@ -141,7 +141,7 @@ const CollaborationRequestModal = ({ target, onClose, onSuccess }) => {
                   </select>
                 </div>
 
-                {/* Message */}
+                {}
                 <div style={{ marginBottom: 18 }}>
                   <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 600,
                     color: "#9a6060", marginBottom: 6, textTransform: "uppercase",

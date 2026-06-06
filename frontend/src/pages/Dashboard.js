@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import "../App.css";
 
-/* ─── Role config ─── */
+
 const ROLE_CONFIG = {
   client: {
     label: "Client",
@@ -176,7 +176,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-layout">
-      {/* ── SIDEBAR ── */}
+      {}
       <aside className="sidebar">
         <div className="sidebar-logo">Marketi<span>LI</span></div>
         <div className="sidebar-role-tag">{config.icon} {config.label}</div>
@@ -213,9 +213,9 @@ const Dashboard = () => {
         </div>
       </aside>
 
-      {/* ── MAIN ── */}
+      {}
       <div className="dashboard-main">
-        {/* Topbar */}
+        {}
         <div className="dashboard-topbar">
           <div>
             <div className="dashboard-topbar-title">{config.topbarTitle}</div>
@@ -233,9 +233,9 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Content */}
+        {}
         <div className="dashboard-content">
-          {/* Stats */}
+          {}
           <div className="stats-row">
             {config.stats.map((stat, i) => (
               <motion.div
@@ -268,9 +268,9 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {/* Content grid */}
+          {}
           <div className="content-grid">
-            {/* Table card */}
+            {}
             <motion.div
               className="content-card"
               variants={fadeUp}
@@ -305,7 +305,7 @@ const Dashboard = () => {
               </div>
             </motion.div>
 
-            {/* Activity feed */}
+            {}
             <motion.div
               className="content-card"
               variants={fadeUp}
@@ -337,7 +337,7 @@ const Dashboard = () => {
                 ))}
               </div>
 
-              {/* Switch role prompt */}
+              {}
               <div style={{ padding: "16px 24px", borderTop: "1px solid #f5f4fb" }}>
                 <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: 10 }}>
                   Explore other dashboards:

@@ -4,9 +4,9 @@ const Team       = require("../models/Team");
 const ok   = (res, data, code = 200) => res.status(code).json({ success: true,  ...data });
 const fail = (res, msg,  code = 400) => res.status(code).json({ success: false, message: msg });
 
-// ─────────────────────────────────────────────
-// CREATE MEMBER  POST /api/team-members/create
-// ─────────────────────────────────────────────
+
+
+
 exports.createMember = async (req, res) => {
   try {
     const { firstName, lastName, email, password, jobTitle, phone } = req.body;
@@ -20,7 +20,7 @@ exports.createMember = async (req, res) => {
       jobTitle, phone, mustChangePassword: true,
     });
 
-    // Push member ref into Team.members
+    
     await Team.findByIdAndUpdate(teamId, { $addToSet: { members: member._id } });
 
     const safe = member.toObject();
@@ -31,9 +31,9 @@ exports.createMember = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// GET MEMBERS  GET /api/team-members
-// ─────────────────────────────────────────────
+
+
+
 exports.getMembers = async (req, res) => {
   try {
     const teamId = req.user._id;
@@ -46,9 +46,9 @@ exports.getMembers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// TOGGLE ACTIVE  PATCH /api/team-members/:id/toggle
-// ─────────────────────────────────────────────
+
+
+
 exports.toggleMember = async (req, res) => {
   try {
     const member = await TeamMember.findById(req.params.id);
@@ -62,9 +62,9 @@ exports.toggleMember = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// RESTORE MEMBER  PATCH /api/team-members/:id/restore
-// ─────────────────────────────────────────────
+
+
+
 exports.restoreMember = async (req, res) => {
   try {
     const member = await TeamMember.findById(req.params.id);
@@ -78,9 +78,9 @@ exports.restoreMember = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// CHANGE PASSWORD  POST /api/team-members/change-password
-// ─────────────────────────────────────────────
+
+
+
 exports.changePassword = async (req, res) => {
   try {
     const { newPassword } = req.body;

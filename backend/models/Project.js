@@ -1,25 +1,25 @@
 const mongoose = require("mongoose");
 
-/**
- * PROJECT MODEL
- *
- * Created automatically when a client accepts a pitch.
- * Same document is referenced by both client and provider
- * but the API returns different views (fields) based on who's asking.
- *
- * Status flow:
- *   pending → active → in_review → completed | cancelled
- */
 
-// ── Task sub-schema ──
-// Tasks live inside a project. They can be assigned to members
-// and represent the actual work items.
+
+
+
+
+
+
+
+
+
+
+
+
+
 const taskSchema = new mongoose.Schema(
   {
     title:       { type: String, required: true, trim: true },
     description: { type: String, trim: true },
 
-    // Who is responsible
+    
     assignedTo: [
       {
         memberType: {
@@ -27,7 +27,7 @@ const taskSchema = new mongoose.Schema(
           enum: ["AgencyMember", "TeamMember", "Freelancer"],
         },
         memberId: mongoose.Schema.Types.ObjectId,
-        // Denormalized name for display without populate
+        
         memberName: String,
       },
     ],
@@ -38,8 +38,8 @@ const taskSchema = new mongoose.Schema(
       default: "todo",
     },
 
-    // Priority affects calendar color:
-    // low=green, medium=yellow, high=orange, urgent=red
+    
+    
     priority: {
       type: String,
       enum: ["low", "medium", "high", "urgent"],
@@ -49,7 +49,7 @@ const taskSchema = new mongoose.Schema(
     dueDate:   Date,
     startDate: Date,
 
-    // Files submitted as deliverables for this task
+    
     deliverables: [
       {
         fileUrl:     String,
@@ -60,7 +60,7 @@ const taskSchema = new mongoose.Schema(
       },
     ],
 
-    // Notes / comments on the task
+    
     comments: [
       {
         authorId:   mongoose.Schema.Types.ObjectId,
@@ -71,7 +71,7 @@ const taskSchema = new mongoose.Schema(
       },
     ],
 
-    // Handover trail — populated when assignedTo changes
+    
     previousAssignees: [
       {
         memberId:   mongoose.Schema.Types.ObjectId,
@@ -84,17 +84,17 @@ const taskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ── Main project schema ──
+
 const projectSchema = new mongoose.Schema(
   {
-    // ── Origin ──
+    
     post:  { type: mongoose.Schema.Types.ObjectId, ref: "Post",  required: true },
     pitch: { type: mongoose.Schema.Types.ObjectId, ref: "Pitch", required: true },
 
-    // ── Parties ──
+    
     client: { type: mongoose.Schema.Types.ObjectId, ref: "Client", required: true },
 
-    // Only one provider type will be set
+    
     providerAgency:     { type: mongoose.Schema.Types.ObjectId, ref: "Agency" },
     providerTeam:       { type: mongoose.Schema.Types.ObjectId, ref: "Team" },
     providerFreelancer: { type: mongoose.Schema.Types.ObjectId, ref: "Freelancer" },
@@ -105,16 +105,16 @@ const projectSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ── Project info ──
+    
     title:       { type: String, required: true, trim: true },
     description: { type: String, trim: true },
 
-    // ── Timeline ──
+    
     startDate:  { type: Date },
     deadline:   { type: Date, required: true },
     completedAt: Date,
 
-    // ── Status ──
+    
     progress: {
   type: Number,
   default: 0
@@ -125,7 +125,7 @@ const projectSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    // ── Members assigned to this project (agency/team only) ──
+    
     assignedMembers: [
       {
         memberType: {
@@ -133,18 +133,18 @@ const projectSchema = new mongoose.Schema(
           enum: ["AgencyMember", "TeamMember", "Freelancer"],
         },
         memberId:   mongoose.Schema.Types.ObjectId,
-        memberName: String,    // denormalized for display
-        role:       String,    // their role on this project
+        memberName: String,    
+        role:       String,    
         assignedAt: { type: Date, default: Date.now },
       },
     ],
 
-    // ── Tasks ──
-    // Embedded for performance — tasks are always loaded with their project
+    
+    
     tasks: [taskSchema],
 
-    // ── Deliverables at project level ──
-    // Overall project files/deliverables (not task-level)
+    
+    
     deliverables: [
       {
         fileUrl:     String,
@@ -156,28 +156,28 @@ const projectSchema = new mongoose.Schema(
       },
     ],
 
-    // ── Financial ──
+    
     agreedPrice: {
       amount:   Number,
       currency: { type: String, default: "DZD" },
     },
 
-    // ── Contract type (for freelancer projects) ──
+    
     contractType: {
       type: String,
       enum: ["cdd", "cdi", "project"],
       default: "project",
     },
 
-    // ── Communication ──
-    // Messages are stored in a separate Message model (Phase 7)
-    // but we keep a reference here
+    
+    
+    
     conversationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Conversation",
     },
 
-    // ── Client notes (client-to-provider communication, distinct from task comments) ──
+    
     notes: [
       {
         authorId:   { type: mongoose.Schema.Types.ObjectId },
@@ -188,7 +188,7 @@ const projectSchema = new mongoose.Schema(
       },
     ],
 
-    // ── Status history for audit trail ──
+    
     statusHistory: [
       {
         status:    String,
@@ -201,7 +201,7 @@ const projectSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ── Indexes ──
+
 projectSchema.index({ client: 1 });
 projectSchema.index({ providerAgency: 1 });
 projectSchema.index({ providerTeam: 1 });

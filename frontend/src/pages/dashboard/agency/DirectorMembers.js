@@ -1,4 +1,4 @@
-// src/pages/dashboard/agency/DirectorMembers.jsx
+
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import agencyMemberService from "../../../services/agencyMemberService";
@@ -6,26 +6,28 @@ import collaborationRequestService from "../../../services/collaborationRequestS
 import { IconUsers } from "../../../components/ui/Icons";
 import ConventionCollaborationForm from "../../../components/pitches/ConventionCollaborationForm";
 
-// ── Constants ──────────────────────────────────────────────────────────────────
-// Grouped by tier so the director understands the hierarchy when creating members
+
+
 const JOB_OPTIONS = [
-  // Sub-directors
+  
   { value: "creative_director",    label: "Directeur Créatif"       },
   { value: "marketing_director",   label: "Directeur Marketing"     },
   { value: "production_director",  label: "Directeur de Production" },
-  // Managers
+  
   { value: "art_director",         label: "Directeur Artistique"    },
   { value: "strategist",           label: "Stratégiste"             },
   { value: "digital_manager",      label: "Digital Manager"         },
   { value: "project_manager",      label: "Chef de Projet"          },
   { value: "social_media_manager", label: "Social Media Manager"    },
-  // Workers
+  
+  { value: "commercial",           label: "Commercial"              },
+  
   { value: "senior",               label: "Senior"                  },
   { value: "junior",               label: "Junior"                  },
 ];
 
 const JOB_LABEL = {
-  // New titles
+  
   creative_director:    "Directeur Créatif",
   marketing_director:   "Directeur Marketing",
   production_director:  "Directeur de Production",
@@ -36,7 +38,7 @@ const JOB_LABEL = {
   social_media_manager: "Social Media Manager",
   senior:               "Senior",
   junior:               "Junior",
-  // Legacy labels kept for existing data
+  
   director:             "Directeur",
   commercial:           "Commercial",
   chef_de_projet:       "Chef de projet",
@@ -74,7 +76,7 @@ const Avatar = ({ member }) => (
   </div>
 );
 
-// ── StatusBadge ───────────────────────────────────────────────────────────────
+
 const StatusBadge = ({ status }) => {
   const meta = STATUS_META[status] || STATUS_META.inactive;
   return (
@@ -87,7 +89,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// ── StatusSelect ──────────────────────────────────────────────────────────────
+
 const StatusSelect = ({ member, onSet, busy }) => {
   const [open, setOpen] = useState(false);
 
@@ -140,7 +142,7 @@ const StatusSelect = ({ member, onSet, busy }) => {
   );
 };
 
-// ── IncomingRequests ──────────────────────────────────────────────────────────
+
 const REQ_STATUS_META = {
   pending:   { label: "En attente", color: "#f59e0b" },
   accepted:  { label: "Acceptée",   color: "#10b981" },
@@ -327,7 +329,7 @@ const IncomingRequests = ({ onAccepted }) => {
   );
 };
 
-// ── FreelancerSection ─────────────────────────────────────────────────────────
+
 const FreelancerSection = ({ user }) => {
   const [tab,            setTab]            = useState("freelancers");
   const [freelancers,    setFreelancers]    = useState([]);
@@ -354,7 +356,7 @@ const FreelancerSection = ({ user }) => {
 
   useEffect(() => { loadFreelancers(); }, []);
 
-  // Debounced name search
+  
   useEffect(() => {
     const q = nameSearch.trim();
     if (!q) { setSearchResults([]); return; }
@@ -407,8 +409,8 @@ const FreelancerSection = ({ user }) => {
     }
   };
 
-  // Treat any collaboration that isn't explicitly "ended" as active, so an
-  // attached freelancer always shows even if its status field is missing/odd.
+  
+  
   const active = freelancers.filter(f => f.collaboration && f.collaboration.status !== "ended");
   const ended  = freelancers.filter(f => f.collaboration?.status === "ended");
 
@@ -431,7 +433,7 @@ const FreelancerSection = ({ user }) => {
         )}
       </div>
 
-      {/* Sub-tab bar */}
+      {}
       <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
         {[
           { id: "freelancers", label: "Actifs & historique" },
@@ -465,7 +467,7 @@ const FreelancerSection = ({ user }) => {
         )}
       </AnimatePresence>
 
-      {/* Attach form */}
+      {}
       <AnimatePresence>
         {showAttach && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
@@ -649,9 +651,9 @@ const FreelancerSection = ({ user }) => {
         </details>
       )}
 
-      </> /* end tab === "freelancers" */}
+      </> }
 
-      {/* Convention de collaboration form modal */}
+      {}
       <AnimatePresence>
         {conventionFor && (
           <ConventionCollaborationForm
@@ -669,10 +671,10 @@ const FreelancerSection = ({ user }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
-// ── MemberHistory modal ───────────────────────────────────────────────────────
+
+
+
+
 const TASK_STATUS_LABEL = {
   todo:        "À faire",
   in_progress: "En cours",
@@ -736,7 +738,7 @@ const MemberHistoryModal = ({ member, onClose }) => {
             </div>
           ) : (
             <>
-              {/* Summary chips */}
+              {}
               <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
                 <div style={{ padding: "8px 14px", borderRadius: 8, background: "#f3f4f6",
                   fontSize: "0.78rem", fontWeight: 600, color: "var(--d-ink)" }}>
@@ -755,7 +757,7 @@ const MemberHistoryModal = ({ member, onClose }) => {
               {history.map((proj, pi) => (
                 <div key={proj._id} style={{ marginBottom: 16, borderRadius: 10,
                   border: "1px solid var(--d-border-soft)", overflow: "hidden" }}>
-                  {/* Project header */}
+                  {}
                   <div style={{ padding: "12px 16px", background: "var(--d-surface)",
                     borderBottom: proj.tasks.length ? "1px solid var(--d-border-soft)" : "none",
                     display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -773,7 +775,7 @@ const MemberHistoryModal = ({ member, onClose }) => {
                     </span>
                   </div>
 
-                  {/* Tasks */}
+                  {}
                   {proj.tasks.map((t, ti) => (
                     <div key={t._id} style={{ display: "flex", alignItems: "center", gap: 10,
                       padding: "10px 16px",
@@ -817,9 +819,9 @@ const MemberHistoryModal = ({ member, onClose }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
-// ROOT
-// ═════════════════════════════════════════════════════════════════════════════
+
+
+
 const DirectorMembers = ({ user }) => {
   const [members,      setMembers]      = useState([]);
   const [loading,      setLoading]      = useState(true);
@@ -974,7 +976,7 @@ const DirectorMembers = ({ user }) => {
         </div>
       ) : (
         <>
-          {/* Active members */}
+          {}
           <div className="card" style={{ overflow: "auto" }}>
             <table className="data-grid">
               <thead>
@@ -988,6 +990,78 @@ const DirectorMembers = ({ user }) => {
                 </tr>
               </thead>
               <tbody>
+                     <AnimatePresence>
+        {showModal && (
+          <motion.div className="modal-overlay"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={e => e.target === e.currentTarget && setShowModal(false)}>
+            <motion.div className="modal-box"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}>
+              <div className="modal-header">
+                <div className="modal-title">Créer un membre</div>
+                <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+              </div>
+              <div className="modal-body">
+                <p style={{ fontSize: "0.82rem", color: "#9a6060", marginBottom: 20,
+                  lineHeight: 1.5, padding: "10px 14px", background: "#fffbfb",
+                  border: "1px solid #faeaea", borderRadius: 8 }}>
+                  Le membre devra changer son mot de passe lors de sa première connexion.
+                </p>
+                <form onSubmit={handleCreate} className="dash-form">
+                  <div className="dash-form-row">
+                    <div className="dash-form-group">
+                      <label className="dash-form-label">Prénom *</label>
+                      <input className="dash-form-input" name="firstName" required
+                        value={form.firstName} onChange={handleChange} />
+                    </div>
+                    <div className="dash-form-group">
+                      <label className="dash-form-label">Nom *</label>
+                      <input className="dash-form-input" name="lastName" required
+                        value={form.lastName} onChange={handleChange} />
+                    </div>
+                  </div>
+                  <div className="dash-form-group">
+                    <label className="dash-form-label">Adresse email *</label>
+                    <input className="dash-form-input" name="email" type="email" required
+                      value={form.email} onChange={handleChange} />
+                  </div>
+                  <div className="dash-form-row">
+                    <div className="dash-form-group">
+                      <label className="dash-form-label">Rôle *</label>
+                      <select className="dash-form-select" name="jobTitle"
+                        value={form.jobTitle} onChange={handleChange}>
+                        {JOB_OPTIONS.map(o => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="dash-form-group">
+                      <label className="dash-form-label">Téléphone</label>
+                      <input className="dash-form-input" name="phone" type="tel"
+                        value={form.phone} onChange={handleChange} />
+                    </div>
+                  </div>
+                  <div className="dash-form-group">
+                    <label className="dash-form-label">Mot de passe temporaire *</label>
+                    <input className="dash-form-input" name="password" type="text" required
+                      placeholder="Min. 8 caractères — à communiquer au membre"
+                      value={form.password} onChange={handleChange} />
+                    <span className="dash-form-hint">
+                      Le membre sera forcé de le changer à la première connexion.
+                    </span>
+                  </div>
+                  {formError && <div className="dash-form-error">{formError}</div>}
+                  <button type="submit" className="dash-form-submit" disabled={saving}>
+                    {saving ? "Création..." : "Créer le compte"}
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
                 <AnimatePresence>
                   {activeMembers.map(m => <MemberRow key={m._id} m={m} showRestore={false} />)}
                 </AnimatePresence>
@@ -995,7 +1069,7 @@ const DirectorMembers = ({ user }) => {
             </table>
           </div>
 
-          {/* Inactive / suspended / archived section */}
+          {}
           {inactiveMembers.length > 0 && (
             <div style={{ marginTop: 20 }}>
               <button
@@ -1044,7 +1118,7 @@ const DirectorMembers = ({ user }) => {
 
       <FreelancerSection user={user} />
 
-      {/* Member history modal */}
+      {}
       <AnimatePresence>
         {historyMember && (
           <MemberHistoryModal
@@ -1054,7 +1128,7 @@ const DirectorMembers = ({ user }) => {
         )}
       </AnimatePresence>
 
-      {/* Create member modal */}
+      {}
       <AnimatePresence>
         {showModal && (
           <motion.div className="modal-overlay"

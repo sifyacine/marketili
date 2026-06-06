@@ -11,7 +11,7 @@ const COLLAB_FR = {
   exposure:    "Exposition",
 };
 
-// ── Strategist selector dropdown ──────────────────────────────────────────────
+
 const StrategistSelector = ({ members, onSelect, onCancel }) => {
   const strategists = (members || []).filter(
     m => m.jobTitle === "strategist" || m.jobTitle === "art_director" ||
@@ -85,7 +85,7 @@ const StrategistSelector = ({ members, onSelect, onCancel }) => {
   );
 };
 
-// ── Flagged post card ─────────────────────────────────────────────────────────
+
 const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members }) => {
   const post      = flagEntry.post;
   const isPitched = flagEntry.pitched;
@@ -122,10 +122,10 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
         flexDirection: "column",
       }}>
 
-      {/* Card body */}
+      {}
       <div style={{ padding: "18px 20px 14px", flex: 1 }}>
 
-        {/* Row 1: status pill + deadline */}
+        {}
         <div style={{ display: "flex", justifyContent: "space-between",
           alignItems: "center", marginBottom: 10 }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 5,
@@ -140,13 +140,13 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
           </span>
         </div>
 
-        {/* Title */}
+        {}
         <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--d-ink)",
           lineHeight: 1.3, marginBottom: 6 }}>
           {post.title}
         </div>
 
-        {/* Description */}
+        {}
         {post.description && (
           <div style={{ fontSize: "0.8rem", color: "var(--d-muted)", lineHeight: 1.55,
             marginBottom: 10, display: "-webkit-box",
@@ -155,11 +155,11 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
           </div>
         )}
 
-        {/* Media attachments */}
+        {}
         {post.media?.length > 0 && (
           <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
             {post.media.slice(0, 3).map((m, i) => (
-              m.mimeType?.startsWith("image/") ? (
+              (m.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp|svg|bmp)$/i.test(m.filename || "")) ? (
                 <a key={i} href={uploadService.resolveUrl(m.url)} target="_blank" rel="noreferrer"
                   style={{ display: "block", flexShrink: 0 }}>
                   <img src={uploadService.resolveUrl(m.url)} alt={m.filename}
@@ -185,7 +185,7 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
           </div>
         )}
 
-        {/* Objectives */}
+        {}
         {post.objectives && (
           <div style={{ fontSize: "0.74rem", color: "#7c3aed", lineHeight: 1.5,
             marginBottom: 10, padding: "6px 10px", borderRadius: 6,
@@ -194,7 +194,7 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
           </div>
         )}
 
-        {/* Tags */}
+        {}
         {(post.marketingType || post.collaborationType || post.categories?.length > 0) && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
             {post.marketingType && (
@@ -218,7 +218,7 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
           </div>
         )}
 
-        {/* Strategist assignment badge */}
+        {}
         {flagEntry.assignedStrategistName && (
           <div style={{ display: "inline-flex", alignItems: "center", gap: 5,
             padding: "4px 10px", borderRadius: 20, fontSize: "0.7rem", fontWeight: 700,
@@ -229,14 +229,14 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
         )}
       </div>
 
-      {/* Card footer */}
+      {}
       <div style={{ borderTop: "1px solid var(--d-border-soft)",
         padding: "12px 20px", display: "flex", alignItems: "center",
         justifyContent: "space-between", gap: 8, background: "#fafafa",
         position: "relative" }}>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Budget */}
+          {}
           <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--d-ink-soft)" }}>
             {post.compensationType === "benefits"
               ? "Avantages uniquement"
@@ -244,7 +244,7 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
                 ? `${(post.budget.min || 0).toLocaleString()} – ${(post.budget.max || 0).toLocaleString()} DZD`
                 : "Budget ouvert"}
           </div>
-          {/* Flagged by */}
+          {}
           <div style={{ display: "flex", alignItems: "center", gap: 5,
             marginTop: 4, fontSize: "0.7rem", color: "var(--d-muted)" }}>
             <IconFlag size={11} />
@@ -261,10 +261,10 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
           </div>
         </div>
 
-        {/* Actions */}
+        {}
         <div style={{ display: "flex", gap: 6, flexShrink: 0, position: "relative" }}>
 
-          {/* Send to Strategist button */}
+          {}
           {!isPitched && onSendToStrategist && (
             <div style={{ position: "relative" }}>
               <motion.button
@@ -295,7 +295,7 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
             </div>
           )}
 
-          {/* Pitch / pitched badge */}
+          {}
           {isPitched ? (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6,
               padding: "7px 14px", borderRadius: 8, fontSize: "0.78rem", fontWeight: 700,
@@ -320,7 +320,7 @@ const FlaggedCard = ({ flagEntry, index, onPitch, onSendToStrategist, members })
   );
 };
 
-// ═════════════════════════════════════════════════════════════════════════════
+
 const DirectorFlaggedPosts = ({
   user, onPitch, flaggedPosts = [], loading, onRefresh,
   onSendToStrategist, members = [],
@@ -353,7 +353,7 @@ const DirectorFlaggedPosts = ({
 
   return (
     <div>
-      {/* ── Page header ── */}
+      {}
       <div className="section-header" style={{ marginBottom: 8 }}>
         <div className="section-header-left">
           <h2>Posts flaggés</h2>
@@ -363,7 +363,7 @@ const DirectorFlaggedPosts = ({
         </div>
       </div>
 
-      {/* ── Summary chips ── */}
+      {}
       {!loading && totalCount > 0 && (
         <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
           <span style={{ padding: "5px 14px", borderRadius: 20, fontSize: "0.75rem",
@@ -385,7 +385,7 @@ const DirectorFlaggedPosts = ({
         </div>
       )}
 
-      {/* ── Filters + search ── */}
+      {}
       {!loading && totalCount > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: 10,
           marginBottom: 20, flexWrap: "wrap" }}>
@@ -420,7 +420,7 @@ const DirectorFlaggedPosts = ({
         </div>
       )}
 
-      {/* ── Content ── */}
+      {}
       {loading ? (
         <div className="spinner-wrap" style={{ padding: 80 }}>
           <div className="spinner" />

@@ -1,7 +1,7 @@
-// frontend/src/hooks/useSubscription.js
-//
-// Loads the current user's subscription (trial / active / expired) and exposes
-// a refetch. Used by the dashboard banner and the billing page.
+
+
+
+
 
 import { useState, useEffect, useCallback } from "react";
 import subscriptionService from "../services/subscriptionService";

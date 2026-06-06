@@ -13,7 +13,7 @@ const mailer = require("../utils/mailer");
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
 
-// Models for the self-registering (email-verifiable) roles.
+
 const VERIFIABLE_MODELS = {
   client:     Client,
   agency:     Agency,
@@ -29,7 +29,7 @@ const generateToken = (id, role) => {
   );
 };
 
-// Short-lived, stateless token carried in the verification link.
+
 const generateEmailToken = (id, role, email) =>
   jwt.sign(
     { id, role, email, purpose: "email_verification" },
@@ -37,7 +37,7 @@ const generateEmailToken = (id, role, email) =>
     { expiresIn: "2d" }
   );
 
-// Build the display name used in emails / activity log.
+
 const deriveName = (role, data = {}) => {
   if (role === "client") return data.firstName ? `${data.firstName} ${data.lastName || ""}`.trim() : data.companyName;
   if (role === "agency") return data.agencyName;
@@ -45,7 +45,7 @@ const deriveName = (role, data = {}) => {
   return `${data.firstName || ""} ${data.lastName || ""}`.trim();
 };
 
-// Fire-and-forget: send the verification email, never blocking the caller.
+
 const sendVerification = (user, role) => {
   try {
     const token = generateEmailToken(user._id, role, user.email);
@@ -99,16 +99,16 @@ const register = async (req, res) => {
       case "freelancer": user = await Freelancer.create(data); break;
     }
 
-    // Create the initial (unpaid) subscription record so the account is tracked
-    // and gated until it subscribes. Non-fatal: never block registration on it.
+    
+    
     try {
       await createInitialSubscription(user._id, role, user.email, user.createdAt);
     } catch (subErr) {
       console.error("⚠️ initial subscription creation failed:", subErr.message);
     }
 
-    // Send the email-verification link (non-blocking). Access is allowed
-    // immediately (soft gate); a banner prompts the user until they verify.
+    
+    
     sendVerification(user, role);
 
     const token = generateToken(user._id, role);
@@ -134,14 +134,14 @@ const register = async (req, res) => {
     return res.status(201).json({ success: true, user: formatUser(user, role) });
 
   } catch (error) {
-    // ✅ Log the real error so we can see it in the terminal
+    
     console.error("❌ Register error:", error.message, error.stack);
 
-    // Duplicate email
+    
     if (error.code === 11000) {
       return res.status(400).json({ success: false, message: "Cet email est déjà utilisé" });
     }
-    // Mongoose validation errors
+    
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map(e => e.message);
       return res.status(400).json({ success: false, message: messages.join(". ") });
@@ -214,8 +214,8 @@ const getMe = async (req, res) => {
   }
 };
 
-// ── POST /api/auth/verify-email  { token } ─────────────────────────────────────
-// Public. Decodes the signed link token and flips isVerified. Idempotent.
+
+
 const verifyEmail = async (req, res) => {
   try {
     const token = req.body.token || req.query.token;
@@ -265,8 +265,8 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-// ── POST /api/auth/resend-verification ─────────────────────────────────────────
-// Protected. Re-sends the verification email to the logged-in user.
+
+
 const resendVerification = async (req, res) => {
   try {
     const role = req.userRole;
@@ -292,6 +292,100 @@ const resendVerification = async (req, res) => {
   }
 };
 
+const ALL_MODELS = [
+  { model: Client,       role: "client"        },
+  { model: Agency,       role: "agency"        },
+  { model: AgencyMember, role: "agency_member" },
+  { model: Team,         role: "team"          },
+  { model: TeamMember,   role: "team_member"   },
+  { model: Freelancer,   role: "freelancer"    },
+];
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: "Email requis." });
+
+    let user = null;
+    let role = null;
+    for (const entry of ALL_MODELS) {
+      const found = await entry.model.findOne({ email: email.toLowerCase().trim() });
+      if (found) { user = found; role = entry.role; break; }
+    }
+
+    // Always return success to not leak whether email exists
+    if (!user) {
+      return res.status(200).json({ success: true, message: "Si cet email existe, un lien de réinitialisation vous a été envoyé." });
+    }
+
+    if (!mailer.isConfigured()) {
+      return res.status(503).json({
+        success: false,
+        code: "MAIL_NOT_CONFIGURED",
+        message: "L'envoi d'emails n'est pas encore configuré côté serveur. Contactez l'administrateur.",
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role, email: user.email, purpose: "password_reset" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    const link = `${FRONTEND_URL}/reset-password?token=${token}`;
+    mailer.sendPasswordResetEmail({ to: user.email, name: deriveName(role, user), link })
+      .catch(err => console.error("⚠️ password reset email failed:", err.message));
+
+    return res.status(200).json({ success: true, message: "Si cet email existe, un lien de réinitialisation vous a été envoyé." });
+  } catch (err) {
+    console.error("❌ forgotPassword error:", err);
+    return res.status(500).json({ success: false, message: "Erreur serveur." });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ success: false, message: "Token et mot de passe requis." });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: "Le mot de passe doit contenir au moins 6 caractères." });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      const expired = err.name === "TokenExpiredError";
+      return res.status(400).json({
+        success: false,
+        code: expired ? "TOKEN_EXPIRED" : "TOKEN_INVALID",
+        message: expired
+          ? "Ce lien a expiré. Demandez un nouveau lien de réinitialisation."
+          : "Lien invalide.",
+      });
+    }
+
+    if (decoded.purpose !== "password_reset") {
+      return res.status(400).json({ success: false, message: "Lien invalide." });
+    }
+
+    const entry = ALL_MODELS.find(e => e.role === decoded.role);
+    if (!entry) return res.status(400).json({ success: false, message: "Lien invalide." });
+
+    const user = await entry.model.findById(decoded.id).select("+password");
+    if (!user) return res.status(404).json({ success: false, message: "Compte introuvable." });
+
+    user.password = password;
+    await user.save();
+
+    return res.status(200).json({ success: true, message: "Mot de passe réinitialisé avec succès. Vous pouvez vous connecter." });
+  } catch (err) {
+    console.error("❌ resetPassword error:", err);
+    return res.status(500).json({ success: false, message: "Erreur serveur." });
+  }
+};
+
 const logout = async (req, res) => {
   try {
     const isProd = process.env.NODE_ENV === "production";
@@ -307,4 +401,4 @@ const logout = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, logout, verifyEmail, resendVerification };
+module.exports = { register, login, getMe, logout, verifyEmail, resendVerification, forgotPassword, resetPassword };

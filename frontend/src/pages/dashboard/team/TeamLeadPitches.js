@@ -25,7 +25,7 @@ const fmt = (d) => d
 
 const PAGE_SIZE = 12;
 
-// ── Expandable pitch card ──────────────────────────────────────────────────────
+
 const PitchCard = ({ p, index, onWithdraw, withdrawing }) => {
   const [expanded, setExpanded] = useState(false);
   const meta = STATUS_META[p.status] || STATUS_META.pending;
@@ -177,7 +177,7 @@ const TeamLeadPitches = ({ user }) => {
 
   useEffect(() => { load(); }, [load]);
 
-  // Real-time: refetch when pitch status changes or a pitch notification arrives
+  
   useEffect(() => {
     const socket = getSocket();
     const onPitchUpdate = () => load();

@@ -1,4 +1,4 @@
-// src/pages/dashboard/agency/DirectorOverview.jsx
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { StatCard, ProgressBar } from "./shared";
@@ -22,7 +22,7 @@ const DirectorOverview = ({ user, flaggedPosts = [], projects = [] }) => {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
-        {/* Recent flagged posts */}
+        {}
         <div className="card" style={{ cursor: "pointer" }} onClick={() => navigate("/dashboard/agency/flagged")}>
           <div className="card-header">
             <div className="section-head" style={{ marginBottom: 0 }}>
@@ -61,7 +61,7 @@ const DirectorOverview = ({ user, flaggedPosts = [], projects = [] }) => {
           </div>
         </div>
 
-        {/* Active projects */}
+        {}
         <div className="card" style={{ cursor: "pointer" }} onClick={() => navigate("/dashboard/agency/projects")}>
           <div className="card-header">
             <div className="section-head" style={{ marginBottom: 0 }}>

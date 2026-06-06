@@ -2,9 +2,10 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePitchesForClient } from "../../hooks/usePitches";
 import pitchService from "../../services/pitchService";
+import uploadService from "../../services/uploadService";
 import { IconInbox, IconSearch } from "../../components/ui/Icons";
 
-// ── Pitch Detail Modal ────────────────────────────────────────────────────────
+
 const PitchDetailModal = ({ pitch, onClose }) => {
   if (!pitch) return null;
   const s = pitch.strategy || {};
@@ -125,6 +126,38 @@ const PitchDetailModal = ({ pitch, onClose }) => {
             </div>
           )}
         </div>
+
+        {pitch.attachments?.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.78rem", color: "#c0152a",
+              textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
+              Fichiers joints
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {pitch.attachments.map((att, i) => {
+                const src = uploadService.resolveUrl(att.url);
+                const isImg = att.mimeType?.startsWith("image/") ||
+                  /\.(jpe?g|png|gif|webp|svg)$/i.test(att.filename || "");
+                return isImg ? (
+                  <a key={i} href={src} target="_blank" rel="noreferrer">
+                    <img src={src} alt={att.filename}
+                      onError={e => { e.target.style.display = "none"; }}
+                      style={{ width: 100, height: 75, objectFit: "cover",
+                        borderRadius: 6, border: "1px solid #eee", display: "block" }} />
+                  </a>
+                ) : (
+                  <a key={i} href={src} target="_blank" rel="noreferrer" download
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6,
+                      padding: "6px 12px", borderRadius: 8, border: "1px solid #eee",
+                      background: "#f8f8f8", fontSize: "0.78rem", color: "#444",
+                      textDecoration: "none" }}>
+                    📎 {att.filename || "Fichier"}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -148,7 +181,7 @@ const FILTER_TABS = [
 const fmt = (d) =>
   new Date(d).toLocaleDateString("fr-DZ", { day: "2-digit", month: "short", year: "numeric" });
 
-// ── Accept modal ─────────────────────────────────────────────────────────────
+
 const AcceptModal = ({ pitch, onConfirm, onClose }) => {
   const [withContract, setWithContract] = useState(false);
   if (!pitch) return null;
@@ -172,7 +205,7 @@ const AcceptModal = ({ pitch, onConfirm, onClose }) => {
           Vous allez accepter l'offre de <strong>{providerName}</strong>. Les autres offres en attente seront automatiquement rejetées.
         </div>
 
-        {/* Contract toggle */}
+        {}
         <div style={{ background: "#f9f9f9", borderRadius: 10, padding: "14px 16px", marginBottom: 20 }}>
           <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1a0a0a", marginBottom: 12,
             textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -300,7 +333,7 @@ const ClientPitches = ({ user }) => {
         </div>
       </div>
 
-      {/* Stats row */}
+      {}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
         {[
           { label: "En attente", count: counts.pending,   color: "#f59e0b" },
@@ -327,7 +360,7 @@ const ClientPitches = ({ user }) => {
         </div>
       )}
 
-      {/* Filters */}
+      {}
       <div className="filters-bar">
         <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
           <span style={{
@@ -363,7 +396,7 @@ const ClientPitches = ({ user }) => {
         <PitchDetailModal pitch={selectedPitch} onClose={() => setSelectedPitch(null)} />
       )}
 
-      {/* Table */}
+      {}
       {loading ? (
         <div className="spinner-wrap"><div className="spinner" /></div>
       ) : filtered.length === 0 ? (

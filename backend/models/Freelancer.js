@@ -87,7 +87,7 @@ const freelancerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ FIXED
+
 freelancerSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(12);

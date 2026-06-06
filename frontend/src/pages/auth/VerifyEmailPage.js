@@ -1,7 +1,7 @@
-// frontend/src/pages/auth/VerifyEmailPage.js
-//
-// Landing page for the verification link emailed at signup. Reads ?token=,
-// confirms it with the backend, and shows a branded success / error state.
+
+
+
+
 
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -15,7 +15,7 @@ const VerifyEmailPage = () => {
   const [params] = useSearchParams();
   const { isAuthenticated, user, role, updateUser } = useAuth();
 
-  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [status, setStatus] = useState("loading"); 
   const [message, setMessage] = useState("");
   const [code, setCode] = useState(null);
   const [resending, setResending] = useState(false);
@@ -23,7 +23,7 @@ const VerifyEmailPage = () => {
   const ranRef = useRef(false);
 
   useEffect(() => {
-    if (ranRef.current) return; // guard against double-run in StrictMode
+    if (ranRef.current) return; 
     ranRef.current = true;
 
     const token = params.get("token");
@@ -45,7 +45,7 @@ const VerifyEmailPage = () => {
         setCode(err.response?.data?.code || null);
         setMessage(err.response?.data?.message || "La vérification a échoué. Réessayez.");
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   const handleResend = () => {
@@ -118,7 +118,7 @@ const VerifyEmailPage = () => {
               {message}
             </p>
 
-            {/* Expired / invalid → let a logged-in user request a fresh link */}
+            {}
             {isAuthenticated && !user?.isVerified && (
               <>
                 <button onClick={handleResend} disabled={resending} style={{ ...primaryBtn, opacity: resending ? 0.7 : 1 }}>

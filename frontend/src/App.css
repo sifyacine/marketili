@@ -1,4 +1,4 @@
-/* ===== SIGNUP PAGE ===== */
+
 .signup-page {
   min-height: 100vh;
   display: flex;
@@ -92,7 +92,7 @@
 
 .signup-feature-text { font-size: 0.83rem; color: rgba(255,255,255,0.55); }
 
-/* Right side */
+
 .signup-right {
   flex: 1;
   display: flex;
@@ -224,14 +224,14 @@
   text-decoration: none;
 }
 
-/* ===== DASHBOARD ===== */
+
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
   background: #f4f3ff;
 }
 
-/* Sidebar */
+
 .sidebar {
   width: 256px;
   flex-shrink: 0;
@@ -347,7 +347,7 @@
 .sidebar-user-name { font-size: 0.82rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sidebar-user-role { font-size: 0.72rem; color: var(--text-muted); }
 
-/* Main dashboard area */
+
 .dashboard-main { flex: 1; overflow: auto; }
 
 .dashboard-topbar {
@@ -414,7 +414,7 @@
 
 .dashboard-content { padding: 32px 36px; }
 
-/* Stats row */
+
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -465,7 +465,7 @@
 .stat-card-change.up { color: #10b981; }
 .stat-card-change.down { color: #f43f5e; }
 
-/* Content grid */
+
 .content-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -503,7 +503,7 @@
 
 .content-card-action:hover { background: #ddd6fe; }
 
-/* Table */
+
 .data-table { width: 100%; padding: 16px 0; }
 
 .table-row {
@@ -549,7 +549,7 @@
 .status-badge.review { background: var(--accent-soft); color: var(--accent); }
 .status-badge.closed { background: #f3f4f6; color: #6b7280; }
 
-/* Activity feed */
+
 .activity-list { padding: 16px 0; }
 
 .activity-item {
@@ -584,7 +584,7 @@
 .activity-text strong { font-weight: 600; }
 .activity-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
 
-/* Mini progress bar */
+
 .progress-bar-wrap { margin-top: 8px; }
 .progress-bar-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; }
 .progress-bar-track { height: 5px; background: #eeedf7; border-radius: 3px; overflow: hidden; }
