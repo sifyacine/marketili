@@ -5,13 +5,10 @@
 
 [build.environment]
   NODE_VERSION = "18"
-<<<<<<< HEAD
   # Safety net: CRA treats ESLint warnings as fatal errors when CI is set
   # (Netlify sets CI=true automatically). The tree is warning-clean, so this
   # is belt-and-suspenders — a future stray warning won't block the deploy.
   CI = "false"
-=======
->>>>>>> dd5b8644bc953b4bd1062cefc3b4219dac090c88
   # Talk to the backend through a same-origin relative path so the browser
   # only ever makes HTTPS requests to the Netlify domain. The /api and
   # /socket.io rewrites below proxy these to the (HTTP-only) backend
